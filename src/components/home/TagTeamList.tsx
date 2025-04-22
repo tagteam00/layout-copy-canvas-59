@@ -1,3 +1,4 @@
+
 import React from "react";
 import { TagTeamCard } from "./TagTeamCard";
 import { AddTeamButton } from "./AddTeamButton";
@@ -9,6 +10,8 @@ interface TagTeam {
   timeLeft: string;
   frequency: string;
   members: string;
+  isLogged?: boolean;
+  partnerLogged?: boolean;
 }
 
 interface TagTeamListProps {
@@ -20,18 +23,12 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
   teams,
   onAddTeam,
 }) => {
-  const handleAddTeam = () => {
-    if (onAddTeam) {
-      onAddTeam();
-    }
-  };
-
   return (
-    <section className="flex w-full flex-col text-black leading-none mt-5 px-[15px]">
-      <div className="flex items-center gap-[9px] text-xs text-black font-normal leading-none">
-        <div className="border self-stretch w-[133px] shrink-0 h-px my-auto border-[rgba(0,0,0,0.5)] border-solid" />
-        <h2 className="self-stretch">Active tagteams</h2>
-        <div className="border self-stretch w-[133px] shrink-0 h-px my-auto border-[rgba(0,0,0,0.5)] border-solid" />
+    <section className="flex w-full flex-col text-black mt-5 px-4">
+      <div className="flex items-center gap-[9px] text-xs text-black font-normal">
+        <div className="border flex-1 h-px border-[rgba(0,0,0,0.5)] border-solid" />
+        <h2 className="whitespace-nowrap">Active tagteams</h2>
+        <div className="border flex-1 h-px border-[rgba(0,0,0,0.5)] border-solid" />
       </div>
 
       {teams.length === 0 ? (
@@ -39,19 +36,23 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
           No active teams. Create your first team!
         </div>
       ) : (
-        teams.map((team) => (
-          <TagTeamCard
-            key={team.id}
-            name={team.name}
-            category={team.category}
-            timeLeft={team.timeLeft}
-            frequency={team.frequency}
-            members={team.members}
-          />
-        ))
+        <div className="space-y-4 mt-4">
+          {teams.map((team) => (
+            <TagTeamCard
+              key={team.id}
+              name={team.name}
+              category={team.category}
+              timeLeft={team.timeLeft}
+              frequency={team.frequency}
+              members={team.members}
+              isLogged={team.isLogged}
+              partnerLogged={team.partnerLogged}
+            />
+          ))}
+        </div>
       )}
 
-      <AddTeamButton onClick={handleAddTeam} />
+      <AddTeamButton onClick={onAddTeam} />
     </section>
   );
 };

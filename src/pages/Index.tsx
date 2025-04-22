@@ -75,12 +75,15 @@ const Index: React.FC = () => {
   };
 
   return (
-    <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto">
-      <ProfileHeader
-        username={userProfile.username}
-        interests={userProfile.interests}
-      />
-      <TagTeamList teams={tagTeams} onAddTeam={handleOpenSheet} />
+    <main className="flex flex-col min-h-screen bg-white max-w-[480px] w-full mx-auto relative pb-20">
+      <div className="flex-1 overflow-y-auto">
+        <ProfileHeader
+          username={userProfile.username}
+          interests={userProfile.interests}
+        />
+        <TagTeamList teams={tagTeams} onAddTeam={handleOpenSheet} />
+      </div>
+
       <BottomNavigation items={navItems} />
 
       <CreateTeamSheet

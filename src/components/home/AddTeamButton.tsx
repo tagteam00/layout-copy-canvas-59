@@ -9,7 +9,7 @@ export const AddTeamButton: React.FC<AddTeamButtonProps> = ({ onClick }) => {
   return (
     <button
       onClick={onClick}
-      className="fixed bottom-24 right-8 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[rgba(130,122,255,0.5)] rounded-full"
+      className="fixed bottom-24 right-8 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[rgba(130,122,255,0.5)] rounded-full z-40"
       aria-label="Add new team"
     >
       <img
