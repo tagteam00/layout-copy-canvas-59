@@ -1,10 +1,13 @@
 
 import React, { useState } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import { CreateTeamStep } from "@/types/tagteam";
+import { NameStep } from "./steps/NameStep";
+import { InterestStep } from "./steps/InterestStep";
+import { PartnerStep } from "./steps/PartnerStep";
+import { FrequencyStep } from "./steps/FrequencyStep";
+import { StepIndicator } from "@/components/onboarding/StepIndicator";
 
 interface CreateTeamSheetProps {
   isOpen: boolean;
@@ -19,122 +22,125 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
   onCreateTeam,
   categories,
 }) => {
+  const [currentStep, setCurrentStep] = useState<CreateTeamStep>("name");
   const [teamName, setTeamName] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [frequency, setFrequency] = useState("Everyday");
-  const [members, setMembers] = useState("");
+  const [selectedPartner, setSelectedPartner] = useState("");
+  const [frequency, setFrequency] = useState<{ type: 'daily' | 'weekly'; day?: string }>({
+    type: 'daily'
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const steps: CreateTeamStep[] = ["name", "interest", "partner", "frequency"];
+  const currentStepIndex = steps.indexOf(currentStep);
 
+  const handleNext = () => {
+    const nextStep = steps[currentStepIndex + 1];
+    if (nextStep) {
+      setCurrentStep(nextStep);
+    } else {
+      handleSubmit();
+    }
+  };
+
+  const handleBack = () => {
+    const prevStep = steps[currentStepIndex - 1];
+    if (prevStep) {
+      setCurrentStep(prevStep);
+    }
+  };
+
+  const handleSubmit = () => {
     const newTeam = {
       id: Date.now().toString(),
       name: teamName,
       category: selectedCategory,
       timeLeft: "24hrs Left",
-      frequency: frequency,
-      members: members,
+      frequency: frequency.type === 'weekly' ? `Weekly (${frequency.day})` : 'Daily',
+      members: `${selectedPartner}`,
     };
 
     onCreateTeam(newTeam);
     resetForm();
+    onClose();
   };
 
   const resetForm = () => {
     setTeamName("");
     setSelectedCategory("");
-    setFrequency("Everyday");
-    setMembers("");
+    setSelectedPartner("");
+    setFrequency({ type: 'daily' });
+    setCurrentStep("name");
+  };
+
+  const canProceed = () => {
+    switch (currentStep) {
+      case "name":
+        return teamName.trim().length > 0;
+      case "interest":
+        return selectedCategory.length > 0;
+      case "partner":
+        return selectedPartner.length > 0;
+      case "frequency":
+        return frequency.type === 'daily' || (frequency.type === 'weekly' && frequency.day);
+      default:
+        return false;
+    }
+  };
+
+  const getCurrentStep = () => {
+    switch (currentStep) {
+      case "name":
+        return <NameStep teamName={teamName} setTeamName={setTeamName} />;
+      case "interest":
+        return (
+          <InterestStep
+            categories={categories}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+          />
+        );
+      case "partner":
+        return (
+          <PartnerStep
+            selectedCategory={selectedCategory}
+            onSelectPartner={setSelectedPartner}
+          />
+        );
+      case "frequency":
+        return <FrequencyStep frequency={frequency} setFrequency={setFrequency} />;
+      default:
+        return null;
+    }
   };
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="bottom" className="h-4/5 rounded-t-xl">
+      <SheetContent side="bottom" className="h-[85vh] rounded-t-xl">
         <SheetHeader className="mb-6">
           <SheetTitle>Create New TagTeam</SheetTitle>
-          <SheetDescription>
-            Form a new accountability partnership
-          </SheetDescription>
+          <StepIndicator currentStep={currentStepIndex + 1} totalSteps={steps.length} />
         </SheetHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Team Name</label>
-            <Input
-              type="text"
-              value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
-              className="w-full border border-[rgba(130,122,255,0.41)] rounded-xl"
-              placeholder="Name your TagTeam"
-              required
-            />
-          </div>
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
+          {getCurrentStep()}
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Category</label>
-            <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
-                <Badge
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  className={`cursor-pointer ${
-                    selectedCategory === category
-                      ? "bg-[rgba(130,122,255,1)]"
-                      : "hover:bg-[rgba(130,122,255,0.1)]"
-                  }`}
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Frequency</label>
-            <Select
-              value={frequency}
-              onValueChange={setFrequency}
-            >
-              <SelectTrigger className="w-full border border-[rgba(130,122,255,0.41)] rounded-xl">
-                <SelectValue placeholder="Select frequency" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Everyday">Everyday</SelectItem>
-                <SelectItem value="Weekly">Weekly</SelectItem>
-                <SelectItem value="Weekdays">Weekdays</SelectItem>
-                <SelectItem value="Weekends">Weekends</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Partner's Name
-            </label>
-            <Input
-              type="text"
-              value={members}
-              onChange={(e) => setMembers(e.target.value)}
-              className="w-full border border-[rgba(130,122,255,0.41)] rounded-xl"
-              placeholder="e.g. Parth - Divij"
-              required
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex justify-between gap-2 mt-8">
+            {currentStepIndex > 0 && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleBack}
+              >
+                Back
+              </Button>
+            )}
             <Button
               type="button"
-              variant="outline"
-              onClick={onClose}
+              className="bg-black text-white hover:bg-black/90 ml-auto"
+              onClick={handleNext}
+              disabled={!canProceed()}
             >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              className="bg-black text-white hover:bg-black/90"
-            >
-              Create Team
+              {currentStepIndex === steps.length - 1 ? "Create Team" : "Next"}
             </Button>
           </div>
         </form>
