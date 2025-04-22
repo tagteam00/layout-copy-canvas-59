@@ -1,17 +1,11 @@
 
 import React, { useState } from "react";
-import { ProfileHeader } from "@/components/home/ProfileHeader";
-import { TagTeamList } from "@/components/home/TagTeamList";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
+import { TagTeamCard } from "@/components/home/TagTeamCard";
+import { AddTeamButton } from "@/components/home/AddTeamButton";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
 
-const Index: React.FC = () => {
-  // State for user profile
-  const [userProfile, setUserProfile] = useState({
-    username: "Divij",
-    interests: ["Swimming", "Gym", "Football"],
-  });
-
+const TagTeamHub: React.FC = () => {
   // State for tag teams
   const [tagTeams, setTagTeams] = useState([
     {
@@ -30,10 +24,18 @@ const Index: React.FC = () => {
       frequency: "Everyday",
       members: "Parth - Divij",
     },
+    {
+      id: "3",
+      name: "Runners",
+      category: "Running",
+      timeLeft: "5hrs Left",
+      frequency: "Everyday",
+      members: "Divij - Alex",
+    },
   ]);
 
   // State for active navigation tab
-  const [activeTab, setActiveTab] = useState("home");
+  const [activeTab, setActiveTab] = useState("tagteam");
 
   // State for sheet visibility
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -63,25 +65,45 @@ const Index: React.FC = () => {
     },
   ];
 
+  // Handler for logging activity
+  const handleLogActivity = (teamId: string) => {
+    // To be implemented with activity logging sheet
+    console.log("Log activity for team:", teamId);
+  };
+
   // Handler for adding a new team
   const handleAddTeam = (newTeam) => {
     setTagTeams([...tagTeams, newTeam]);
     setIsSheetOpen(false);
   };
 
-  // Handler for opening the sheet
-  const handleOpenSheet = () => {
-    setIsSheetOpen(true);
-  };
-
   return (
     <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto">
-      <ProfileHeader
-        username={userProfile.username}
-        interests={userProfile.interests}
-      />
-      <TagTeamList teams={tagTeams} onAddTeam={handleOpenSheet} />
+      <div className="p-4">
+        <h1 className="text-2xl font-bold mb-6">TagTeam Hub</h1>
+        
+        <div className="mb-4">
+          <p className="text-sm text-gray-600">
+            Track and manage all your active TagTeams
+          </p>
+        </div>
+
+        {tagTeams.map((team) => (
+          <div key={team.id} onClick={() => handleLogActivity(team.id)}>
+            <TagTeamCard
+              name={team.name}
+              category={team.category}
+              timeLeft={team.timeLeft}
+              frequency={team.frequency}
+              members={team.members}
+            />
+          </div>
+        ))}
+      </div>
+
       <BottomNavigation items={navItems} />
+      
+      <AddTeamButton onClick={() => setIsSheetOpen(true)} />
 
       <CreateTeamSheet
         isOpen={isSheetOpen}
@@ -93,4 +115,4 @@ const Index: React.FC = () => {
   );
 };
 
-export default Index;
+export default TagTeamHub;
