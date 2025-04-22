@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Badge } from "@/components/ui/Badge";
+import { Badge } from "@/components/ui/badge";
 
 interface CreateTeamModalProps {
   isOpen: boolean;
