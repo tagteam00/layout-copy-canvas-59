@@ -1,5 +1,5 @@
-
 import React, { useState } from "react";
+import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { TagTeamCard } from "@/components/home/TagTeamCard";
 import { AddTeamButton } from "@/components/home/AddTeamButton";
@@ -79,6 +79,7 @@ const TagTeamHub: React.FC = () => {
 
   return (
     <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto">
+      <AppHeader />
       <div className="p-4">
         <h1 className="text-2xl font-bold mb-6">TagTeam Hub</h1>
         

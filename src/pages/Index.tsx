@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from "react";
-import { ProfileHeader } from "@/components/home/ProfileHeader";
+import { AppHeader } from "@/components/layout/AppHeader";
 import { TagTeamList } from "@/components/home/TagTeamList";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
@@ -86,11 +87,21 @@ const Index: React.FC = () => {
 
   return (
     <main className="flex flex-col min-h-screen bg-white max-w-[480px] w-full mx-auto relative pb-20">
+      <AppHeader />
       <div className="flex-1 overflow-y-auto">
-        <ProfileHeader
-          username={userProfile.username}
-          interests={userProfile.interests}
-        />
+        <div className="px-4 py-6">
+          <h1 className="text-2xl font-bold mb-2">Hello, {userProfile.username}</h1>
+          <div className="flex items-center gap-1 mt-2">
+            {userProfile.interests.map((interest, index) => (
+              <div
+                key={index}
+                className="bg-[rgba(130,122,255,1)] text-xs text-white px-2 py-1 rounded-xl whitespace-nowrap"
+              >
+                {interest}
+              </div>
+            ))}
+          </div>
+        </div>
         <TagTeamList teams={tagTeams} onAddTeam={handleOpenSheet} />
       </div>
 

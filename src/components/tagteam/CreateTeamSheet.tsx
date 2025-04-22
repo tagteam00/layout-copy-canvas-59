@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,7 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
     type: 'daily'
   });
 
-  const steps: CreateTeamStep[] = ["name", "interest", "partner", "frequency"];
+  const steps: CreateTeamStep[] = ["name", "interest", "frequency", "partner"];
   const currentStepIndex = steps.indexOf(currentStep);
 
   const handleNext = () => {
@@ -78,8 +77,6 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
         return teamName.trim().length > 0;
       case "interest":
         return selectedCategory.length > 0;
-      case "partner":
-        return selectedPartner.length > 0;
       case "frequency":
         return frequency.type === 'daily' || (frequency.type === 'weekly' && frequency.day);
       default:
@@ -99,6 +96,8 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
             setSelectedCategory={setSelectedCategory}
           />
         );
+      case "frequency":
+        return <FrequencyStep frequency={frequency} setFrequency={setFrequency} />;
       case "partner":
         return (
           <PartnerStep
@@ -106,8 +105,6 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
             onSelectPartner={setSelectedPartner}
           />
         );
-      case "frequency":
-        return <FrequencyStep frequency={frequency} setFrequency={setFrequency} />;
       default:
         return null;
     }

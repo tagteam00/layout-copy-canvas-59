@@ -1,12 +1,11 @@
-
 import React, { useState } from "react";
+import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
 const ProfilePage: React.FC = () => {
-  // State for user profile (this would be fetched from an API in a real app)
   const [userProfile, setUserProfile] = useState({
     fullName: "Divij Kumar",
     username: "Divij",
@@ -17,10 +16,8 @@ const ProfilePage: React.FC = () => {
     profileImage: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/59e6c2f5f7d74dddae24e7adf98c5564a2e93e95?placeholderIfAbsent=true",
   });
 
-  // State for active navigation tab
   const [activeTab, setActiveTab] = useState("profile");
 
-  // Navigation items
   const navItems = [
     {
       name: "Home",
@@ -43,9 +40,7 @@ const ProfilePage: React.FC = () => {
   ];
 
   const handleLogout = () => {
-    // Handle logout logic
     console.log("Logout");
-    // Redirect to sign in page
     window.location.href = "/signin";
   };
 
@@ -60,6 +55,7 @@ const ProfilePage: React.FC = () => {
 
   return (
     <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto">
+      <AppHeader />
       <div className="p-4">
         <div className="flex items-center mb-6">
           <div className="w-20 h-20 rounded-full overflow-hidden mr-4">
