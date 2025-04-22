@@ -14,16 +14,29 @@ const Index: React.FC = () => {
     interests: [] as string[],
   });
   const [allUsers, setAllUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userData = getUserData();
-    if (userData) {
-      setUserProfile({
-        username: userData.username,
-        interests: userData.interests,
-      });
-    }
-    setAllUsers(getAllUsers());
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const userData = await getUserData();
+        if (userData) {
+          setUserProfile({
+            username: userData.username,
+            interests: userData.interests,
+          });
+        }
+        const users = await getAllUsers();
+        setAllUsers(users);
+      } catch (error) {
+        console.error("Error loading data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadData();
   }, []);
 
   // State for tag teams
@@ -93,21 +106,33 @@ const Index: React.FC = () => {
       <AppHeader />
       <div className="flex-1 overflow-y-auto">
         <div className="px-4 py-6">
-          <h1 className="text-2xl font-bold mb-2">Hello, {userProfile.username}</h1>
-          <div className="flex items-center gap-1 mt-2">
-            {userProfile.interests.map((interest, index) => (
-              <div
-                key={index}
-                className="bg-[rgba(130,122,255,1)] text-xs text-white px-2 py-1 rounded-xl whitespace-nowrap"
-              >
-                {interest}
+          {loading ? (
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="flex gap-1 mt-2">
+                <div className="h-6 bg-gray-200 rounded w-16"></div>
+                <div className="h-6 bg-gray-200 rounded w-16"></div>
               </div>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold mb-2">Hello, {userProfile.username}</h1>
+              <div className="flex items-center gap-1 mt-2">
+                {userProfile.interests.map((interest, index) => (
+                  <div
+                    key={index}
+                    className="bg-[rgba(130,122,255,1)] text-xs text-white px-2 py-1 rounded-xl whitespace-nowrap"
+                  >
+                    {interest}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
         <TagTeamList teams={tagTeams} onAddTeam={handleOpenSheet} />
         <div className="px-4">
-          <UsersList users={allUsers} />
+          <UsersList users={allUsers} loading={loading} />
         </div>
       </div>
 
