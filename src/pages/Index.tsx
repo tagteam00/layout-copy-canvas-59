@@ -5,13 +5,15 @@ import { TagTeamList } from "@/components/home/TagTeamList";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
 import { useUserData } from "@/hooks/useUserData";
+import { UsersList } from "@/components/home/UsersList";
 
 const Index: React.FC = () => {
-  const { getUserData } = useUserData();
+  const { getUserData, getAllUsers } = useUserData();
   const [userProfile, setUserProfile] = useState({
     username: "",
     interests: [] as string[],
   });
+  const [allUsers, setAllUsers] = useState([]);
 
   useEffect(() => {
     const userData = getUserData();
@@ -21,6 +23,7 @@ const Index: React.FC = () => {
         interests: userData.interests,
       });
     }
+    setAllUsers(getAllUsers());
   }, []);
 
   // State for tag teams
@@ -103,6 +106,9 @@ const Index: React.FC = () => {
           </div>
         </div>
         <TagTeamList teams={tagTeams} onAddTeam={handleOpenSheet} />
+        <div className="px-4">
+          <UsersList users={allUsers} />
+        </div>
       </div>
 
       <BottomNavigation items={navItems} />
