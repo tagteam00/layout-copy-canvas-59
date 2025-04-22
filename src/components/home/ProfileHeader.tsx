@@ -30,16 +30,16 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             />
           </div>
         </div>
-        <div className="flex w-full items-center gap-[40px_100px] justify-between mt-6">
-          <div className="self-stretch w-[180px] my-auto">
-            <h1 className="w-[154px] max-w-full text-[32px] text-black font-bold leading-none rounded-[0px_0px_0px_0px]">
+        <div className="flex w-full items-center justify-between mt-6">
+          <div>
+            <h1 className="text-[32px] text-black font-bold leading-none whitespace-nowrap">
               Hello, {username}
             </h1>
-            <div className="flex w-full max-w-[180px] items-stretch gap-1 text-xs text-white font-normal whitespace-nowrap leading-none mt-2 rounded-xl">
+            <div className="flex items-center gap-1 mt-2">
               {interests.map((interest, index) => (
                 <div
                   key={index}
-                  className="self-stretch bg-[rgba(130,122,255,1)] gap-2.5 px-2 py-1 rounded-xl"
+                  className="bg-[rgba(130,122,255,1)] text-xs text-white px-2 py-1 rounded-xl whitespace-nowrap"
                 >
                   {interest}
                 </div>

@@ -1,3 +1,4 @@
+
 import React from "react";
 
 interface AddTeamButtonProps {
@@ -8,7 +9,7 @@ export const AddTeamButton: React.FC<AddTeamButtonProps> = ({ onClick }) => {
   return (
     <button
       onClick={onClick}
-      className="block mx-auto mt-[234px] transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[rgba(130,122,255,0.5)] rounded-full"
+      className="fixed bottom-24 right-8 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[rgba(130,122,255,0.5)] rounded-full"
       aria-label="Add new team"
     >
       <img
