@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { TagTeamList } from "@/components/home/TagTeamList";
@@ -6,45 +5,43 @@ import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
 import { useUserData } from "@/hooks/useUserData";
 import { UsersList } from "@/components/home/UsersList";
-
 const Index: React.FC = () => {
-  const { getUserData, getAllUsers } = useUserData();
+  const {
+    getUserData,
+    getAllUsers
+  } = useUserData();
   const [userProfile, setUserProfile] = useState({
     username: "",
-    interests: [] as string[],
+    interests: [] as string[]
   });
   const [allUsers, setAllUsers] = useState([]);
-
   useEffect(() => {
     const userData = getUserData();
     if (userData) {
       setUserProfile({
         username: userData.username,
-        interests: userData.interests,
+        interests: userData.interests
       });
     }
     setAllUsers(getAllUsers());
   }, []);
 
   // State for tag teams
-  const [tagTeams, setTagTeams] = useState([
-    {
-      id: "1",
-      name: "Heavy Lifters",
-      category: "Gym",
-      timeLeft: "2hrs Left",
-      frequency: "Everyday",
-      members: "Parth - Divij",
-    },
-    {
-      id: "2",
-      name: "Sharks",
-      category: "Swimming",
-      timeLeft: "2hrs Left",
-      frequency: "Everyday",
-      members: "Parth - Divij",
-    },
-  ]);
+  const [tagTeams, setTagTeams] = useState([{
+    id: "1",
+    name: "Heavy Lifters",
+    category: "Gym",
+    timeLeft: "2hrs Left",
+    frequency: "Everyday",
+    members: "Parth - Divij"
+  }, {
+    id: "2",
+    name: "Sharks",
+    category: "Swimming",
+    timeLeft: "2hrs Left",
+    frequency: "Everyday",
+    members: "Parth - Divij"
+  }]);
 
   // State for active navigation tab
   const [activeTab, setActiveTab] = useState("home");
@@ -56,29 +53,25 @@ const Index: React.FC = () => {
   const categories = ["Swimming", "Gym", "Football", "Running", "Yoga"];
 
   // Navigation items
-  const navItems = [
-    {
-      name: "Home",
-      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/c761f5256fcea0afdf72f5aa0ab3d05e40a3545b?placeholderIfAbsent=true",
-      path: "/",
-      isActive: activeTab === "home",
-    },
-    {
-      name: "Tagteam",
-      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/99b9d22862884f6e83475b74fa086fd10fb5e57f?placeholderIfAbsent=true",
-      path: "/tagteam",
-      isActive: activeTab === "tagteam",
-    },
-    {
-      name: "Profile",
-      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
-      path: "/profile",
-      isActive: activeTab === "profile",
-    },
-  ];
+  const navItems = [{
+    name: "Home",
+    icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/c761f5256fcea0afdf72f5aa0ab3d05e40a3545b?placeholderIfAbsent=true",
+    path: "/",
+    isActive: activeTab === "home"
+  }, {
+    name: "Tagteam",
+    icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/99b9d22862884f6e83475b74fa086fd10fb5e57f?placeholderIfAbsent=true",
+    path: "/tagteam",
+    isActive: activeTab === "tagteam"
+  }, {
+    name: "Profile",
+    icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
+    path: "/profile",
+    isActive: activeTab === "profile"
+  }];
 
   // Handler for adding a new team
-  const handleAddTeam = (newTeam) => {
+  const handleAddTeam = newTeam => {
     setTagTeams([...tagTeams, newTeam]);
     setIsSheetOpen(false);
   };
@@ -87,22 +80,15 @@ const Index: React.FC = () => {
   const handleOpenSheet = () => {
     setIsSheetOpen(true);
   };
-
-  return (
-    <main className="flex flex-col min-h-screen bg-white max-w-[480px] w-full mx-auto relative pb-20">
+  return <main className="flex flex-col min-h-screen bg-white max-w-[480px] w-full mx-auto relative pb-20">
       <AppHeader />
       <div className="flex-1 overflow-y-auto">
         <div className="px-4 py-6">
-          <h1 className="text-2xl font-bold mb-2">Hello, {userProfile.username}</h1>
+          <h1 className="font-bold mb-2 text-4xl">Hello, {userProfile.username}</h1>
           <div className="flex items-center gap-1 mt-2">
-            {userProfile.interests.map((interest, index) => (
-              <div
-                key={index}
-                className="bg-[rgba(130,122,255,1)] text-xs text-white px-2 py-1 rounded-xl whitespace-nowrap"
-              >
+            {userProfile.interests.map((interest, index) => <div key={index} className="bg-[rgba(130,122,255,1)] text-xs text-white px-2 py-1 rounded-xl whitespace-nowrap">
                 {interest}
-              </div>
-            ))}
+              </div>)}
           </div>
         </div>
         <TagTeamList teams={tagTeams} onAddTeam={handleOpenSheet} />
@@ -113,14 +99,7 @@ const Index: React.FC = () => {
 
       <BottomNavigation items={navItems} />
 
-      <CreateTeamSheet
-        isOpen={isSheetOpen}
-        onClose={() => setIsSheetOpen(false)}
-        onCreateTeam={handleAddTeam}
-        categories={categories}
-      />
-    </main>
-  );
+      <CreateTeamSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} onCreateTeam={handleAddTeam} categories={categories} />
+    </main>;
 };
-
 export default Index;
