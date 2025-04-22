@@ -1,3 +1,4 @@
+
 import React from "react";
 import { UserStats } from "./UserStats";
 
@@ -10,6 +11,9 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   username,
   interests,
 }) => {
+  const MAX_LENGTH = 15;
+  const shouldTruncate = username.length > MAX_LENGTH;
+
   return (
     <div className="pt-[68px] pb-[11px] px-[15px]">
       <div className="w-full">
@@ -30,23 +34,30 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             />
           </div>
         </div>
-        <div className="flex w-full items-center justify-between mt-6">
-          <div>
-            <h1 className="text-[32px] text-black font-bold leading-none whitespace-nowrap">
-              Hello, {username}
+        <div className="flex w-full flex-col mt-6">
+          <div className="max-w-[280px]">
+            <h1 className={`text-[32px] text-black font-bold leading-none ${shouldTruncate ? 'flex flex-col gap-2' : ''}`}>
+              Hello,{" "}
+              {shouldTruncate ? (
+                <>
+                  <br />
+                  {username}
+                </>
+              ) : (
+                username
+              )}
             </h1>
-            <div className="flex items-center gap-1 mt-2">
-              {interests.map((interest, index) => (
-                <div
-                  key={index}
-                  className="bg-[rgba(130,122,255,1)] text-xs text-white px-2 py-1 rounded-xl whitespace-nowrap"
-                >
-                  {interest}
-                </div>
-              ))}
-            </div>
           </div>
-          <UserStats count={2} />
+          <div className="flex items-center gap-1 mt-2">
+            {interests.map((interest, index) => (
+              <div
+                key={index}
+                className="bg-[rgba(130,122,255,1)] text-xs text-white px-2 py-1 rounded-xl whitespace-nowrap"
+              >
+                {interest}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
