@@ -22,7 +22,7 @@ export const userDataToProfile = (userData: UserData, userId: string): ProfileIn
     id: userId,
     full_name: userData.fullName,
     username: userData.username,
-    date_of_birth: new Date(userData.dateOfBirth),
+    date_of_birth: userData.dateOfBirth, // Already a string, no conversion needed
     gender: userData.gender,
     interests: userData.interests,
     commitment_level: userData.commitmentLevel
