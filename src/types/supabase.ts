@@ -1,7 +1,4 @@
 
-// Custom types for Supabase data
-// These augment the auto-generated types from src/integrations/supabase/types.ts
-
 import { Database } from '@/integrations/supabase/types';
 
 // Create type aliases for commonly used types
@@ -19,7 +16,7 @@ export interface UserData {
   commitmentLevel: string;
 }
 
-// Helper function to convert between UserData and Profile formats if needed
+// Helper function to convert between UserData and Profile formats
 export const userDataToProfile = (userData: UserData, userId: string): ProfileInsert => {
   return {
     id: userId,
