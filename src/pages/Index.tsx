@@ -1,16 +1,26 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ProfileHeader } from "@/components/home/ProfileHeader";
 import { TagTeamList } from "@/components/home/TagTeamList";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
+import { useUserData } from "@/hooks/useUserData";
 
 const Index: React.FC = () => {
-  // State for user profile
+  const { getUserData } = useUserData();
   const [userProfile, setUserProfile] = useState({
-    username: "Divij",
-    interests: ["Swimming", "Gym", "Football"],
+    username: "",
+    interests: [] as string[],
   });
+
+  useEffect(() => {
+    const userData = getUserData();
+    if (userData) {
+      setUserProfile({
+        username: userData.username,
+        interests: userData.interests,
+      });
+    }
+  }, []);
 
   // State for tag teams
   const [tagTeams, setTagTeams] = useState([

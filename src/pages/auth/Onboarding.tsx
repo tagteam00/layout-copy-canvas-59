@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,6 +5,8 @@ import { PersonalInfoForm } from "@/components/onboarding/PersonalInfoForm";
 import { InterestsSelector } from "@/components/onboarding/InterestsSelector";
 import { CommitmentSelector } from "@/components/onboarding/CommitmentSelector";
 import { StepIndicator } from "@/components/onboarding/StepIndicator";
+import { useUserData } from "@/hooks/useUserData";
+import type { UserData } from "@/hooks/useUserData";
 
 const interests = [
   "Swimming",
@@ -30,13 +31,14 @@ const Onboarding: React.FC = () => {
   const [step, setStep] = useState(1);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const navigate = useNavigate();
+  const { saveUserData } = useUserData();
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<UserData>({
     fullName: "",
     username: "",
     dateOfBirth: "",
     gender: "",
-    interests: [] as string[],
+    interests: [],
     commitmentLevel: ""
   });
 
@@ -60,7 +62,7 @@ const Onboarding: React.FC = () => {
 
   const handleCommitmentSubmit = (level: string) => {
     const finalFormData = { ...formData, commitmentLevel: level };
-    console.log("Complete form data:", finalFormData);
+    saveUserData(finalFormData);
     navigate("/");
   };
 
