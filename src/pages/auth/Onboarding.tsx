@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { PersonalInfoForm } from "@/components/onboarding/PersonalInfoForm";
@@ -7,6 +8,8 @@ import { CommitmentSelector } from "@/components/onboarding/CommitmentSelector";
 import { StepIndicator } from "@/components/onboarding/StepIndicator";
 import { useUserData } from "@/hooks/useUserData";
 import type { UserData } from "@/hooks/useUserData";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const interests = [
   "Swimming",
@@ -32,6 +35,7 @@ const Onboarding: React.FC = () => {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const navigate = useNavigate();
   const { saveUserData } = useUserData();
+  const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState<UserData>({
     fullName: "",
@@ -41,6 +45,19 @@ const Onboarding: React.FC = () => {
     interests: [],
     commitmentLevel: ""
   });
+
+  // Check if user is authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        toast.error("Please sign in to continue");
+        navigate("/signin");
+      }
+    };
+    
+    checkAuth();
+  }, [navigate]);
 
   const handlePersonalInfoSubmit = (data: any) => {
     setFormData({ ...formData, ...data });
@@ -60,10 +77,25 @@ const Onboarding: React.FC = () => {
     setStep(3);
   };
 
-  const handleCommitmentSubmit = (level: string) => {
-    const finalFormData = { ...formData, commitmentLevel: level };
-    saveUserData(finalFormData);
-    navigate("/");
+  const handleCommitmentSubmit = async (level: string) => {
+    try {
+      setLoading(true);
+      const finalFormData = { ...formData, commitmentLevel: level };
+      
+      const success = await saveUserData(finalFormData);
+      
+      if (success) {
+        toast.success("Profile saved successfully!");
+        navigate("/");
+      } else {
+        toast.error("Failed to save profile. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      toast.error("An error occurred while saving your profile.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -97,6 +129,7 @@ const Onboarding: React.FC = () => {
                 onCommitmentSelect={(level) => setFormData({ ...formData, commitmentLevel: level })}
                 onComplete={() => handleCommitmentSubmit(formData.commitmentLevel)}
                 onBack={() => setStep(2)}
+                loading={loading}
               />
             )}
           </CardContent>

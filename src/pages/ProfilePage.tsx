@@ -1,21 +1,29 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { useUserData } from "@/hooks/useUserData";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const ProfilePage: React.FC = () => {
   const [userProfile, setUserProfile] = useState({
-    fullName: "Divij Kumar",
-    username: "Divij",
-    dateOfBirth: "1995-08-15",
-    gender: "Male",
-    interests: ["Swimming", "Gym", "Football"],
-    commitmentLevel: "Committed",
+    fullName: "",
+    username: "",
+    dateOfBirth: "",
+    gender: "",
+    interests: [] as string[],
+    commitmentLevel: "",
     profileImage: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/59e6c2f5f7d74dddae24e7adf98c5564a2e93e95?placeholderIfAbsent=true",
   });
 
+  const { getUserData } = useUserData();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("profile");
 
   const navItems = [
@@ -39,12 +47,57 @@ const ProfilePage: React.FC = () => {
     },
   ];
 
-  const handleLogout = () => {
-    console.log("Logout");
-    window.location.href = "/signin";
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        // Check if user is authenticated
+        const { data } = await supabase.auth.getSession();
+        if (!data.session) {
+          navigate("/signin");
+          return;
+        }
+        
+        // Get user profile data
+        const userData = await getUserData();
+        if (userData) {
+          setUserProfile({
+            ...userProfile,
+            fullName: userData.fullName,
+            username: userData.username,
+            dateOfBirth: userData.dateOfBirth,
+            gender: userData.gender,
+            interests: userData.interests,
+            commitmentLevel: userData.commitmentLevel
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        toast.error("Failed to load profile data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchUserData();
+  }, [navigate, getUserData]);
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw error;
+      }
+      toast.success("Logged out successfully");
+      navigate("/signin");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Failed to log out");
+    }
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return "Not provided";
+    
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
@@ -52,6 +105,14 @@ const ProfilePage: React.FC = () => {
       day: 'numeric'
     }).format(date);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading profile...</p>
+      </div>
+    );
+  }
 
   return (
     <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto">
@@ -66,8 +127,8 @@ const ProfilePage: React.FC = () => {
             />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">{userProfile.fullName}</h1>
-            <p className="text-gray-600">@{userProfile.username}</p>
+            <h1 className="text-2xl font-bold">{userProfile.fullName || "New User"}</h1>
+            <p className="text-gray-600">@{userProfile.username || "username"}</p>
           </div>
         </div>
 
@@ -81,11 +142,11 @@ const ProfilePage: React.FC = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Gender:</span>
-                <span>{userProfile.gender}</span>
+                <span>{userProfile.gender || "Not provided"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Commitment Level:</span>
-                <Badge variant="outline">{userProfile.commitmentLevel}</Badge>
+                <Badge variant="outline">{userProfile.commitmentLevel || "Not set"}</Badge>
               </div>
             </div>
           </CardContent>
@@ -94,13 +155,17 @@ const ProfilePage: React.FC = () => {
         <Card className="mb-6">
           <CardContent className="p-4">
             <h2 className="text-lg font-semibold mb-2">Interests</h2>
-            <div className="flex flex-wrap gap-2">
-              {userProfile.interests.map((interest, index) => (
-                <Badge key={index} variant="secondary">
-                  {interest}
-                </Badge>
-              ))}
-            </div>
+            {userProfile.interests && userProfile.interests.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {userProfile.interests.map((interest, index) => (
+                  <Badge key={index} variant="secondary">
+                    {interest}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">No interests added yet</p>
+            )}
           </CardContent>
         </Card>
 

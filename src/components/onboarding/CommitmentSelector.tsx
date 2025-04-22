@@ -1,6 +1,9 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 interface CommitmentLevel {
   value: string;
@@ -14,6 +17,7 @@ interface CommitmentSelectorProps {
   onCommitmentSelect: (level: string) => void;
   onComplete: () => void;
   onBack: () => void;
+  loading?: boolean;
 }
 
 export const CommitmentSelector: React.FC<CommitmentSelectorProps> = ({
@@ -22,39 +26,42 @@ export const CommitmentSelector: React.FC<CommitmentSelectorProps> = ({
   onCommitmentSelect,
   onComplete,
   onBack,
+  loading = false
 }) => {
   return (
-    <div className="space-y-6">
-      <h2 className="text-lg font-semibold">Commitment Level</h2>
-      <p className="text-gray-600 text-sm">How do you prefer to approach your activities?</p>
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold mb-4">Select Commitment Level</h2>
       
-      <div className="space-y-3">
+      <RadioGroup
+        value={selectedCommitment}
+        onValueChange={onCommitmentSelect}
+        className="space-y-3"
+      >
         {commitmentLevels.map((level) => (
-          <div
-            key={level.value}
-            className={`p-4 border rounded-xl cursor-pointer transition-all ${
-              selectedCommitment === level.value 
-                ? "border-[rgba(130,122,255,1)] bg-[rgba(130,122,255,0.1)]"
-                : "border-gray-200 hover:border-[rgba(130,122,255,0.5)]"
-            }`}
-            onClick={() => onCommitmentSelect(level.value)}
-          >
-            <h3 className="font-medium">{level.label}</h3>
-            <p className="text-sm text-gray-600">{level.description}</p>
-          </div>
+          <Card key={level.value} className={`p-4 cursor-pointer border ${selectedCommitment === level.value ? 'border-[#827AFF]' : 'border-gray-200'}`}>
+            <div className="flex items-start space-x-3">
+              <RadioGroupItem value={level.value} id={level.value} />
+              <div className="space-y-1">
+                <Label htmlFor={level.value} className="text-base font-medium">
+                  {level.label}
+                </Label>
+                <p className="text-sm text-gray-500">{level.description}</p>
+              </div>
+            </div>
+          </Card>
         ))}
-      </div>
-      
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onBack}>
+      </RadioGroup>
+
+      <div className="flex justify-between mt-6">
+        <Button variant="outline" onClick={onBack} disabled={loading}>
           Back
         </Button>
         <Button 
-          onClick={onComplete}
-          disabled={!selectedCommitment}
-          className="bg-black text-white hover:bg-black/90"
+          onClick={onComplete} 
+          className="bg-black text-white hover:bg-black/90" 
+          disabled={!selectedCommitment || loading}
         >
-          Complete
+          {loading ? "Saving..." : "Complete"}
         </Button>
       </div>
     </div>

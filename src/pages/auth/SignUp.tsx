@@ -1,18 +1,44 @@
 
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { useForm } from "react-hook-form";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const SignUp: React.FC = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const onSubmit = (data) => {
-    console.log("Sign up data:", data);
-    // Redirect to onboarding page after successful signup
-    window.location.href = "/onboarding";
+  const onSubmit = async (data) => {
+    try {
+      setLoading(true);
+      
+      // Sign up with Supabase
+      const { data: authData, error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      if (authData) {
+        toast.success("Account created successfully! Please proceed to onboarding.");
+        // Redirect to onboarding page
+        navigate("/onboarding");
+      }
+    } catch (error) {
+      console.error("Signup error:", error);
+      toast.error("Failed to create account. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -74,8 +100,12 @@ const SignUp: React.FC = () => {
                 {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message as string}</p>}
               </div>
 
-              <Button type="submit" className="w-full bg-black text-white hover:bg-black/90">
-                Create Account
+              <Button 
+                type="submit" 
+                className="w-full bg-black text-white hover:bg-black/90"
+                disabled={loading}
+              >
+                {loading ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
           </CardContent>

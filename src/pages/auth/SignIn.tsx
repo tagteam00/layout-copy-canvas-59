@@ -1,18 +1,44 @@
 
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { useForm } from "react-hook-form";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const SignIn: React.FC = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const onSubmit = (data) => {
-    console.log("Sign in data:", data);
-    // Redirect to home page after successful login
-    window.location.href = "/";
+  const onSubmit = async (data) => {
+    try {
+      setLoading(true);
+      
+      // Sign in with Supabase
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      if (authData) {
+        toast.success("Signed in successfully!");
+        // Redirect to home page
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Sign in error:", error);
+      toast.error("Failed to sign in. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -26,7 +52,7 @@ const SignIn: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle>Sign In</CardTitle>
-            <CardDescription>Enter your credentials to continue</CardDescription>
+            <CardDescription>Enter your credentials to access your account</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -54,8 +80,12 @@ const SignIn: React.FC = () => {
                 {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message as string}</p>}
               </div>
 
-              <Button type="submit" className="w-full bg-black text-white hover:bg-black/90">
-                Sign In
+              <Button 
+                type="submit" 
+                className="w-full bg-black text-white hover:bg-black/90"
+                disabled={loading}
+              >
+                {loading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
           </CardContent>
