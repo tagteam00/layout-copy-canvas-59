@@ -39,11 +39,12 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
 
     setLoading(true);
     try {
+      // Fixed: Use the containedBy operator (@>) to check if the interests array contains the selectedCategory
       const { data: profiles, error } = await supabase
         .from('profiles')
         .select('*')
         .or(`username.ilike.%${query}%,full_name.ilike.%${query}%`)
-        .eq('interests', `{${selectedCategory}}`)
+        .contains('interests', [selectedCategory])  // Changed from .eq to .contains to properly filter array values
         .neq('id', currentUserId)
         .limit(5);
 
