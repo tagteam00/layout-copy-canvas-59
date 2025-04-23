@@ -1,8 +1,6 @@
-
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-
 interface TagTeamCardProps {
   id: string;
   name: string;
@@ -19,14 +17,12 @@ interface TagTeamCardProps {
   memberAvatars?: [string | null, string | null]; // URLs for avatars
   onCardClick?: () => void;
 }
-
 const getInitials = (name: string) => {
   if (!name) return "";
   const parts = name.split(" ");
   if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
   return (parts[0][0] + parts[1][0]).toUpperCase();
 };
-
 export const TagTeamCard: React.FC<TagTeamCardProps> = ({
   name,
   category,
@@ -57,7 +53,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 max-w-[70%]">
           <h3 className="text-lg font-bold truncate">{name}</h3>
-          <Badge className="text-black font-semibold px-3 py-0.5 rounded-full bg-[C5FFB6] bg-[#c5ffb6]">{category}</Badge>
+          <Badge className="text-black font-regular px-3 py-0.5 rounded-full bg-[C5FFB6] bg-[#c5ffb6]">{category}</Badge>
         </div>
         <div className="text-sm text-gray-500 whitespace-nowrap">{timeLeft}</div>
       </div>
@@ -66,38 +62,27 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
       
       <div className="flex mt-1 gap-4">
         {memberNames.map((memberName, index) => {
-          // Determine if this is "My Status" or "Partner's Status"
-          const isMyStatus = index === 0;
-          const isPending = isMyStatus ? !partnerLogged : !isLogged;
-          const statusText = memberName || (isMyStatus ? "Me" : "Partner");
-          
-          return (
-            <div 
-              key={index} 
-              className="flex-1 rounded-[18px] py-2 text-center font-normal transition-all" 
-              style={{
-                width: '168px',
-                height: '32px',
-                background: isPending ? "#FEC6A1" : "#8CFF6E",
-                color: "#161616",
-                fontSize: '14px',
-                boxShadow: isPending ? "0 0 0 2px #ffe7d6" : "0 0 0 2px #c7eec6",
-                border: isPending ? "1.5px solid #FEC6A1" : "1.5px solid #8CFF6E",
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
+        // Determine if this is "My Status" or "Partner's Status"
+        const isMyStatus = index === 0;
+        const isPending = isMyStatus ? !partnerLogged : !isLogged;
+        const statusText = memberName || (isMyStatus ? "Me" : "Partner");
+        return <div key={index} className="flex-1 rounded-[18px] py-2 text-center font-normal transition-all" style={{
+          width: '168px',
+          height: '32px',
+          background: isPending ? "#FEC6A1" : "#8CFF6E",
+          color: "#161616",
+          fontSize: '14px',
+          boxShadow: isPending ? "0 0 0 2px #ffe7d6" : "0 0 0 2px #c7eec6",
+          border: isPending ? "1.5px solid #FEC6A1" : "1.5px solid #8CFF6E",
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
               {statusText}
-              {isMyStatus ? 
-                <span className="ml-1 text-xs opacity-70">{partnerLogged ? "(Completed)" : "(Pending)"}</span> : 
-                <span className="ml-1 text-xs opacity-70">{isLogged ? "(Completed)" : "(Pending)"}</span>
-              }
-            </div>
-          );
-        })}
+              {isMyStatus ? <span className="ml-1 text-xs opacity-70">{partnerLogged ? "(Completed)" : "(Pending)"}</span> : <span className="ml-1 text-xs opacity-70">{isLogged ? "(Completed)" : "(Pending)"}</span>}
+            </div>;
+      })}
       </div>
     </div>;
 };
-
 export default TagTeamCard;
