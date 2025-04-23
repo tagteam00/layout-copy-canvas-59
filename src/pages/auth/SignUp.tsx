@@ -57,7 +57,7 @@ const SignUp: React.FC = () => {
             <CardDescription>Join TagTeam to find accountability partners</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 my-0">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
                 <Input id="email" type="email" placeholder="Your email" {...register("email", {
