@@ -39,7 +39,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
   const initialsArray: [string, string] = memberInitials || memberNames.map(getInitials) as [string, string];
   return <div style={{
     boxShadow: "0 1px 5px rgba(130,122,255,0.05)"
-  }} onClick={onCardClick} className="border border-[rgba(130,122,255,0.41)] rounded-2xl p-4 w-full flex flex-col gap-3 cursor-pointer bg-white py-[7px] my-[16px]">
+  }} onClick={onCardClick} className="border border-[rgba(130,122,255,0.41)] rounded-2xl p-4 w-full flex flex-col gap-3 cursor-pointer bg-white my-[16px] py-[16px]">
       <div className="flex items-center mb-1">
         <div className="flex -space-x-2">
           {memberAvatars.map((avatarUrl, index) => <Avatar key={index} className="h-10 w-10 border-2 border-white">
