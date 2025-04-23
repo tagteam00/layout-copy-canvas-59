@@ -19,6 +19,7 @@ interface TagTeamActivitySheetProps {
   teamName: string;
   partnerId: string;
   onLeaveTeam: () => void;
+  onActivityLogged?: (teamId: string, completed: boolean) => void;
 }
 
 export const TagTeamActivitySheet: React.FC<TagTeamActivitySheetProps> = ({
@@ -27,7 +28,8 @@ export const TagTeamActivitySheet: React.FC<TagTeamActivitySheetProps> = ({
   teamId, 
   teamName, 
   partnerId,
-  onLeaveTeam
+  onLeaveTeam,
+  onActivityLogged
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -51,6 +53,12 @@ export const TagTeamActivitySheet: React.FC<TagTeamActivitySheetProps> = ({
       if (error) throw error;
 
       toast.success(`Partner activity marked as ${completed ? 'Completed' : 'Pending'}`);
+      
+      // Call the callback to update UI state
+      if (onActivityLogged) {
+        onActivityLogged(teamId, completed);
+      }
+      
       onClose();
     } catch (error) {
       console.error('Error logging activity:', error);

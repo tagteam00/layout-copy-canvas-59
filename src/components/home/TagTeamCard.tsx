@@ -46,13 +46,13 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
 
   return (
     <div 
-      className="border border-[rgba(130,122,255,0.41)] rounded-2xl p-4 w-full flex flex-col gap-2 cursor-pointer bg-white"
+      className="border border-[rgba(130,122,255,0.41)] rounded-2xl p-4 w-full flex flex-col gap-3 cursor-pointer bg-white"
       style={{ boxShadow: "0 1px 5px rgba(130,122,255,0.05)" }}
       onClick={onCardClick}
     >
-      {/* Avatars Row */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex -space-x-2 items-center">
+      {/* Row 1: Avatars */}
+      <div className="flex items-center mb-1">
+        <div className="flex -space-x-2">
           {memberAvatars.map((avatarUrl, index) => (
             <Avatar key={index} className="h-10 w-10 border-2 border-white">
               {avatarUrl ? (
@@ -67,17 +67,21 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
             </Avatar>
           ))}
         </div>
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-bold truncate mr-2">{name}</h3>
+      </div>
+      
+      {/* Row 2: Team Name, Category, Time Left */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 max-w-[70%]">
+          <h3 className="text-lg font-bold truncate">{name}</h3>
           <Badge className="bg-[#8CFF6E] text-black font-semibold px-3 py-0.5 rounded-full">{category}</Badge>
         </div>
-        <div className="text-sm text-gray-500">{timeLeft}</div>
+        <div className="text-sm text-gray-500 whitespace-nowrap">{timeLeft}</div>
       </div>
-
-      {/* Frequency */}
-      <div className="text-gray-400 text-sm mb-2">{frequency}</div>
-
-      {/* Activity Pills Row */}
+      
+      {/* Row 3: Frequency */}
+      <div className="text-gray-400 text-sm">{frequency}</div>
+      
+      {/* Row 4: Activity Pills */}
       <div className="flex mt-1 gap-4">
         {memberNames.map((memberName, index) => (
           <div

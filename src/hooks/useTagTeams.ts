@@ -30,6 +30,41 @@ export function useTagTeams(userId: string | null) {
     }
   }, []);
 
+  const getActivityLogsForTeams = useCallback(async (teamIds: string[], currentUserId: string) => {
+    try {
+      const { data: logs, error } = await supabase
+        .from('team_activity_logs')
+        .select('*')
+        .in('team_id', teamIds);
+      
+      if (error) {
+        console.error("Error fetching activity logs:", error);
+        return {};
+      }
+
+      // Group logs by team_id
+      const teamLogs: {[key: string]: {isLogged: boolean, partnerLogged: boolean}} = {};
+      teamIds.forEach(id => {
+        teamLogs[id] = {isLogged: false, partnerLogged: false};
+      });
+
+      logs?.forEach(log => {
+        if (log.team_id) {
+          if (log.user_id === currentUserId) {
+            teamLogs[log.team_id].isLogged = log.completed;
+          } else {
+            teamLogs[log.team_id].partnerLogged = log.completed;
+          }
+        }
+      });
+      
+      return teamLogs;
+    } catch (error) {
+      console.error("Error in getActivityLogsForTeams:", error);
+      return {};
+    }
+  }, []);
+
   const fetchTagTeams = useCallback(async (uid: string) => {
     setLoading(true);
     try {
@@ -44,6 +79,16 @@ export function useTagTeams(userId: string | null) {
       }
       console.log("Fetched teams in Hub:", teams);
 
+      if (!teams || teams.length === 0) {
+        setTagTeams([]);
+        setLoading(false);
+        return;
+      }
+
+      // Get activity logs for all teams
+      const teamIds = teams.map(t => t.id);
+      const activityLogs = await getActivityLogsForTeams(teamIds, uid);
+
       const processedTeams = await Promise.all((teams || []).map(async (team: any) => {
         const [memberA, memberB] = team.members;
         const partnerId = memberA === uid ? memberB : memberA;
@@ -52,18 +97,24 @@ export function useTagTeams(userId: string | null) {
         const memberProfiles = await getProfileDataForMembers([memberA, memberB]);
         const memberNames = memberProfiles.map((profile) => profile.full_name || "Team Member") as [string, string];
         const memberAvatars: [string | null, string | null] = [null, null];
+        
         const getInitials = (name: string) => {
           if (!name) return "";
           const parts = name.split(" ");
           if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
           return (parts[0][0] + parts[1][0]).toUpperCase();
         };
+        
         const memberInitials: [string, string] = [getInitials(memberNames[0]), getInitials(memberNames[1])];
 
         let timeLeft = "1 day";
         if (team.frequency && team.frequency.toLowerCase().includes("weekly")) {
           timeLeft = "7 days";
         }
+
+        // Get activity status from logs
+        const teamActivity = activityLogs[team.id] || { isLogged: false, partnerLogged: false };
+        
         return {
           id: team.id,
           name: team.name,
@@ -73,13 +124,14 @@ export function useTagTeams(userId: string | null) {
           members: team.members,
           partnerId: partnerId,
           partnerName: memberProfiles[team.members.indexOf(partnerId)]?.full_name || "Team Member",
-          isLogged: false,
-          partnerLogged: false,
+          isLogged: teamActivity.isLogged,
+          partnerLogged: teamActivity.partnerLogged,
           memberNames,
           memberAvatars,
           memberInitials,
         };
       }));
+      
       setTagTeams(processedTeams);
     } catch (error) {
       console.error("Error processing teams:", error);
@@ -87,7 +139,7 @@ export function useTagTeams(userId: string | null) {
     } finally {
       setLoading(false);
     }
-  }, [getProfileDataForMembers]);
+  }, [getProfileDataForMembers, getActivityLogsForTeams]);
 
   // Load on mount or userId change
   useEffect(() => {
@@ -103,4 +155,3 @@ export function useTagTeams(userId: string | null) {
 
   return { tagTeams, loading, refetch, setTagTeams };
 }
-

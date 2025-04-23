@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -77,6 +78,16 @@ const TagTeamHub: React.FC = () => {
   const handleLeaveTagTeam = () => {
     setTagTeams(teams => teams.filter(team => team.id !== selectedTagTeam?.id));
     setSelectedTagTeam(null);
+  };
+  
+  const handleActivityLogged = (teamId: string, completed: boolean) => {
+    setTagTeams(teams => 
+      teams.map(team => 
+        team.id === teamId 
+          ? { ...team, partnerLogged: completed } 
+          : team
+      )
+    );
   };
 
   return (
@@ -166,6 +177,7 @@ const TagTeamHub: React.FC = () => {
         teamName={selectedTagTeam?.name || ''}
         partnerId={selectedTagTeam?.partnerId || ''}
         onLeaveTeam={handleLeaveTagTeam}
+        onActivityLogged={handleActivityLogged}
       />
     </main>
   );
