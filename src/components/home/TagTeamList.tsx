@@ -1,6 +1,9 @@
+
 import React from "react";
 import { TagTeamCard } from "./TagTeamCard";
 import { AddTeamButton } from "./AddTeamButton";
+import { Button } from "../ui/button";
+
 interface TagTeam {
   id: string;
   name: string;
@@ -11,27 +14,70 @@ interface TagTeam {
   isLogged?: boolean;
   partnerLogged?: boolean;
 }
+
 interface TagTeamListProps {
   teams: TagTeam[];
   onAddTeam?: () => void;
+  userName?: string;
 }
+
 export const TagTeamList: React.FC<TagTeamListProps> = ({
   teams,
-  onAddTeam
+  onAddTeam,
+  userName = "",
 }) => {
-  return <section className="flex w-full flex-col text-black mt-5 px-4">
+  return (
+    <section className="flex w-full flex-col text-black mt-5 px-4">
       <div className="flex items-center gap-[9px] text-xs text-black font-normal">
         <div className="border flex-1 h-px border-[rgba(0,0,0,0.5)] border-solid" />
         <h2 className="whitespace-nowrap">Active tagteams</h2>
         <div className="border flex-1 h-px border-[rgba(0,0,0,0.5)] border-solid" />
       </div>
 
-      {teams.length === 0 ? <div className="text-center py-8 text-gray-500">
-          No active teams. Create your first team!
-        </div> : <div className="space-y-4 mt-4 object-scale-down">
-          {teams.map(team => <TagTeamCard key={team.id} name={team.name} category={team.category} timeLeft={team.timeLeft} frequency={team.frequency} members={team.members} isLogged={team.isLogged} partnerLogged={team.partnerLogged} />)}
-        </div>}
+      {teams.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-gray-500 w-full space-y-5">
+          <img
+            src="/lovable-uploads/31be4148-3505-46fc-af8f-a6bfdc54875f.png"
+            alt="No tagteams yet"
+            style={{ width: 152, height: 145 }}
+            className="mx-auto mb-2"
+            draggable={false}
+          />
+          <div className="text-base text-gray-700 text-center mt-2 mb-2 px-4" style={{ fontFamily: "Hanken Grotesk, sans-serif" }}>
+            {userName ? `${userName} people are out-there to team up with you` : `People are out-there to team up with you`}
+          </div>
+          <Button
+            className="w-full max-w-[448px] mx-4 mt-0 text-base font-semibold bg-black text-white rounded-xl py-6"
+            style={{
+              marginLeft: 16,
+              marginRight: 16,
+              height: 56,
+              fontSize: 18,
+            }}
+            onClick={onAddTeam}
+            size="lg"
+          >
+            Start your first tagteam
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-4 mt-4">
+          {teams.map((team) => (
+            <TagTeamCard
+              key={team.id}
+              name={team.name}
+              category={team.category}
+              timeLeft={team.timeLeft}
+              frequency={team.frequency}
+              members={team.members}
+              isLogged={team.isLogged}
+              partnerLogged={team.partnerLogged}
+            />
+          ))}
+        </div>
+      )}
 
-      <AddTeamButton onClick={onAddTeam} />
-    </section>;
+      {teams.length > 0 && <AddTeamButton onClick={onAddTeam} />}
+    </section>
+  );
 };
