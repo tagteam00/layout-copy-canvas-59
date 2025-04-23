@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useUserData } from "@/hooks/useUserData";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 const ProfilePage: React.FC = () => {
   const [userProfile, setUserProfile] = useState({
@@ -22,7 +21,7 @@ const ProfilePage: React.FC = () => {
   });
 
   const { getUserData } = useUserData();
-  const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("profile");
 
@@ -50,13 +49,7 @@ const ProfilePage: React.FC = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Check if user is authenticated
-        const { data } = await supabase.auth.getSession();
-        if (!data.session) {
-          navigate("/signin");
-          return;
-        }
-        
+        setLoading(true);
         // Get user profile data
         const userData = await getUserData();
         if (userData) {
@@ -79,16 +72,12 @@ const ProfilePage: React.FC = () => {
     };
     
     fetchUserData();
-  }, [navigate, getUserData]);
+  }, [getUserData]);
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        throw error;
-      }
+      await signOut();
       toast.success("Logged out successfully");
-      navigate("/signin");
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Failed to log out");

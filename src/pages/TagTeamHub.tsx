@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { TagTeamCard } from "@/components/home/TagTeamCard";
@@ -7,74 +7,48 @@ import { AddTeamButton } from "@/components/home/AddTeamButton";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
 import { useUserData } from "@/hooks/useUserData";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { TagTeam } from "@/components/home/TagTeamList";
 import { TagTeamActivitySheet } from "@/components/tagteam/TagTeamActivitySheet";
 import { useTagTeams } from "@/hooks/useTagTeams";
+import { useAuth } from "@/context/AuthContext";
 
 const TagTeamHub: React.FC = () => {
   const { getUserData } = useUserData();
+  const { user } = useAuth();
+  const userId = user?.id;
+  
   const [userProfile, setUserProfile] = useState({
     fullName: "",
     interests: [] as string[],
   });
-  const [userId, setUserId] = useState<string | null>(null);
+  
   const [activeTab, setActiveTab] = useState("tagteam");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedTagTeam, setSelectedTagTeam] = useState<TagTeam | null>(null);
 
   const { tagTeams, loading, refetch, setTagTeams } = useTagTeams(userId);
 
-  useEffect(() => {
+  // Fetch user profile only once on mount
+  React.useEffect(() => {
     const loadUserData = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          setUserId(user.id);
-        }
-        const userData = await getUserData();
-        if (userData) {
-          setUserProfile({
-            fullName: userData.fullName,
-            interests: userData.interests,
-          });
+        if (userId) {
+          const userData = await getUserData();
+          if (userData) {
+            setUserProfile({
+              fullName: userData.fullName,
+              interests: userData.interests,
+            });
+          }
         }
       } catch (error) {
         console.error("Error loading user data:", error);
         toast.error("Failed to load user profile");
       }
     };
-    loadUserData();
-  }, [getUserData]);
-
-  useEffect(() => {
-    // Subscribe to auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (session?.user) {
-          setUserId(session.user.id);
-        } else {
-          setUserId(null);
-        }
-      }
-    );
     
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && userId) {
-        refetch();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [userId, refetch]);
+    loadUserData();
+  }, [userId, getUserData]);
 
   // Updated to accept the full TagTeam object
   const handleTagTeamCardClick = (team: TagTeam) => {
@@ -98,6 +72,27 @@ const TagTeamHub: React.FC = () => {
     );
   };
 
+  const navItems = [
+    {
+      name: "Home",
+      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/c761f5256fcea0afdf72f5aa0ab3d05e40a3545b?placeholderIfAbsent=true",
+      path: "/",
+      isActive: activeTab === "home",
+    },
+    {
+      name: "Tagteam",
+      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/99b9d22862884f6e83475b74fa086fd10fb5e57f?placeholderIfAbsent=true",
+      path: "/tagteam",
+      isActive: activeTab === "tagteam",
+    },
+    {
+      name: "Profile",
+      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
+      path: "/profile",
+      isActive: activeTab === "profile",
+    }
+  ];
+
   return (
     <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto pb-20">
       <AppHeader />
@@ -120,20 +115,7 @@ const TagTeamHub: React.FC = () => {
             {tagTeams.map((team) => (
               <div key={team.id}>
                 <TagTeamCard
-                  id={team.id}
-                  name={team.name}
-                  category={team.category}
-                  timeLeft={team.timeLeft}
-                  frequency={team.frequency}
-                  resetTime={team.resetTime}
-                  members={team.members}
-                  memberNames={team.memberNames}
-                  memberAvatars={team.memberAvatars}
-                  memberInitials={team.memberInitials}
-                  isLogged={team.isLogged}
-                  partnerLogged={team.partnerLogged}
-                  partnerId={team.partnerId}
-                  partnerName={team.partnerName}
+                  {...team}
                   onCardClick={() => handleTagTeamCardClick(team)}
                 />
               </div>
@@ -146,26 +128,7 @@ const TagTeamHub: React.FC = () => {
         )}
       </div>
 
-      <BottomNavigation items={[
-        {
-          name: "Home",
-          icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/c761f5256fcea0afdf72f5aa0ab3d05e40a3545b?placeholderIfAbsent=true",
-          path: "/",
-          isActive: activeTab === "home",
-        },
-        {
-          name: "Tagteam",
-          icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/99b9d22862884f6e83475b74fa086fd10fb5e57f?placeholderIfAbsent=true",
-          path: "/tagteam",
-          isActive: activeTab === "tagteam",
-        },
-        {
-          name: "Profile",
-          icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
-          path: "/profile",
-          isActive: activeTab === "profile",
-        }]}
-      />
+      <BottomNavigation items={navItems} />
       
       <AddTeamButton onClick={() => setIsSheetOpen(true)} />
 

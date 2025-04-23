@@ -4,11 +4,12 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
 import { useUserData } from "@/hooks/useUserData";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TagTeamActivitySheet } from "@/components/tagteam/TagTeamActivitySheet";
 import { useTagTeams } from "@/hooks/useTagTeams";
 import { TagTeam } from "@/components/home/TagTeamList";
+import { useAuth } from "@/context/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 
 // Refactored sections
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -17,6 +18,8 @@ import { DashboardUsers } from "@/components/dashboard/DashboardUsers";
 
 const Index: React.FC = () => {
   const { getUserData, getAllUsers } = useUserData();
+  const { user } = useAuth();
+  const userId = user?.id;
 
   const [userProfile, setUserProfile] = useState({
     fullName: "",
@@ -24,61 +27,42 @@ const Index: React.FC = () => {
     interests: [] as string[],
   });
 
-  const [userId, setUserId] = useState<string | null>(null);
-  const [allUsers, setAllUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("home");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedTagTeam, setSelectedTagTeam] = useState<TagTeam | null>(null);
   
-  const { tagTeams, refetch, setTagTeams } = useTagTeams(userId);
+  const { tagTeams, loading: teamLoading, setTagTeams } = useTagTeams(userId);
 
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          setUserId(user.id);
-        }
-
-        const userData = await getUserData();
-        if (userData) {
-          setUserProfile({
-            fullName: userData.fullName,
-            username: userData.username,
-            interests: userData.interests,
-          });
-        }
-
-        const users = await getAllUsers();
-        setAllUsers(users);
-      } catch (error) {
-        console.error("Error loading data:", error);
-      } finally {
-        setLoading(false);
+  // User profile query with caching
+  const { data: userData, isLoading: userLoading } = useQuery({
+    queryKey: ['userData', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      return await getUserData();
+    },
+    enabled: !!userId,
+    staleTime: 60000, // Cache for 1 minute
+    onSuccess: (data) => {
+      if (data) {
+        setUserProfile({
+          fullName: data.fullName,
+          username: data.username,
+          interests: data.interests,
+        });
       }
-    };
+    },
+    onError: (error) => {
+      console.error("Error loading user data:", error);
+      toast.error("Failed to load user profile");
+    }
+  });
 
-    loadData();
-  }, [getUserData, getAllUsers]);
-
-  useEffect(() => {
-    // Subscribe to auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (session?.user) {
-          setUserId(session.user.id);
-        } else {
-          setUserId(null);
-        }
-      }
-    );
-    
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+  // All users query with caching
+  const { data: allUsers = [], isLoading: allUsersLoading } = useQuery({
+    queryKey: ['allUsers'],
+    queryFn: getAllUsers,
+    staleTime: 300000, // Cache for 5 minutes
+  });
 
   const handleTagTeamCardClick = (team: TagTeam) => {
     setSelectedTagTeam(team);
@@ -126,19 +110,7 @@ const Index: React.FC = () => {
     setIsSheetOpen(true);
   };
 
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible" && userId) {
-        refetch();
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [userId, refetch]);
+  const loading = userLoading || teamLoading;
 
   return (
     <main className="flex flex-col min-h-screen bg-white max-w-[480px] w-full mx-auto relative pb-20">
@@ -151,7 +123,7 @@ const Index: React.FC = () => {
           userName={userProfile.fullName}
           onTagTeamClick={handleTagTeamCardClick}
         />
-        <DashboardUsers users={allUsers} loading={loading} />
+        <DashboardUsers users={allUsers} loading={allUsersLoading} />
       </div>
       <BottomNavigation items={navItems} />
       <CreateTeamSheet
