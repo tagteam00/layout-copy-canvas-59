@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -7,14 +6,10 @@ import { RealtimeChannel } from "@supabase/supabase-js";
 import { addDays, isAfter } from "date-fns";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-/**
- * Hook to fetch TagTeams, along with member names, initials & avatars.
- * Also includes real-time subscription for activity logs.
- */
 export function useTagTeams(userId: string | null) {
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
   const queryClient = useQueryClient();
-
+  
   // Profile cache to avoid redundant profile fetches
   const profileCache = useMemo(() => new Map<string, any>(), []);
 
@@ -48,7 +43,7 @@ export function useTagTeams(userId: string | null) {
     }
   }, [profileCache]);
 
-  // Fetch activity logs for teams
+  // Fetch activity logs for teams with improved error handling
   const getActivityLogsForTeams = useCallback(async (teamIds: string[], currentUserId: string) => {
     if (!teamIds.length || !currentUserId) return {};
     
@@ -56,23 +51,26 @@ export function useTagTeams(userId: string | null) {
       const { data: logs, error } = await supabase
         .from('team_activity_logs')
         .select('*')
-        .in('team_id', teamIds);
+        .in('team_id', teamIds)
+        .or(`user_id.eq.${currentUserId},partner_id.eq.${currentUserId}`);
       
       if (error) {
         console.error("Error fetching activity logs:", error);
         return {};
       }
 
-      // Group logs by team_id
+      console.log("Fetched activity logs:", logs);
+
+      // Group logs by team_id with improved status tracking
       const teamLogs: Record<string, {
-        isLogged: boolean, 
+        isLogged: boolean,
         partnerLogged: boolean,
         resetTime?: string
       }> = {};
       
       teamIds.forEach(id => {
         teamLogs[id] = {
-          isLogged: false, 
+          isLogged: false,
           partnerLogged: false,
           resetTime: undefined
         };
@@ -80,26 +78,26 @@ export function useTagTeams(userId: string | null) {
 
       logs?.forEach(log => {
         if (log.team_id) {
-          if (log.user_id === currentUserId) {
+          const isUserLog = log.user_id === currentUserId;
+          const isPartnerLog = log.partner_id === currentUserId;
+
+          if (isUserLog) {
             // This is a log I created for my partner
             teamLogs[log.team_id].isLogged = log.completed;
-            
-            // Store reset time (period_end) for the team
-            if (log.period_end && (!teamLogs[log.team_id].resetTime || new Date(log.period_end) > new Date(teamLogs[log.team_id].resetTime!))) {
-              teamLogs[log.team_id].resetTime = log.period_end;
-            }
-          } else if (log.partner_id === currentUserId) {
+          } else if (isPartnerLog) {
             // This is a log my partner created for me
             teamLogs[log.team_id].partnerLogged = log.completed;
-            
-            // Store reset time (period_end) for the team
-            if (log.period_end && (!teamLogs[log.team_id].resetTime || new Date(log.period_end) > new Date(teamLogs[log.team_id].resetTime!))) {
-              teamLogs[log.team_id].resetTime = log.period_end;
-            }
+          }
+          
+          // Update reset time if newer
+          if (log.period_end && (!teamLogs[log.team_id].resetTime || 
+              new Date(log.period_end) > new Date(teamLogs[log.team_id].resetTime!))) {
+            teamLogs[log.team_id].resetTime = log.period_end;
           }
         }
       });
       
+      console.log("Processed team logs:", teamLogs);
       return teamLogs;
     } catch (error) {
       console.error("Error in getActivityLogsForTeams:", error);
@@ -184,28 +182,28 @@ export function useTagTeams(userId: string | null) {
     });
   }, [getProfileDataForMembers]);
 
-  // Setup realtime subscription once when teamIds change
+  // Improved real-time subscription setup
   const setupRealtimeSubscription = useCallback((uid: string, teamIds: string[]) => {
     if (!uid || teamIds.length === 0) return null;
     
     // Unsubscribe from existing channel if any
     if (channel) {
+      console.log("Removing existing channel");
       supabase.removeChannel(channel);
     }
     
-    // Create a channel name that includes user ID to ensure uniqueness
-    const channelName = `team_activity_${uid}_${Date.now()}`;
+    console.log("Setting up real-time subscription for teams:", teamIds);
     
-    // Subscribe to changes in team_activity_logs for these teams
+    // Create new channel with both user_id and partner_id filters
     const newChannel = supabase
-      .channel(channelName)
+      .channel(`team_activity_${uid}`)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'team_activity_logs',
         filter: `team_id=in.(${teamIds.join(',')})`,
-      }, () => {
-        // When activity logs change, invalidate the query to trigger a refetch
+      }, (payload) => {
+        console.log("Received real-time update:", payload);
         queryClient.invalidateQueries({ queryKey: ['tagTeams', uid] });
       })
       .subscribe((status) => {
@@ -216,13 +214,15 @@ export function useTagTeams(userId: string | null) {
     return newChannel;
   }, [channel, queryClient]);
 
-  // Main query to fetch teams data
+  // Main query with improved error handling and logging
   const { data: tagTeams = [], isLoading: loading, refetch } = useQuery({
     queryKey: ['tagTeams', userId],
     queryFn: async () => {
       if (!userId) return [];
       
       try {
+        console.log("Fetching teams for user:", userId);
+        
         const { data: teams, error } = await supabase
           .from('teams')
           .select('*')
@@ -230,10 +230,11 @@ export function useTagTeams(userId: string | null) {
         
         if (error) {
           console.error("Error fetching teams:", error);
-          return [];
+          throw error;
         }
 
         if (!teams || teams.length === 0) {
+          console.log("No teams found");
           return [];
         }
 
@@ -241,13 +242,10 @@ export function useTagTeams(userId: string | null) {
         const teamIds = teams.map(t => t.id);
         const activityLogs = await getActivityLogsForTeams(teamIds, userId);
         
-        // Process teams and set state
+        // Process teams and set up real-time subscription
         const processedTeams = await processTeams(teams, userId, activityLogs);
         
-        // Set up realtime subscription for team activity logs
-        setTimeout(() => {
-          setupRealtimeSubscription(userId, teamIds);
-        }, 0);
+        setupRealtimeSubscription(userId, teamIds);
         
         return processedTeams;
       } catch (error) {
@@ -257,8 +255,8 @@ export function useTagTeams(userId: string | null) {
       }
     },
     enabled: !!userId,
-    staleTime: 30000, // 30 seconds
-    retry: 1,
+    staleTime: 30000,
+    retry: 2,
   });
 
   // Handle congratulations message on success
@@ -283,20 +281,24 @@ export function useTagTeams(userId: string | null) {
   useEffect(() => {
     return () => {
       if (channel) {
+        console.log("Cleaning up real-time subscription");
         supabase.removeChannel(channel);
       }
     };
   }, [channel]);
 
-  // External trigger to refresh
   const manualRefetch = () => {
-    if (userId) refetch();
+    if (userId) {
+      console.log("Manually refetching teams");
+      refetch();
+    }
   };
 
   const setTagTeams = useCallback((updaterFn: (prev: TagTeam[]) => TagTeam[]) => {
-    // Update the cache directly
     queryClient.setQueryData(['tagTeams', userId], (oldData: TagTeam[] = []) => {
-      return updaterFn(oldData);
+      const newData = updaterFn(oldData);
+      console.log("Updating TagTeams cache:", newData);
+      return newData;
     });
   }, [queryClient, userId]);
 

@@ -92,6 +92,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
         {memberNames.map((memberName, index) => {
           // Determine if this is "My Status" or "Partner's Status"
           const isMyStatus = index === 0;
+          // Swap the completion check to correctly reflect status
           const isCompleted = isMyStatus ? partnerLogged : isLogged;
           const statusText = memberName || (isMyStatus ? "Me" : "Partner");
           
