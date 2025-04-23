@@ -42,20 +42,33 @@ const Index: React.FC = () => {
     },
     enabled: !!userId,
     staleTime: 60000, // Cache for 1 minute
-    onSuccess: (data) => {
-      if (data) {
-        setUserProfile({
-          fullName: data.fullName,
-          username: data.username,
-          interests: data.interests,
-        });
+    meta: {
+      onSuccess: (data: any) => {
+        if (data) {
+          setUserProfile({
+            fullName: data.fullName,
+            username: data.username,
+            interests: data.interests,
+          });
+        }
+      },
+      onError: (error: any) => {
+        console.error("Error loading user data:", error);
+        toast.error("Failed to load user profile");
       }
-    },
-    onError: (error) => {
-      console.error("Error loading user data:", error);
-      toast.error("Failed to load user profile");
     }
   });
+
+  // React to user data changes manually since we're using meta
+  useEffect(() => {
+    if (userData) {
+      setUserProfile({
+        fullName: userData.fullName,
+        username: userData.username,
+        interests: userData.interests,
+      });
+    }
+  }, [userData]);
 
   // All users query with caching
   const { data: allUsers = [], isLoading: allUsersLoading } = useQuery({
@@ -130,7 +143,7 @@ const Index: React.FC = () => {
         isOpen={isSheetOpen}
         onClose={() => setIsSheetOpen(false)}
         onCreateTeam={(newTeam) => {
-          setTagTeams([...tagTeams, newTeam]);
+          setTagTeams(prevTeams => [...prevTeams, newTeam]);
           setIsSheetOpen(false);
         }}
         categories={userProfile.interests}

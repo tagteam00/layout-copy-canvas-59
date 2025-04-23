@@ -136,7 +136,7 @@ const TagTeamHub: React.FC = () => {
         isOpen={isSheetOpen}
         onClose={() => setIsSheetOpen(false)}
         onCreateTeam={(newTeam) => {
-          setTagTeams([...tagTeams, newTeam]);
+          setTagTeams(prevTeams => [...prevTeams, newTeam]);
           setIsSheetOpen(false);
         }}
         categories={userProfile.interests}
