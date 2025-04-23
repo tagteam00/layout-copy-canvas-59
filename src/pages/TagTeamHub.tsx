@@ -39,32 +39,7 @@ const TagTeamHub: React.FC = () => {
   }, []);
 
   // State for tag teams
-  const [tagTeams, setTagTeams] = useState([
-    {
-      id: "1",
-      name: "Heavy Lifters",
-      category: "Gym",
-      timeLeft: "2hrs Left",
-      frequency: "Everyday",
-      members: "Parth - Divij",
-    },
-    {
-      id: "2",
-      name: "Sharks",
-      category: "Swimming",
-      timeLeft: "2hrs Left",
-      frequency: "Everyday",
-      members: "Parth - Divij",
-    },
-    {
-      id: "3",
-      name: "Runners",
-      category: "Running",
-      timeLeft: "5hrs Left",
-      frequency: "Everyday",
-      members: "Divij - Alex",
-    },
-  ]);
+  const [tagTeams, setTagTeams] = useState([]);
 
   // State for active navigation tab
   const [activeTab, setActiveTab] = useState("tagteam");
@@ -72,10 +47,7 @@ const TagTeamHub: React.FC = () => {
   // State for sheet visibility
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  // Available categories
-  const categories = ["Swimming", "Gym", "Football", "Running", "Yoga"];
-
-  // Navigation items
+  // Navigation items with notifications
   const navItems = [
     {
       name: "Home",
@@ -88,6 +60,12 @@ const TagTeamHub: React.FC = () => {
       icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/99b9d22862884f6e83475b74fa086fd10fb5e57f?placeholderIfAbsent=true",
       path: "/tagteam",
       isActive: activeTab === "tagteam",
+    },
+    {
+      name: "Notifications",
+      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
+      path: "/notifications",
+      isActive: activeTab === "notifications",
     },
     {
       name: "Profile",
@@ -121,17 +99,23 @@ const TagTeamHub: React.FC = () => {
           </p>
         </div>
 
-        {tagTeams.map((team) => (
-          <div key={team.id} onClick={() => handleLogActivity(team.id)}>
-            <TagTeamCard
-              name={team.name}
-              category={team.category}
-              timeLeft={team.timeLeft}
-              frequency={team.frequency}
-              members={team.members}
-            />
+        {tagTeams.length > 0 ? (
+          tagTeams.map((team) => (
+            <div key={team.id} onClick={() => handleLogActivity(team.id)}>
+              <TagTeamCard
+                name={team.name}
+                category={team.category}
+                timeLeft={team.timeLeft}
+                frequency={team.frequency}
+                members={team.members}
+              />
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-500">No active TagTeams yet</p>
           </div>
-        ))}
+        )}
       </div>
 
       <BottomNavigation items={navItems} />
@@ -142,7 +126,7 @@ const TagTeamHub: React.FC = () => {
         isOpen={isSheetOpen}
         onClose={() => setIsSheetOpen(false)}
         onCreateTeam={handleAddTeam}
-        categories={categories}
+        categories={userProfile.interests}
       />
     </main>
   );
