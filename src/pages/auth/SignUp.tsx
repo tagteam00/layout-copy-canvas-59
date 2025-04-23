@@ -86,7 +86,7 @@ const SignUp: React.FC = () => {
                 {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message as string}</p>}
               </div>
 
-              <Button type="submit" className="w-full bg-black text-white hover:bg-black/90" disabled={loading}>
+              <Button type="submit" disabled={loading} className="w-full bg-black text-white hover:bg-black/90 py-0 my-[24px] rounded-lg">
                 {loading ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
