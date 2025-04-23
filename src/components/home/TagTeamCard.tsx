@@ -16,7 +16,7 @@ interface TagTeamCardProps {
   onCardClick?: () => void;
 }
 
-export const TagTeamCard: React.FC<TagTeamCardProps> = memo(({
+const TagTeamCard = memo(({
   name,
   category,
   timeLeft,
@@ -26,7 +26,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = memo(({
   isLogged = false,
   partnerLogged = false,
   onCardClick
-}) => {
+}: TagTeamCardProps) => {
   // Convert members to string if it's an array for display purposes
   const membersDisplay = Array.isArray(members) ? members.join(', ') : members;
   
@@ -68,3 +68,5 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = memo(({
 });
 
 TagTeamCard.displayName = "TagTeamCard";
+
+export { TagTeamCard };
