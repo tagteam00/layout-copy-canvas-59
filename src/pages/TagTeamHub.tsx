@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -57,6 +58,28 @@ const TagTeamHub: React.FC = () => {
     loadUserData();
   }, []);
   
+  /**
+   * Helper for fetching profile information for a list of user IDs.
+   */
+  const getProfileDataForMembers = async (memberIds: string[]) => {
+    try {
+      const { data: profiles, error } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", memberIds);
+      if (error) {
+        console.error("Error fetching team member profiles:", error);
+        return memberIds.map(() => ({
+          full_name: "Team Member",
+        }));
+      }
+      return memberIds.map((id) => profiles.find((p) => p.id === id) || { full_name: "Team Member" });
+    } catch (error) {
+      console.error("Error in getProfileDataForMembers:", error);
+      return memberIds.map(() => ({ full_name: "Team Member" }));
+    }
+  };
+
   const fetchTagTeams = async (userId: string) => {
     try {
       const { data: teams, error } = await supabase
@@ -68,27 +91,28 @@ const TagTeamHub: React.FC = () => {
         console.error("Error fetching teams:", error);
         return;
       }
-      
       console.log("Fetched teams in Hub:", teams);
-      
+
       const processedTeams = await Promise.all(teams.map(async (team) => {
-        const partnerId = team.members.find((member: string) => member !== userId);
-        
-        let partnerName = "Team Member";
-        if (partnerId) {
-          const { data: partner } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', partnerId)
-            .single();
-            
-          if (partner) {
-            partnerName = partner.full_name;
-          }
-        }
-        
+        const [memberA, memberB] = team.members;
+        const partnerId = memberA === userId ? memberB : memberA;
+
+        // Fetch both members' profiles
+        const memberProfiles = await getProfileDataForMembers([memberA, memberB]);
+        const memberNames = memberProfiles.map((profile) => profile.full_name || "Team Member") as [string, string];
+        // Fill with null for now (can add avatar logic later)
+        const memberAvatars: [string | null, string | null] = [null, null];
+        // Use initials as fallback
+        const getInitials = (name: string) => {
+          if (!name) return "";
+          const parts = name.split(" ");
+          if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+          return (parts[0][0] + parts[1][0]).toUpperCase();
+        };
+        const memberInitials: [string, string] = [getInitials(memberNames[0]), getInitials(memberNames[1])];
+
         let timeLeft = "1 day";
-        if (team.frequency.includes("Weekly")) {
+        if (team.frequency && team.frequency.toLowerCase().includes("weekly")) {
           timeLeft = "7 days";
         }
         
@@ -100,9 +124,12 @@ const TagTeamHub: React.FC = () => {
           frequency: team.frequency,
           members: team.members,
           partnerId: partnerId,
-          partnerName: partnerName,
-          isLogged: false,
-          partnerLogged: false
+          partnerName: memberProfiles[team.members.indexOf(partnerId)]?.full_name || "Team Member",
+          isLogged: false,         // You may link this to actual activity log data
+          partnerLogged: false,    // You may link this to actual activity log data
+          memberNames,
+          memberAvatars,
+          memberInitials,
         };
       }));
       
@@ -197,6 +224,11 @@ const TagTeamHub: React.FC = () => {
               <div key={team.id}>
                 <TagTeamCard
                   {...team}
+                  memberNames={team.memberNames}
+                  memberAvatars={team.memberAvatars}
+                  memberInitials={team.memberInitials}
+                  isLogged={team.isLogged}
+                  partnerLogged={team.partnerLogged}
                   onCardClick={() => handleTagTeamCardClick(team)}
                 />
               </div>
@@ -209,14 +241,36 @@ const TagTeamHub: React.FC = () => {
         )}
       </div>
 
-      <BottomNavigation items={navItems} />
+      <BottomNavigation items={[
+        {
+          name: "Home",
+          icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/c761f5256fcea0afdf72f5aa0ab3d05e40a3545b?placeholderIfAbsent=true",
+          path: "/",
+          isActive: activeTab === "home",
+        },
+        {
+          name: "Tagteam",
+          icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/99b9d22862884f6e83475b74fa086fd10fb5e57f?placeholderIfAbsent=true",
+          path: "/tagteam",
+          isActive: activeTab === "tagteam",
+        },
+        {
+          name: "Profile",
+          icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
+          path: "/profile",
+          isActive: activeTab === "profile",
+        }]}
+      />
       
       <AddTeamButton onClick={() => setIsSheetOpen(true)} />
 
       <CreateTeamSheet
         isOpen={isSheetOpen}
         onClose={() => setIsSheetOpen(false)}
-        onCreateTeam={handleAddTeam}
+        onCreateTeam={(newTeam) => {
+          setTagTeams([...tagTeams, newTeam]);
+          setIsSheetOpen(false);
+        }}
         categories={userProfile.interests}
       />
 
