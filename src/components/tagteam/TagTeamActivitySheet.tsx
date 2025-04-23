@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { 
   Drawer, 
@@ -7,7 +8,7 @@ import {
   DrawerDescription 
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { Check, X, LogOut, User } from "lucide-react";
+import { Check, X, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -36,7 +37,6 @@ export const TagTeamActivitySheet: React.FC<TagTeamActivitySheetProps> = ({
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Only allow logging PARTNER's activity; don't expose controls otherwise
   const handleActivityLog = async (completed: boolean) => {
     setIsProcessing(true);
     try {
@@ -45,7 +45,6 @@ export const TagTeamActivitySheet: React.FC<TagTeamActivitySheetProps> = ({
         throw new Error('Not authenticated');
       }
 
-      // Only log for the partner
       const { error } = await supabase.from('team_activity_logs').insert({
         team_id: teamId,
         user_id: user.id,
@@ -57,9 +56,13 @@ export const TagTeamActivitySheet: React.FC<TagTeamActivitySheetProps> = ({
 
       if (error) throw error;
 
-      toast.success(`Marked ${partnerName}'s activity as ${completed ? 'complete' : 'pending'}`);
+      toast.success(`${partnerName}'s activity marked as ${completed ? 'Completed' : 'Pending'}`);
       
-      if (onActivityLogged) onActivityLogged(teamId, completed);
+      // Call the callback to update UI state
+      if (onActivityLogged) {
+        onActivityLogged(teamId, completed);
+      }
+      
       onClose();
     } catch (error) {
       console.error('Error logging activity:', error);
@@ -73,9 +76,11 @@ export const TagTeamActivitySheet: React.FC<TagTeamActivitySheetProps> = ({
     setIsProcessing(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) {
+        throw new Error('Not authenticated');
+      }
 
-      // Remove from team/membership (unchanged logic)
+      // Delete the team
       const { error: teamError } = await supabase
         .from('teams')
         .delete()
@@ -92,7 +97,7 @@ export const TagTeamActivitySheet: React.FC<TagTeamActivitySheetProps> = ({
 
       if (logError) throw logError;
 
-      toast.success(`Left "${teamName}"`);
+      toast.success(`Left ${teamName}`);
       onLeaveTeam();
       onClose();
     } catch (error) {
@@ -105,47 +110,48 @@ export const TagTeamActivitySheet: React.FC<TagTeamActivitySheetProps> = ({
 
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
-      <DrawerContent className="max-w-full px-4 pb-4" style={{ borderRadius: 18, boxShadow: '0 -2px 8px 0 rgba(130,122,255,0.03)' }}>
-        <DrawerHeader className="p-0 pt-4 pb-2">
-          <DrawerTitle className="text-base font-bold">{teamName}</DrawerTitle>
-          <DrawerDescription className="text-[15px] pb-0 text-center">
-            Mark <b>{partnerName}</b>'s activity for today
-          </DrawerDescription>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>Tag Team: {teamName}</DrawerTitle>
+          <DrawerDescription>Log {partnerName}'s activity</DrawerDescription>
         </DrawerHeader>
-        <div className="flex flex-col gap-4 w-full pt-2 px-0" style={{ maxWidth: 432, margin: '0 auto' }}>
-          <div className="bg-gray-100 rounded-xl p-3 text-center text-sm text-gray-700 font-normal">
-            You can only log your <b>partner's</b> activity. Your partner will log yours.
+        <div className="p-4 space-y-4">
+          <div className="text-center mb-4">
+            <p className="text-sm text-gray-500">
+              You can only log your partner's activity. Your partner will log your activity.
+            </p>
+            <p className="text-sm font-medium mt-2">
+              {isPartnerLogged ? 
+                <span className="text-green-600">Your partner has already marked your activity!</span> : 
+                <span className="text-amber-600">Your partner hasn't logged your activity yet.</span>
+              }
+            </p>
           </div>
-          <div className="flex flex-col gap-3 mt-1">
+          <div className="flex space-x-4">
             <Button 
               onClick={() => handleActivityLog(true)} 
-              disabled={isProcessing}
-              className="w-full text-[15px] font-semibold bg-[#8CFF6E] hover:bg-[#74e95b] py-3 px-3 rounded-lg"
-              style={{ minHeight: 48 }}
+              disabled={isProcessing} 
+              className="flex-1 bg-[#8CFF6E] hover:bg-green-600"
             >
-              <Check className="mr-2" size={18} /> Mark Complete
+              <Check className="mr-2" /> Mark {partnerName} Completed
             </Button>
             <Button 
               onClick={() => handleActivityLog(false)} 
-              disabled={isProcessing}
-              className="w-full text-[15px] bg-[#FFD6D6] hover:bg-[#ffe0e0] text-black py-3 px-3 rounded-lg border border-[#ffb4b4]"
-              style={{ minHeight: 48 }}
-              variant="outline"
+              disabled={isProcessing} 
+              variant="destructive" 
+              className="flex-1"
             >
-              <X className="mr-2" size={18} /> Mark Not Complete
+              <X className="mr-2" /> Mark {partnerName} Pending
             </Button>
           </div>
-          <div className="w-full mb-2">
-            <Button
-              onClick={handleLeaveTeam}
-              disabled={isProcessing}
-              variant="outline"
-              className="w-full py-3 px-3 border border-red-400 text-red-600 rounded-md bg-white"
-              style={{ minHeight: 44 }}
-            >
-              <LogOut className="mr-2" size={17} /> Leave TagTeam
-            </Button>
-          </div>
+          <Button 
+            onClick={handleLeaveTeam} 
+            disabled={isProcessing} 
+            variant="outline" 
+            className="w-full text-red-500 hover:bg-red-50"
+          >
+            <LogOut className="mr-2" /> Leave Tag Team
+          </Button>
         </div>
       </DrawerContent>
     </Drawer>
