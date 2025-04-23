@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -9,6 +8,7 @@ import { useUserData } from "@/hooks/useUserData";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { TagTeam } from "@/components/home/TagTeamList";
+import { TagTeamActivitySheet } from "@/components/tagteam/TagTeamActivitySheet";
 
 const TagTeamHub: React.FC = () => {
   const { getUserData } = useUserData();
@@ -21,11 +21,15 @@ const TagTeamHub: React.FC = () => {
   const [tagTeams, setTagTeams] = useState<TagTeam[]>([]);
   const [activeTab, setActiveTab] = useState("tagteam");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [selectedTagTeam, setSelectedTagTeam] = useState<{
+    id: string;
+    name: string;
+    partnerId: string;
+  } | null>(null);
 
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        // Get current user
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           setUserId(user.id);
@@ -39,7 +43,6 @@ const TagTeamHub: React.FC = () => {
           });
         }
         
-        // Load tagteams after user data is loaded
         if (user) {
           await fetchTagTeams(user.id);
         }
@@ -54,7 +57,6 @@ const TagTeamHub: React.FC = () => {
     loadUserData();
   }, []);
   
-  // Function to fetch user's tagteams
   const fetchTagTeams = async (userId: string) => {
     try {
       const { data: teams, error } = await supabase
@@ -69,12 +71,9 @@ const TagTeamHub: React.FC = () => {
       
       console.log("Fetched teams in Hub:", teams);
       
-      // Process teams to get partner information
       const processedTeams = await Promise.all(teams.map(async (team) => {
-        // Find partner id (the member that is not the current user)
         const partnerId = team.members.find((member: string) => member !== userId);
         
-        // Get partner profile
         let partnerName = "Team Member";
         if (partnerId) {
           const { data: partner } = await supabase
@@ -88,7 +87,6 @@ const TagTeamHub: React.FC = () => {
           }
         }
         
-        // Calculate time left based on frequency
         let timeLeft = "1 day";
         if (team.frequency.includes("Weekly")) {
           timeLeft = "7 days";
@@ -145,7 +143,6 @@ const TagTeamHub: React.FC = () => {
     setIsSheetOpen(false);
   };
 
-  // Refresh tagteams when component gains focus
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && userId) {
@@ -159,6 +156,19 @@ const TagTeamHub: React.FC = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [userId]);
+
+  const handleTagTeamCardClick = (team: {
+    id: string;
+    name: string;
+    partnerId: string;
+  }) => {
+    setSelectedTagTeam(team);
+  };
+
+  const handleLeaveTagTeam = () => {
+    setTagTeams(teams => teams.filter(team => team.id !== selectedTagTeam?.id));
+    setSelectedTagTeam(null);
+  };
 
   return (
     <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto pb-20">
@@ -180,15 +190,10 @@ const TagTeamHub: React.FC = () => {
         ) : tagTeams.length > 0 ? (
           <div className="space-y-4">
             {tagTeams.map((team) => (
-              <div key={team.id} onClick={() => handleLogActivity(team.id)}>
+              <div key={team.id} onClick={() => handleTagTeamCardClick(team)}>
                 <TagTeamCard
-                  name={team.name}
-                  category={team.category}
-                  timeLeft={team.timeLeft}
-                  frequency={team.frequency}
-                  members={team.partnerName || ""}
-                  isLogged={team.isLogged}
-                  partnerLogged={team.partnerLogged}
+                  {...team}
+                  onCardClick={() => handleTagTeamCardClick(team)}
                 />
               </div>
             ))}
@@ -209,6 +214,15 @@ const TagTeamHub: React.FC = () => {
         onClose={() => setIsSheetOpen(false)}
         onCreateTeam={handleAddTeam}
         categories={userProfile.interests}
+      />
+
+      <TagTeamActivitySheet
+        isOpen={!!selectedTagTeam}
+        onClose={() => setSelectedTagTeam(null)}
+        teamId={selectedTagTeam?.id || ''}
+        teamName={selectedTagTeam?.name || ''}
+        partnerId={selectedTagTeam?.partnerId || ''}
+        onLeaveTeam={handleLeaveTagTeam}
       />
     </main>
   );

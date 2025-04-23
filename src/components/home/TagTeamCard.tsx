@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Check, X } from "lucide-react";
 
 interface TagTeamCardProps {
+  id: string;
   name: string;
   category: string;
   timeLeft: string;
@@ -12,9 +13,11 @@ interface TagTeamCardProps {
   partnerName?: string;
   isLogged?: boolean;
   partnerLogged?: boolean;
+  onCardClick?: () => void;
 }
 
 export const TagTeamCard: React.FC<TagTeamCardProps> = ({
+  id,
   name,
   category,
   timeLeft,
@@ -23,9 +26,14 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
   partnerName,
   isLogged = false,
   partnerLogged = false,
+  onCardClick
 }) => {
   return (
-    <div className="border w-full mt-4 p-4 rounded-xl border-[rgba(130,122,255,0.41)] border-solid flex flex-col gap-2" style={{boxShadow: '0 1px 5px rgba(130,122,255,0.05)'}}>
+    <div 
+      className="border w-full mt-4 p-4 rounded-xl border-[rgba(130,122,255,0.41)] border-solid flex flex-col gap-2" 
+      style={{boxShadow: '0 1px 5px rgba(130,122,255,0.05)'}}
+      onClick={onCardClick}
+    >
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-2">
           <h3 className="text-xl font-bold truncate mr-2">{name}</h3>

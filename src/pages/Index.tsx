@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { TagTeamList, TagTeam } from "@/components/home/TagTeamList";
@@ -8,6 +7,7 @@ import { useUserData } from "@/hooks/useUserData";
 import { UsersList } from "@/components/home/UsersList";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { TagTeamActivitySheet } from "@/components/tagteam/TagTeamActivitySheet";
 
 const Index: React.FC = () => {
   const {
@@ -25,23 +25,24 @@ const Index: React.FC = () => {
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // State for tag teams
   const [tagTeams, setTagTeams] = useState<TagTeam[]>([]);
   
-  // State for active navigation tab
   const [activeTab, setActiveTab] = useState("home");
   
-  // State for sheet visibility
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   
-  // Available categories from user's interests
+  const [selectedTagTeam, setSelectedTagTeam] = useState<{
+    id: string;
+    name: string;
+    partnerId: string;
+  } | null>(null);
+  
   const categories = userProfile.interests;
   
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
-        // Get current user
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           setUserId(user.id);
@@ -59,7 +60,6 @@ const Index: React.FC = () => {
         const users = await getAllUsers();
         setAllUsers(users);
         
-        // Load tagteams after user data is loaded
         if (user) {
           await fetchTagTeams(user.id);
         }
@@ -73,7 +73,6 @@ const Index: React.FC = () => {
     loadData();
   }, []);
   
-  // Function to fetch user's tagteams
   const fetchTagTeams = async (userId: string) => {
     try {
       const { data: teams, error } = await supabase
@@ -86,14 +85,9 @@ const Index: React.FC = () => {
         return;
       }
       
-      console.log("Fetched teams:", teams);
-      
-      // Process teams to get partner information
       const processedTeams = await Promise.all(teams.map(async (team) => {
-        // Find partner id (the member that is not the current user)
         const partnerId = team.members.find((member: string) => member !== userId);
         
-        // Get partner profile
         let partnerName = "Team Member";
         if (partnerId) {
           const { data: partner } = await supabase
@@ -107,7 +101,6 @@ const Index: React.FC = () => {
           }
         }
         
-        // Calculate time left based on frequency
         let timeLeft = "1 day";
         if (team.frequency.includes("Weekly")) {
           timeLeft = "7 days";
@@ -134,7 +127,19 @@ const Index: React.FC = () => {
     }
   };
 
-  // Navigation items
+  const handleTagTeamCardClick = (team: {
+    id: string;
+    name: string;
+    partnerId: string;
+  }) => {
+    setSelectedTagTeam(team);
+  };
+
+  const handleLeaveTagTeam = () => {
+    setTagTeams(teams => teams.filter(team => team.id !== selectedTagTeam?.id));
+    setSelectedTagTeam(null);
+  };
+
   const navItems = [{
     name: "Home",
     icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/c761f5256fcea0afdf72f5aa0ab3d05e40a3545b?placeholderIfAbsent=true",
@@ -152,18 +157,15 @@ const Index: React.FC = () => {
     isActive: activeTab === "profile"
   }];
 
-  // Handler for adding a new team
   const handleAddTeam = (newTeam: TagTeam) => {
     setTagTeams([...tagTeams, newTeam]);
     setIsSheetOpen(false);
   };
 
-  // Handler for opening the sheet
   const handleOpenSheet = () => {
     setIsSheetOpen(true);
   };
   
-  // Refresh tagteams when component gains focus
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && userId) {
@@ -197,7 +199,12 @@ const Index: React.FC = () => {
               </div>
             </>}
         </div>
-        <TagTeamList teams={tagTeams} onAddTeam={handleOpenSheet} userName={userProfile.fullName} />
+        <TagTeamList 
+          teams={tagTeams} 
+          onAddTeam={handleOpenSheet} 
+          userName={userProfile.fullName}
+          onTagTeamClick={handleTagTeamCardClick}
+        />
         <div className="px-4">
           <UsersList users={allUsers} loading={loading} />
         </div>
@@ -206,6 +213,15 @@ const Index: React.FC = () => {
       <BottomNavigation items={navItems} />
 
       <CreateTeamSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} onCreateTeam={handleAddTeam} categories={categories} />
+
+      <TagTeamActivitySheet
+        isOpen={!!selectedTagTeam}
+        onClose={() => setSelectedTagTeam(null)}
+        teamId={selectedTagTeam?.id || ''}
+        teamName={selectedTagTeam?.name || ''}
+        partnerId={selectedTagTeam?.partnerId || ''}
+        onLeaveTeam={handleLeaveTagTeam}
+      />
     </main>;
 };
 

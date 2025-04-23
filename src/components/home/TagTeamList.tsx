@@ -1,4 +1,3 @@
-
 import React from "react";
 import { TagTeamCard } from "./TagTeamCard";
 import { AddTeamButton } from "./AddTeamButton";
@@ -21,13 +20,23 @@ interface TagTeamListProps {
   teams: TagTeam[];
   onAddTeam?: () => void;
   userName?: string;
+  onTagTeamClick?: (team: { id: string; name: string; partnerId: string }) => void;
 }
 
 export const TagTeamList: React.FC<TagTeamListProps> = ({
   teams,
   onAddTeam,
-  userName = ""
+  userName = "",
+  onTagTeamClick
 }) => {
+  const handleCardClick = (team: TagTeam) => {
+    onTagTeamClick?.({
+      id: team.id,
+      name: team.name,
+      partnerId: team.partnerId || ''
+    });
+  };
+
   return <section className="flex w-full flex-col text-black mt-5 px-4">
       <div className="flex items-center gap-[9px] text-xs text-black font-normal">
         <div className="border flex-1 h-px border-[rgba(0,0,0,0.5)] border-solid" />
@@ -56,13 +65,8 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
         </div> : <div className="space-y-4 mt-4">
           {teams.map(team => <TagTeamCard 
             key={team.id} 
-            name={team.name} 
-            category={team.category} 
-            timeLeft={team.timeLeft} 
-            frequency={team.frequency} 
-            members={team.partnerName || ""} 
-            isLogged={team.isLogged} 
-            partnerLogged={team.partnerLogged} 
+            {...team}
+            onCardClick={() => handleCardClick(team)}
           />)}
         </div>}
 
