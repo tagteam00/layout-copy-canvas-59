@@ -5,17 +5,18 @@ import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
 import { useUserData } from "@/hooks/useUserData";
 import { UsersList } from "@/components/home/UsersList";
-
 const Index: React.FC = () => {
-  const { getUserData, getAllUsers } = useUserData();
+  const {
+    getUserData,
+    getAllUsers
+  } = useUserData();
   const [userProfile, setUserProfile] = useState({
     fullName: "",
     username: "",
-    interests: [] as string[],
+    interests: [] as string[]
   });
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -25,7 +26,7 @@ const Index: React.FC = () => {
           setUserProfile({
             fullName: userData.fullName,
             username: userData.username,
-            interests: userData.interests,
+            interests: userData.interests
           });
         }
         const users = await getAllUsers();
@@ -36,7 +37,6 @@ const Index: React.FC = () => {
         setLoading(false);
       }
     };
-
     loadData();
   }, []);
 
@@ -53,29 +53,25 @@ const Index: React.FC = () => {
   const categories = userProfile.interests;
 
   // Navigation items (Notifications removed)
-  const navItems = [
-    {
-      name: "Home",
-      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/c761f5256fcea0afdf72f5aa0ab3d05e40a3545b?placeholderIfAbsent=true",
-      path: "/",
-      isActive: activeTab === "home",
-    },
-    {
-      name: "Tagteam",
-      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/99b9d22862884f6e83475b74fa086fd10fb5e57f?placeholderIfAbsent=true",
-      path: "/tagteam",
-      isActive: activeTab === "tagteam",
-    },
-    {
-      name: "Profile",
-      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
-      path: "/profile",
-      isActive: activeTab === "profile",
-    },
-  ];
+  const navItems = [{
+    name: "Home",
+    icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/c761f5256fcea0afdf72f5aa0ab3d05e40a3545b?placeholderIfAbsent=true",
+    path: "/",
+    isActive: activeTab === "home"
+  }, {
+    name: "Tagteam",
+    icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/99b9d22862884f6e83475b74fa086fd10fb5e57f?placeholderIfAbsent=true",
+    path: "/tagteam",
+    isActive: activeTab === "tagteam"
+  }, {
+    name: "Profile",
+    icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
+    path: "/profile",
+    isActive: activeTab === "profile"
+  }];
 
   // Handler for adding a new team
-  const handleAddTeam = (newTeam) => {
+  const handleAddTeam = newTeam => {
     setTagTeams([...tagTeams, newTeam]);
     setIsSheetOpen(false);
   };
@@ -84,35 +80,24 @@ const Index: React.FC = () => {
   const handleOpenSheet = () => {
     setIsSheetOpen(true);
   };
-
-  return (
-    <main className="flex flex-col min-h-screen bg-white max-w-[480px] w-full mx-auto relative pb-20">
+  return <main className="flex flex-col min-h-screen bg-white max-w-[480px] w-full mx-auto relative pb-20">
       <AppHeader />
       <div className="flex-1 overflow-y-auto">
-        <div className="px-4 py-6">
-          {loading ? (
-            <div className="animate-pulse">
+        <div className="px-4 py-[8px]">
+          {loading ? <div className="animate-pulse">
               <div className="h-8 bg-gray-200 rounded w-3/4 mb-2"></div>
               <div className="flex gap-1 mt-2">
                 <div className="h-6 bg-gray-200 rounded w-16"></div>
                 <div className="h-6 bg-gray-200 rounded w-16"></div>
               </div>
-            </div>
-          ) : (
-            <>
+            </div> : <>
               <h1 className="text-2xl font-bold mb-2">Hello, {userProfile.fullName}</h1>
               <div className="flex items-center gap-1 mt-2">
-                {userProfile.interests.map((interest, index) => (
-                  <div
-                    key={index}
-                    className="bg-[rgba(130,122,255,1)] text-xs text-white px-2 py-1 rounded-xl whitespace-nowrap"
-                  >
+                {userProfile.interests.map((interest, index) => <div key={index} className="bg-[rgba(130,122,255,1)] text-xs text-white px-2 py-1 rounded-xl whitespace-nowrap">
                     {interest}
-                  </div>
-                ))}
+                  </div>)}
               </div>
-            </>
-          )}
+            </>}
         </div>
         <TagTeamList teams={tagTeams} onAddTeam={handleOpenSheet} userName={userProfile.fullName} />
         <div className="px-4">
@@ -122,14 +107,7 @@ const Index: React.FC = () => {
 
       <BottomNavigation items={navItems} />
 
-      <CreateTeamSheet
-        isOpen={isSheetOpen}
-        onClose={() => setIsSheetOpen(false)}
-        onCreateTeam={handleAddTeam}
-        categories={categories}
-      />
-    </main>
-  );
+      <CreateTeamSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} onCreateTeam={handleAddTeam} categories={categories} />
+    </main>;
 };
-
 export default Index;
