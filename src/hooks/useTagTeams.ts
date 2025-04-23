@@ -32,6 +32,7 @@ export function useTagTeams(userId: string | null) {
 
   const getActivityLogsForTeams = useCallback(async (teamIds: string[], currentUserId: string) => {
     try {
+      // Get all activity logs for the teams
       const { data: logs, error } = await supabase
         .from('team_activity_logs')
         .select('*')
@@ -42,24 +43,31 @@ export function useTagTeams(userId: string | null) {
         return {};
       }
 
+      console.log("Activity logs fetched:", logs);
+      
       // Group logs by team_id
       const teamLogs: {[key: string]: {isLogged: boolean, partnerLogged: boolean}} = {};
+      
+      // Initialize all teams with default values
       teamIds.forEach(id => {
         teamLogs[id] = {isLogged: false, partnerLogged: false};
       });
 
+      // Process each log entry
       logs?.forEach(log => {
         if (log.team_id) {
+          // This check handles whether I'm the user or partner in this log entry
           if (log.user_id === currentUserId) {
-            // This is a log I created for my partner
+            // I created this log for my partner
             teamLogs[log.team_id].isLogged = log.completed;
           } else if (log.partner_id === currentUserId) {
-            // This is a log my partner created for me
+            // My partner created this log for me
             teamLogs[log.team_id].partnerLogged = log.completed;
           }
         }
       });
       
+      console.log("Processed team logs:", teamLogs);
       return teamLogs;
     } catch (error) {
       console.error("Error in getActivityLogsForTeams:", error);
@@ -67,7 +75,7 @@ export function useTagTeams(userId: string | null) {
     }
   }, []);
   
-  // New function to check and remove expired teams
+  // Check and remove expired teams
   const checkAndRemoveExpiredTeams = useCallback(async (userId: string, teams: any[]) => {
     if (!teams || teams.length === 0) return [];
     
@@ -129,6 +137,29 @@ export function useTagTeams(userId: string | null) {
     return teams.filter(team => !expiredTeams.includes(team.id));
   }, []);
 
+  // Subscribe to real-time changes in activity logs
+  const subscribeToActivityLogs = useCallback((teamIds: string[], userId: string) => {
+    if (!teamIds.length || !userId) return null;
+    
+    console.log("Setting up real-time subscription for teams:", teamIds);
+    
+    const channel = supabase
+      .channel('activity-logs-changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'team_activity_logs',
+        filter: `team_id=in.(${teamIds.join(',')})`,
+      }, (payload) => {
+        console.log("Real-time update received:", payload);
+        // Re-fetch teams to get updated status
+        if (userId) fetchTagTeams(userId);
+      })
+      .subscribe();
+      
+    return channel;
+  }, []);
+
   const fetchTagTeams = useCallback(async (uid: string) => {
     setLoading(true);
     try {
@@ -141,7 +172,7 @@ export function useTagTeams(userId: string | null) {
         console.error("Error fetching teams:", error);
         return;
       }
-      console.log("Fetched teams in Hub:", teams);
+      console.log("Fetched teams:", teams);
 
       if (!teams || teams.length === 0) {
         setTagTeams([]);
@@ -177,7 +208,7 @@ export function useTagTeams(userId: string | null) {
         if (currentUserIndex === 0) {
           memberNames = [memberProfiles[0].full_name || "Me", memberProfiles[1].full_name || "Partner"] as [string, string];
         } else {
-          memberNames = [memberProfiles[0].full_name || "Me", memberProfiles[1].full_name || "Partner"] as [string, string];
+          memberNames = [memberProfiles[1].full_name || "Me", memberProfiles[0].full_name || "Partner"] as [string, string];
         }
         
         const getInitials = (name: string) => {
@@ -222,6 +253,21 @@ export function useTagTeams(userId: string | null) {
       setLoading(false);
     }
   }, [getProfileDataForMembers, getActivityLogsForTeams, checkAndRemoveExpiredTeams]);
+
+  // Set up real-time subscription
+  useEffect(() => {
+    if (userId && tagTeams.length > 0) {
+      const teamIds = tagTeams.map(team => team.id);
+      const channel = subscribeToActivityLogs(teamIds, userId);
+      
+      // Cleanup subscription on unmount
+      return () => {
+        if (channel) {
+          supabase.removeChannel(channel);
+        }
+      };
+    }
+  }, [userId, tagTeams, subscribeToActivityLogs]);
 
   // Load on mount or userId change
   useEffect(() => {
