@@ -85,7 +85,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
     </div>
     <div className="text-gray-400 text-sm">{frequency}</div>
     <div className="flex flex-col md:flex-row gap-2 mt-1">
-      {/* Show both user and partner status pills */}
+      {/* Display user (me) status pill */}
       <div className="rounded-[18px] flex-1 py-2 px-2 text-center font-normal transition-all flex items-center justify-center"
         style={{
           maxWidth: "100%",
@@ -106,6 +106,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
         }
       </div>
       
+      {/* Display partner status pill */}
       <div className="rounded-[18px] flex-1 py-2 px-2 text-center font-normal transition-all flex items-center justify-center"
         style={{
           maxWidth: "100%",

@@ -48,6 +48,13 @@ export const TagTeamActivitySheet: React.FC<TagTeamActivitySheetProps> = ({
         throw new Error('Not authenticated');
       }
 
+      console.log('Logging activity:', {
+        teamId,
+        userId: user.id,
+        partnerId,
+        completed
+      });
+
       // Check if there's an existing log entry
       const { data: existingLogs, error: fetchError } = await supabase
         .from('team_activity_logs')
@@ -56,8 +63,13 @@ export const TagTeamActivitySheet: React.FC<TagTeamActivitySheetProps> = ({
         .eq('user_id', user.id)
         .eq('partner_id', partnerId);
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error('Error fetching logs:', fetchError);
+        throw fetchError;
+      }
 
+      console.log('Existing logs:', existingLogs);
+      
       let logError;
       
       if (existingLogs && existingLogs.length > 0) {
@@ -72,6 +84,9 @@ export const TagTeamActivitySheet: React.FC<TagTeamActivitySheetProps> = ({
           .eq('id', existingLogs[0].id);
           
         logError = error;
+        
+        if (error) console.error('Error updating log:', error);
+        else console.log('Successfully updated log');
       } else {
         // Insert new log
         const { error } = await supabase.from('team_activity_logs').insert({
@@ -84,6 +99,9 @@ export const TagTeamActivitySheet: React.FC<TagTeamActivitySheetProps> = ({
         });
         
         logError = error;
+        
+        if (error) console.error('Error inserting log:', error);
+        else console.log('Successfully inserted new log');
       }
 
       if (logError) throw logError;
