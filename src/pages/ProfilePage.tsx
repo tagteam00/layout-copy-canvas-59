@@ -1,29 +1,19 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { useUserData } from "@/hooks/useUserData";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 
 const ProfilePage: React.FC = () => {
-  const [userProfile, setUserProfile] = useState({
-    fullName: "",
-    username: "",
-    dateOfBirth: "",
-    gender: "",
-    interests: [] as string[],
-    commitmentLevel: "",
-    profileImage: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/59e6c2f5f7d74dddae24e7adf98c5564a2e93e95?placeholderIfAbsent=true",
-  });
-
-  const { getUserData } = useUserData();
   const { signOut } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("profile");
+  const { data: profile, isLoading, isError } = useProfile();
+  const [activeTab] = React.useState("profile");
 
   const navItems = [
     {
@@ -46,34 +36,6 @@ const ProfilePage: React.FC = () => {
     },
   ];
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        setLoading(true);
-        // Get user profile data
-        const userData = await getUserData();
-        if (userData) {
-          setUserProfile({
-            ...userProfile,
-            fullName: userData.fullName,
-            username: userData.username,
-            dateOfBirth: userData.dateOfBirth,
-            gender: userData.gender,
-            interests: userData.interests,
-            commitmentLevel: userData.commitmentLevel
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        toast.error("Failed to load profile data");
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchUserData();
-  }, [getUserData]);
-
   const handleLogout = async () => {
     try {
       await signOut();
@@ -95,11 +57,18 @@ const ProfilePage: React.FC = () => {
     }).format(date);
   };
 
-  if (loading) {
+  if (isError) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Loading profile...</p>
-      </div>
+      <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto">
+        <AppHeader />
+        <div className="p-4 text-center">
+          <p className="text-red-500">Failed to load profile data</p>
+          <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+        <BottomNavigation items={navItems} />
+      </main>
     );
   }
 
@@ -109,15 +78,28 @@ const ProfilePage: React.FC = () => {
       <div className="p-4">
         <div className="flex items-center mb-6">
           <div className="w-20 h-20 rounded-full overflow-hidden mr-4">
-            <img 
-              src={userProfile.profileImage} 
-              alt={userProfile.username}
-              className="w-full h-full object-cover"
-            />
+            {isLoading ? (
+              <Skeleton className="w-full h-full rounded-full" />
+            ) : (
+              <img 
+                src="https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/59e6c2f5f7d74dddae24e7adf98c5564a2e93e95?placeholderIfAbsent=true" 
+                alt={profile?.username || "Profile"}
+                className="w-full h-full object-cover"
+              />
+            )}
           </div>
           <div>
-            <h1 className="text-2xl font-bold">{userProfile.fullName || "New User"}</h1>
-            <p className="text-gray-600">@{userProfile.username || "username"}</p>
+            {isLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-7 w-32" />
+                <Skeleton className="h-5 w-24" />
+              </div>
+            ) : (
+              <>
+                <h1 className="text-2xl font-bold">{profile?.fullName || "New User"}</h1>
+                <p className="text-gray-600">@{profile?.username || "username"}</p>
+              </>
+            )}
           </div>
         </div>
 
@@ -125,18 +107,28 @@ const ProfilePage: React.FC = () => {
           <CardContent className="p-4">
             <h2 className="text-lg font-semibold mb-2">Personal Information</h2>
             <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Date of Birth:</span>
-                <span>{formatDate(userProfile.dateOfBirth)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Gender:</span>
-                <span>{userProfile.gender || "Not provided"}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Commitment Level:</span>
-                <Badge variant="outline">{userProfile.commitmentLevel || "Not set"}</Badge>
-              </div>
+              {isLoading ? (
+                <>
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-6 w-full" />
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Date of Birth:</span>
+                    <span>{formatDate(profile?.dateOfBirth || '')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Gender:</span>
+                    <span>{profile?.gender || "Not provided"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Commitment Level:</span>
+                    <Badge variant="outline">{profile?.commitmentLevel || "Not set"}</Badge>
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -144,9 +136,15 @@ const ProfilePage: React.FC = () => {
         <Card className="mb-6">
           <CardContent className="p-4">
             <h2 className="text-lg font-semibold mb-2">Interests</h2>
-            {userProfile.interests && userProfile.interests.length > 0 ? (
+            {isLoading ? (
               <div className="flex flex-wrap gap-2">
-                {userProfile.interests.map((interest, index) => (
+                <Skeleton className="h-6 w-20" />
+                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-6 w-16" />
+              </div>
+            ) : profile?.interests && profile.interests.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {profile.interests.map((interest, index) => (
                   <Badge key={index} variant="secondary">
                     {interest}
                   </Badge>
