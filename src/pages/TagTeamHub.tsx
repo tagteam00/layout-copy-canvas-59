@@ -1,26 +1,24 @@
-
-import React, { useState, useCallback, memo } from "react";
+import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
+import { TagTeamCard } from "@/components/home/TagTeamCard";
 import { AddTeamButton } from "@/components/home/AddTeamButton";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
+import { useUserData } from "@/hooks/useUserData";
 import { toast } from "sonner";
-import { TagTeamActivitySheet } from "@/components/tagteam/TagTeamActivitySheet";
-import { useTagTeams } from "@/hooks/useTagTeams";
+import { supabase } from "@/integrations/supabase/client";
 import { TagTeam } from "@/components/home/TagTeamList";
-import { tagteamNavItems } from "@/components/tagteam/tagteamNavItems";
-import { TagTeamHubContent } from "@/components/tagteam/TagTeamHubContent";
+import { TagTeamActivitySheet } from "@/components/tagteam/TagTeamActivitySheet";
 
-const TagTeamHub = () => {
-  const {
-    userProfile,
-    userId,
-    loading,
-    tagTeams,
-    addTagTeam,
-    removeTagTeam
-  } = useTagTeams();
-
+const TagTeamHub: React.FC = () => {
+  const { getUserData } = useUserData();
+  const [userProfile, setUserProfile] = useState({
+    fullName: "",
+    interests: [] as string[],
+  });
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [tagTeams, setTagTeams] = useState<TagTeam[]>([]);
   const [activeTab, setActiveTab] = useState("tagteam");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedTagTeam, setSelectedTagTeam] = useState<{
@@ -29,8 +27,137 @@ const TagTeamHub = () => {
     partnerId: string;
   } | null>(null);
 
-  // Memoized handlers to prevent re-renders
-  const handleTagTeamCardClick = useCallback((team: TagTeam) => {
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUserId(user.id);
+        }
+        
+        const userData = await getUserData();
+        if (userData) {
+          setUserProfile({
+            fullName: userData.fullName,
+            interests: userData.interests,
+          });
+        }
+        
+        if (user) {
+          await fetchTagTeams(user.id);
+        }
+      } catch (error) {
+        console.error("Error loading user data:", error);
+        toast.error("Failed to load user profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, []);
+  
+  const fetchTagTeams = async (userId: string) => {
+    try {
+      const { data: teams, error } = await supabase
+        .from('teams')
+        .select('*')
+        .contains('members', [userId]);
+        
+      if (error) {
+        console.error("Error fetching teams:", error);
+        return;
+      }
+      
+      console.log("Fetched teams in Hub:", teams);
+      
+      const processedTeams = await Promise.all(teams.map(async (team) => {
+        const partnerId = team.members.find((member: string) => member !== userId);
+        
+        let partnerName = "Team Member";
+        if (partnerId) {
+          const { data: partner } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', partnerId)
+            .single();
+            
+          if (partner) {
+            partnerName = partner.full_name;
+          }
+        }
+        
+        let timeLeft = "1 day";
+        if (team.frequency.includes("Weekly")) {
+          timeLeft = "7 days";
+        }
+        
+        return {
+          id: team.id,
+          name: team.name,
+          category: team.category,
+          timeLeft: timeLeft,
+          frequency: team.frequency,
+          members: team.members,
+          partnerId: partnerId,
+          partnerName: partnerName,
+          isLogged: false,
+          partnerLogged: false
+        };
+      }));
+      
+      setTagTeams(processedTeams);
+    } catch (error) {
+      console.error("Error processing teams:", error);
+      toast.error("Failed to load your TagTeams");
+    }
+  };
+
+  const navItems = [
+    {
+      name: "Home",
+      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/c761f5256fcea0afdf72f5aa0ab3d05e40a3545b?placeholderIfAbsent=true",
+      path: "/",
+      isActive: activeTab === "home",
+    },
+    {
+      name: "Tagteam",
+      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/99b9d22862884f6e83475b74fa086fd10fb5e57f?placeholderIfAbsent=true",
+      path: "/tagteam",
+      isActive: activeTab === "tagteam",
+    },
+    {
+      name: "Profile",
+      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
+      path: "/profile",
+      isActive: activeTab === "profile",
+    },
+  ];
+
+  const handleLogActivity = (teamId: string) => {
+    console.log("Log activity for team:", teamId);
+  };
+
+  const handleAddTeam = (newTeam: TagTeam) => {
+    setTagTeams([...tagTeams, newTeam]);
+    setIsSheetOpen(false);
+  };
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && userId) {
+        fetchTagTeams(userId);
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [userId]);
+
+  const handleTagTeamCardClick = (team: TagTeam) => {
     if (team.id && team.partnerId) {
       setSelectedTagTeam({
         id: team.id,
@@ -40,45 +167,50 @@ const TagTeamHub = () => {
     } else {
       toast.error("Cannot open this team. Missing team or partner information.");
     }
-  }, []);
+  };
 
-  const handleAddTeam = useCallback((newTeam: TagTeam) => {
-    addTagTeam(newTeam);
-    setIsSheetOpen(false);
-  }, [addTagTeam]);
-
-  const handleLeaveTagTeam = useCallback(() => {
-    if (selectedTagTeam && selectedTagTeam.id) {
-      removeTagTeam(selectedTagTeam.id);
-    }
+  const handleLeaveTagTeam = () => {
+    setTagTeams(teams => teams.filter(team => team.id !== selectedTagTeam?.id));
     setSelectedTagTeam(null);
-  }, [selectedTagTeam, removeTagTeam]);
-
-  // Create nav items with activeTab state injected
-  const navItems = tagteamNavItems.map(item => ({
-    ...item,
-    isActive: typeof item.isActive === "function" ? item.isActive(activeTab) : item.isActive
-  }));
+  };
 
   return (
     <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto pb-20">
       <AppHeader />
       <div className="p-4">
         <h1 className="text-2xl font-bold mb-6">TagTeam Hub</h1>
+        
         <div className="mb-4">
           <p className="text-sm text-gray-600">
             Track and manage all your active TagTeams
           </p>
         </div>
-        <TagTeamHubContent
-          loading={loading}
-          tagTeams={tagTeams}
-          onTagTeamCardClick={handleTagTeamCardClick}
-        />
+
+        {loading ? (
+          <div className="animate-pulse space-y-4">
+            <div className="h-32 bg-gray-100 rounded-xl"></div>
+            <div className="h-32 bg-gray-100 rounded-xl"></div>
+          </div>
+        ) : tagTeams.length > 0 ? (
+          <div className="space-y-4">
+            {tagTeams.map((team) => (
+              <div key={team.id}>
+                <TagTeamCard
+                  {...team}
+                  onCardClick={() => handleTagTeamCardClick(team)}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-500">No active TagTeams yet</p>
+          </div>
+        )}
       </div>
 
       <BottomNavigation items={navItems} />
-
+      
       <AddTeamButton onClick={() => setIsSheetOpen(true)} />
 
       <CreateTeamSheet
@@ -100,4 +232,4 @@ const TagTeamHub = () => {
   );
 };
 
-export default memo(TagTeamHub);
+export default TagTeamHub;

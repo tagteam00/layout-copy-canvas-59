@@ -1,7 +1,7 @@
 
-import React, { memo } from "react";
+import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 
 interface TagTeamCardProps {
   id: string;
@@ -9,14 +9,15 @@ interface TagTeamCardProps {
   category: string;
   timeLeft: string;
   frequency: string;
-  members: string[] | string;
+  members: string[] | string; // Updated to accept both string array or string
   partnerName?: string;
   isLogged?: boolean;
   partnerLogged?: boolean;
   onCardClick?: () => void;
 }
 
-const TagTeamCard = memo(({
+export const TagTeamCard: React.FC<TagTeamCardProps> = ({
+  id,
   name,
   category,
   timeLeft,
@@ -26,7 +27,7 @@ const TagTeamCard = memo(({
   isLogged = false,
   partnerLogged = false,
   onCardClick
-}: TagTeamCardProps) => {
+}) => {
   // Convert members to string if it's an array for display purposes
   const membersDisplay = Array.isArray(members) ? members.join(', ') : members;
   
@@ -65,8 +66,4 @@ const TagTeamCard = memo(({
       </div>
     </div>
   );
-});
-
-TagTeamCard.displayName = "TagTeamCard";
-
-export { TagTeamCard };
+};
