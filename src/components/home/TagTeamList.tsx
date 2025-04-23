@@ -1,4 +1,3 @@
-
 import React from "react";
 import { TagTeamCard } from "./TagTeamCard";
 import { AddTeamButton } from "./AddTeamButton";
@@ -15,6 +14,9 @@ export interface TagTeam {
   partnerName?: string;
   isLogged?: boolean;
   partnerLogged?: boolean;
+  memberNames?: [string, string]; // Added for member names tuple
+  memberInitials?: [string, string]; // Added for member initials tuple
+  memberAvatars?: [string | null, string | null]; // Added for avatar URLs
 }
 
 interface TagTeamListProps {
