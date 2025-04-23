@@ -1,22 +1,28 @@
+
 import React from "react";
 import { TagTeamCard } from "./TagTeamCard";
 import { AddTeamButton } from "./AddTeamButton";
 import { Button } from "../ui/button";
-interface TagTeam {
+
+export interface TagTeam {
   id: string;
   name: string;
   category: string;
   timeLeft: string;
   frequency: string;
-  members: string;
+  members: string[];
+  partnerId?: string;
+  partnerName?: string;
   isLogged?: boolean;
   partnerLogged?: boolean;
 }
+
 interface TagTeamListProps {
   teams: TagTeam[];
   onAddTeam?: () => void;
   userName?: string;
 }
+
 export const TagTeamList: React.FC<TagTeamListProps> = ({
   teams,
   onAddTeam,
@@ -37,7 +43,7 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
           <div className="text-base text-gray-700 text-center mt-2 mb-2 px-4" style={{
         fontFamily: "Hanken Grotesk, sans-serif"
       }}>
-            {userName ? `${userName} people are out-there to team up with you` : `People are out-there to team up with you`}
+            {userName ? `${userName}, people are out-there to team up with you` : `People are out-there to team up with you`}
           </div>
           <Button className="w-full max-w-[448px] mx-4 mt-0 text-base font-semibold bg-black text-white rounded-xl py-6" style={{
         marginLeft: 16,
@@ -48,7 +54,16 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
             Start your first tagteam
           </Button>
         </div> : <div className="space-y-4 mt-4">
-          {teams.map(team => <TagTeamCard key={team.id} name={team.name} category={team.category} timeLeft={team.timeLeft} frequency={team.frequency} members={team.members} isLogged={team.isLogged} partnerLogged={team.partnerLogged} />)}
+          {teams.map(team => <TagTeamCard 
+            key={team.id} 
+            name={team.name} 
+            category={team.category} 
+            timeLeft={team.timeLeft} 
+            frequency={team.frequency} 
+            members={team.partnerName || ""} 
+            isLogged={team.isLogged} 
+            partnerLogged={team.partnerLogged} 
+          />)}
         </div>}
 
       {teams.length > 0 && <AddTeamButton onClick={onAddTeam} />}

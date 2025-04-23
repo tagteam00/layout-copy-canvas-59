@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -6,6 +7,8 @@ import { AddTeamButton } from "@/components/home/AddTeamButton";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
 import { useUserData } from "@/hooks/useUserData";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { TagTeam } from "@/components/home/TagTeamList";
 
 const TagTeamHub: React.FC = () => {
   const { getUserData } = useUserData();
@@ -13,17 +16,32 @@ const TagTeamHub: React.FC = () => {
     fullName: "",
     interests: [] as string[],
   });
+  const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tagTeams, setTagTeams] = useState<TagTeam[]>([]);
+  const [activeTab, setActiveTab] = useState("tagteam");
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   useEffect(() => {
     const loadUserData = async () => {
       try {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUserId(user.id);
+        }
+        
         const userData = await getUserData();
         if (userData) {
           setUserProfile({
             fullName: userData.fullName,
             interests: userData.interests,
           });
+        }
+        
+        // Load tagteams after user data is loaded
+        if (user) {
+          await fetchTagTeams(user.id);
         }
       } catch (error) {
         console.error("Error loading user data:", error);
@@ -35,10 +53,67 @@ const TagTeamHub: React.FC = () => {
 
     loadUserData();
   }, []);
-
-  const [tagTeams, setTagTeams] = useState([]);
-  const [activeTab, setActiveTab] = useState("tagteam");
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  
+  // Function to fetch user's tagteams
+  const fetchTagTeams = async (userId: string) => {
+    try {
+      const { data: teams, error } = await supabase
+        .from('teams')
+        .select('*')
+        .contains('members', [userId]);
+        
+      if (error) {
+        console.error("Error fetching teams:", error);
+        return;
+      }
+      
+      console.log("Fetched teams in Hub:", teams);
+      
+      // Process teams to get partner information
+      const processedTeams = await Promise.all(teams.map(async (team) => {
+        // Find partner id (the member that is not the current user)
+        const partnerId = team.members.find((member: string) => member !== userId);
+        
+        // Get partner profile
+        let partnerName = "Team Member";
+        if (partnerId) {
+          const { data: partner } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', partnerId)
+            .single();
+            
+          if (partner) {
+            partnerName = partner.full_name;
+          }
+        }
+        
+        // Calculate time left based on frequency
+        let timeLeft = "1 day";
+        if (team.frequency.includes("Weekly")) {
+          timeLeft = "7 days";
+        }
+        
+        return {
+          id: team.id,
+          name: team.name,
+          category: team.category,
+          timeLeft: timeLeft,
+          frequency: team.frequency,
+          members: team.members,
+          partnerId: partnerId,
+          partnerName: partnerName,
+          isLogged: false,
+          partnerLogged: false
+        };
+      }));
+      
+      setTagTeams(processedTeams);
+    } catch (error) {
+      console.error("Error processing teams:", error);
+      toast.error("Failed to load your TagTeams");
+    }
+  };
 
   const navItems = [
     {
@@ -65,13 +140,28 @@ const TagTeamHub: React.FC = () => {
     console.log("Log activity for team:", teamId);
   };
 
-  const handleAddTeam = (newTeam) => {
+  const handleAddTeam = (newTeam: TagTeam) => {
     setTagTeams([...tagTeams, newTeam]);
     setIsSheetOpen(false);
   };
 
+  // Refresh tagteams when component gains focus
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && userId) {
+        fetchTagTeams(userId);
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [userId]);
+
   return (
-    <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto">
+    <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto pb-20">
       <AppHeader />
       <div className="p-4">
         <h1 className="text-2xl font-bold mb-6">TagTeam Hub</h1>
@@ -82,18 +172,27 @@ const TagTeamHub: React.FC = () => {
           </p>
         </div>
 
-        {tagTeams.length > 0 ? (
-          tagTeams.map((team) => (
-            <div key={team.id} onClick={() => handleLogActivity(team.id)}>
-              <TagTeamCard
-                name={team.name}
-                category={team.category}
-                timeLeft={team.timeLeft}
-                frequency={team.frequency}
-                members={team.members}
-              />
-            </div>
-          ))
+        {loading ? (
+          <div className="animate-pulse space-y-4">
+            <div className="h-32 bg-gray-100 rounded-xl"></div>
+            <div className="h-32 bg-gray-100 rounded-xl"></div>
+          </div>
+        ) : tagTeams.length > 0 ? (
+          <div className="space-y-4">
+            {tagTeams.map((team) => (
+              <div key={team.id} onClick={() => handleLogActivity(team.id)}>
+                <TagTeamCard
+                  name={team.name}
+                  category={team.category}
+                  timeLeft={team.timeLeft}
+                  frequency={team.frequency}
+                  members={team.partnerName || ""}
+                  isLogged={team.isLogged}
+                  partnerLogged={team.partnerLogged}
+                />
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="text-center py-8">
             <p className="text-gray-500">No active TagTeams yet</p>
