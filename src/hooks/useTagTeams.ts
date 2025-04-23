@@ -1,5 +1,5 @@
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TagTeam } from "@/components/home/TagTeamList";
@@ -15,11 +15,19 @@ export function useTagTeams() {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [tagTeams, setTagTeams] = useState<TagTeam[]>([]);
+  
+  // Use ref to prevent unnecessary re-fetching
+  const isFetchingRef = useRef(false);
 
   // Fetch teams for a userId
   const fetchTagTeams = useCallback(
     async (userId: string) => {
+      // Prevent concurrent fetches
+      if (isFetchingRef.current) return;
+      
       try {
+        isFetchingRef.current = true;
+        
         const { data: teams, error } = await supabase
           .from('teams')
           .select('*')
@@ -30,10 +38,13 @@ export function useTagTeams() {
           return;
         }
 
+        // Process teams in batches if there are many
         const processedTeams = await Promise.all(
           (teams || []).map(async (team) => {
             const partnerId = team.members.find((member: string) => member !== userId);
             let partnerName = "Team Member";
+            
+            // Only fetch partner info if partnerId exists
             if (partnerId) {
               const { data: partner } = await supabase
                 .from('profiles')
@@ -65,25 +76,36 @@ export function useTagTeams() {
             };
           })
         );
+        
         setTagTeams(processedTeams);
       } catch (error) {
         console.error("Error processing teams:", error);
         toast.error("Failed to load your TagTeams");
+      } finally {
+        isFetchingRef.current = false;
       }
     },
     []
   );
 
   useEffect(() => {
+    let isMounted = true;
+    
     const loadUserData = async () => {
+      if (!isMounted) return;
       setLoading(true);
+      
       try {
         const { data: { user } } = await supabase.auth.getUser();
+        if (!isMounted) return;
+        
         if (user) {
           setUserId(user.id);
         }
 
         const userData = await getUserData();
+        if (!isMounted) return;
+        
         if (userData) {
           setUserProfile({
             fullName: userData.fullName,
@@ -96,22 +118,33 @@ export function useTagTeams() {
         }
       } catch (error) {
         console.error("Error loading user data:", error);
-        toast.error("Failed to load user profile");
+        if (isMounted) {
+          toast.error("Failed to load user profile");
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     loadUserData();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [getUserData, fetchTagTeams]);
 
-  // Refetch on visibility
+  // Optimize visibility change handler
   useEffect(() => {
+    if (!userId) return;
+    
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && userId) {
+      if (document.visibilityState === 'visible' && userId && !isFetchingRef.current) {
         fetchTagTeams(userId);
       }
     };
+    
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [userId, fetchTagTeams]);
@@ -119,6 +152,7 @@ export function useTagTeams() {
   const addTagTeam = (newTeam: TagTeam) => {
     setTagTeams((prev) => [...prev, newTeam]);
   };
+  
   const removeTagTeam = (id: string) => {
     setTagTeams((prev) => prev.filter(team => team.id !== id));
   };

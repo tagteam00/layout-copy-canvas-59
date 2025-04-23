@@ -1,7 +1,8 @@
 
-import React from "react";
+import React, { memo } from "react";
 import { TagTeam } from "@/components/home/TagTeamList";
 import { TagTeamCard } from "@/components/home/TagTeamCard";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface TagTeamHubContentProps {
   loading: boolean;
@@ -9,19 +10,20 @@ interface TagTeamHubContentProps {
   onTagTeamCardClick: (team: TagTeam) => void;
 }
 
-export const TagTeamHubContent: React.FC<TagTeamHubContentProps> = ({
+export const TagTeamHubContent: React.FC<TagTeamHubContentProps> = memo(({
   loading,
   tagTeams,
   onTagTeamCardClick
 }) => {
   if (loading) {
     return (
-      <div className="animate-pulse space-y-4">
-        <div className="h-32 bg-gray-100 rounded-xl"></div>
-        <div className="h-32 bg-gray-100 rounded-xl"></div>
+      <div className="space-y-4">
+        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-32 w-full rounded-xl" />
       </div>
     );
   }
+  
   if (tagTeams.length > 0) {
     return (
       <div className="space-y-4">
@@ -36,9 +38,12 @@ export const TagTeamHubContent: React.FC<TagTeamHubContentProps> = ({
       </div>
     );
   }
+  
   return (
     <div className="text-center py-8">
       <p className="text-gray-500">No active TagTeams yet</p>
     </div>
   );
-};
+});
+
+TagTeamHubContent.displayName = "TagTeamHubContent";

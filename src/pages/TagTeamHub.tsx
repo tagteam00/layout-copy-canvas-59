@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useCallback, memo } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { AddTeamButton } from "@/components/home/AddTeamButton";
@@ -29,8 +29,8 @@ const TagTeamHub: React.FC = () => {
     partnerId: string;
   } | null>(null);
 
-  // Handle when user taps on a card
-  const handleTagTeamCardClick = (team: TagTeam) => {
+  // Memoized handlers to prevent re-renders
+  const handleTagTeamCardClick = useCallback((team: TagTeam) => {
     if (team.id && team.partnerId) {
       setSelectedTagTeam({
         id: team.id,
@@ -40,21 +40,19 @@ const TagTeamHub: React.FC = () => {
     } else {
       toast.error("Cannot open this team. Missing team or partner information.");
     }
-  };
+  }, []);
 
-  // When a new team is added, add to state and close sheet
-  const handleAddTeam = (newTeam: TagTeam) => {
+  const handleAddTeam = useCallback((newTeam: TagTeam) => {
     addTagTeam(newTeam);
     setIsSheetOpen(false);
-  };
+  }, [addTagTeam]);
 
-  // When leaving a team, remove it from state
-  const handleLeaveTagTeam = () => {
+  const handleLeaveTagTeam = useCallback(() => {
     if (selectedTagTeam && selectedTagTeam.id) {
       removeTagTeam(selectedTagTeam.id);
     }
     setSelectedTagTeam(null);
-  };
+  }, [selectedTagTeam, removeTagTeam]);
 
   // Create nav items with activeTab state injected
   const navItems = tagteamNavItems.map(item => ({
@@ -102,4 +100,4 @@ const TagTeamHub: React.FC = () => {
   );
 };
 
-export default TagTeamHub;
+export default memo(TagTeamHub);
