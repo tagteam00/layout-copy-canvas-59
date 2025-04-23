@@ -9,7 +9,7 @@ interface TagTeamCardProps {
   category: string;
   timeLeft: string;
   frequency: string;
-  members: string;
+  members: string[] | string; // Updated to accept both string array or string
   partnerName?: string;
   isLogged?: boolean;
   partnerLogged?: boolean;
@@ -28,9 +28,12 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
   partnerLogged = false,
   onCardClick
 }) => {
+  // Convert members to string if it's an array for display purposes
+  const membersDisplay = Array.isArray(members) ? members.join(', ') : members;
+  
   return (
     <div 
-      className="border w-full mt-4 p-4 rounded-xl border-[rgba(130,122,255,0.41)] border-solid flex flex-col gap-2" 
+      className="border w-full mt-4 p-4 rounded-xl border-[rgba(130,122,255,0.41)] border-solid flex flex-col gap-2 cursor-pointer" 
       style={{boxShadow: '0 1px 5px rgba(130,122,255,0.05)'}}
       onClick={onCardClick}
     >
@@ -43,7 +46,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
       </div>
       <div className="text-gray-400 mb-2">{frequency}</div>
       <div className="flex items-center justify-between">
-        <div className="text-md text-black font-semibold">{members}</div>
+        <div className="text-md text-black font-semibold">{partnerName || membersDisplay}</div>
         <div className="flex items-center gap-2">
           <div className={`p-1 rounded-full border border-gray-300 ${isLogged ? 'bg-[#8CFF6E]' : 'bg-white'}`}>
             {isLogged ? (

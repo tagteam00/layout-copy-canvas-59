@@ -157,12 +157,16 @@ const TagTeamHub: React.FC = () => {
     };
   }, [userId]);
 
-  const handleTagTeamCardClick = (team: {
-    id: string;
-    name: string;
-    partnerId: string;
-  }) => {
-    setSelectedTagTeam(team);
+  const handleTagTeamCardClick = (team: TagTeam) => {
+    if (team.id && team.partnerId) {
+      setSelectedTagTeam({
+        id: team.id,
+        name: team.name,
+        partnerId: team.partnerId
+      });
+    } else {
+      toast.error("Cannot open this team. Missing team or partner information.");
+    }
   };
 
   const handleLeaveTagTeam = () => {
@@ -190,7 +194,7 @@ const TagTeamHub: React.FC = () => {
         ) : tagTeams.length > 0 ? (
           <div className="space-y-4">
             {tagTeams.map((team) => (
-              <div key={team.id} onClick={() => handleTagTeamCardClick(team)}>
+              <div key={team.id}>
                 <TagTeamCard
                   {...team}
                   onCardClick={() => handleTagTeamCardClick(team)}
