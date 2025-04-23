@@ -45,6 +45,66 @@ export type Database = {
         }
         Relationships: []
       }
+      team_requests: {
+        Row: {
+          category: string
+          created_at: string
+          frequency: string
+          id: string
+          name: string
+          receiver_id: string
+          sender_id: string
+          status: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          frequency: string
+          id?: string
+          name: string
+          receiver_id: string
+          sender_id: string
+          status?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          frequency?: string
+          id?: string
+          name?: string
+          receiver_id?: string
+          sender_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      teams: {
+        Row: {
+          category: string
+          created_at: string
+          frequency: string
+          id: string
+          members: string[]
+          name: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          frequency: string
+          id?: string
+          members: string[]
+          name: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          frequency?: string
+          id?: string
+          members?: string[]
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

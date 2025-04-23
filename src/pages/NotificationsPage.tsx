@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface TeamRequest {
   id: string;
@@ -23,8 +24,6 @@ interface TeamRequest {
 const NotificationsPage: React.FC = () => {
   const [requests, setRequests] = useState<TeamRequest[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // State for active navigation tab
   const [activeTab, setActiveTab] = useState("notifications");
 
   // Navigation items
@@ -57,45 +56,50 @@ const NotificationsPage: React.FC = () => {
 
   useEffect(() => {
     fetchTeamRequests();
+    // eslint-disable-next-line
   }, []);
 
   const fetchTeamRequests = async () => {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
         toast.error("You must be logged in to view notifications");
+        setLoading(false);
         return;
       }
-      
+
       // Get all requests where the current user is the receiver and status is pending
       const { data: requestsData, error } = await supabase
         .from('team_requests')
         .select('*')
         .eq('receiver_id', user.id)
         .eq('status', 'pending');
-        
+
       if (error) throw error;
-      
+
       // Get sender names for each request
       const requestsWithSenderNames = await Promise.all(
         (requestsData || []).map(async (request) => {
-          const { data: senderData, error: senderError } = await supabase
+          // Get the sender name from profiles table
+          const { data: senderProfile, error: senderError } = await supabase
             .from('profiles')
             .select('full_name')
             .eq('id', request.sender_id)
-            .single();
-            
-          if (senderError) console.error('Error fetching sender name:', senderError);
-          
+            .maybeSingle();
+
+          if (senderError) {
+            console.error('Error fetching sender name:', senderError);
+          }
+
           return {
             ...request,
-            sender_name: senderData?.full_name || 'Unknown User'
+            sender_name: senderProfile?.full_name || 'Unknown User',
           };
         })
       );
-      
+
       setRequests(requestsWithSenderNames);
     } catch (error) {
       console.error('Error fetching team requests:', error);
@@ -112,12 +116,12 @@ const NotificationsPage: React.FC = () => {
         .from('team_requests')
         .update({ status: 'accepted' })
         .eq('id', requestId);
-        
+
       if (updateError) throw updateError;
-      
+
       // Create a new team in the teams table
       const requestToAccept = requests.find(r => r.id === requestId);
-      
+
       if (requestToAccept) {
         const { error: teamError } = await supabase
           .from('teams')
@@ -125,12 +129,12 @@ const NotificationsPage: React.FC = () => {
             name: requestToAccept.name,
             category: requestToAccept.category,
             frequency: requestToAccept.frequency,
-            members: [requestToAccept.sender_id, requestToAccept.receiver_id]
+            members: [requestToAccept.sender_id, requestToAccept.receiver_id],
           });
-          
+
         if (teamError) throw teamError;
       }
-      
+
       // Remove the accepted request from the UI
       setRequests(requests.filter(r => r.id !== requestId));
       toast.success(`You've accepted to join ${teamName}!`);
@@ -147,9 +151,9 @@ const NotificationsPage: React.FC = () => {
         .from('team_requests')
         .update({ status: 'rejected' })
         .eq('id', requestId);
-        
+
       if (error) throw error;
-      
+
       // Remove the rejected request from the UI
       setRequests(requests.filter(r => r.id !== requestId));
       toast.success(`You've rejected the request to join ${teamName}`);
@@ -164,7 +168,7 @@ const NotificationsPage: React.FC = () => {
       <AppHeader />
       <div className="p-4">
         <h1 className="text-2xl font-bold mb-4">Notifications</h1>
-        
+
         {loading ? (
           <div className="animate-pulse space-y-4">
             {[1, 2].map((i) => (
@@ -188,15 +192,15 @@ const NotificationsPage: React.FC = () => {
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-end gap-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="border-red-500 text-red-500 hover:bg-red-50"
                     onClick={() => handleReject(request.id, request.name)}
                   >
                     <X className="w-4 h-4 mr-1" />
                     Reject
                   </Button>
-                  <Button 
+                  <Button
                     className="bg-[#827AFF] hover:bg-[#827AFF]/90"
                     onClick={() => handleAccept(request.id, request.name)}
                   >

@@ -53,7 +53,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
             {frequency}
           </div>
         </div>
-        <Badge variant="ghost" className="whitespace-nowrap">
+        <Badge variant="outline" className="whitespace-nowrap">
           {timeLeft}
         </Badge>
       </div>

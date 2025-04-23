@@ -23,6 +23,7 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
   isOpen,
   onClose,
   onCreateTeam,
+  categories,
 }) => {
   const [currentStep, setCurrentStep] = useState<CreateTeamStep>("name");
   const [teamName, setTeamName] = useState("");
@@ -32,33 +33,17 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
   const [frequency, setFrequency] = useState<{ type: 'daily' | 'weekly'; day?: string }>({
     type: 'daily'
   });
-  const [userInterests, setUserInterests] = useState<string[]>([]);
+  // Use user's interests directly from props so only their interests are used
+  const userInterests = categories || [];
   const { getUserData } = useUserData();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchUserInterests = async () => {
-      setLoading(true);
-      try {
-        const userData = await getUserData();
-        if (userData && userData.interests) {
-          setUserInterests(userData.interests);
-          if (userData.interests.length > 0) {
-            setSelectedCategory(userData.interests[0]);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching user interests:", error);
-        toast.error("Failed to load your interests");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (isOpen) {
-      fetchUserInterests();
+    // Set default category to first user interest if available
+    if (isOpen && userInterests && userInterests.length > 0) {
+      setSelectedCategory(userInterests[0]);
     }
-  }, [isOpen]);
+  }, [isOpen, userInterests]);
 
   const steps: CreateTeamStep[] = ["name", "interest", "frequency", "partner"];
   const currentStepIndex = steps.indexOf(currentStep);
@@ -81,25 +66,25 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
 
   const handleSubmit = async () => {
     try {
+      setLoading(true);
       const { data: authData } = await supabase.auth.getUser();
       if (!authData.user) {
         toast.error("You must be logged in to create a TagTeam");
+        setLoading(false);
         return;
       }
 
-      const teamRequest = {
-        name: teamName,
-        category: selectedCategory,
-        frequency: frequency.type === 'weekly' ? `Weekly (${frequency.day})` : 'Daily',
-        sender_id: authData.user.id,
-        receiver_id: partnerId,
-        status: 'pending'
-      };
-
-      // Insert the team request into the database
+      // Insert a team request in the 'team_requests' table
       const { error } = await supabase
         .from('team_requests')
-        .insert(teamRequest);
+        .insert({
+          name: teamName,
+          category: selectedCategory,
+          frequency: frequency.type === 'weekly' ? `Weekly (${frequency.day})` : 'Daily',
+          sender_id: authData.user.id,
+          receiver_id: partnerId,
+          status: 'pending'
+        });
 
       if (error) throw error;
 
@@ -109,12 +94,14 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
     } catch (error: any) {
       console.error("Error sending team request:", error);
       toast.error("Failed to send team request");
+    } finally {
+      setLoading(false);
     }
   };
 
   const resetForm = () => {
     setTeamName("");
-    setSelectedCategory("");
+    setSelectedCategory(userInterests[0] ?? "");
     setSelectedPartner("");
     setPartnerId("");
     setFrequency({ type: 'daily' });
@@ -130,7 +117,7 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
       case "frequency":
         return frequency.type === 'daily' || (frequency.type === 'weekly' && frequency.day);
       case "partner":
-        return selectedPartner.length > 0;
+        return selectedPartner.length > 0 && partnerId.length > 0;
       default:
         return false;
     }
@@ -179,7 +166,6 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
         ) : (
           <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
             {getCurrentStep()}
-
             <div className="flex justify-between gap-2 mt-8">
               {currentStepIndex > 0 && (
                 <Button

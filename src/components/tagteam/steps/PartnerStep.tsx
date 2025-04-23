@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Search, Send } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -30,40 +30,39 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
       setCurrentUserId(user?.id || null);
     };
     getCurrentUser();
-    
-    // Auto-search for users with the selected interest
+    // Auto-search for users upon interest change
     if (selectedCategory) {
       handleSearch("");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]);
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
-    if (!selectedCategory) {
-      return;
-    }
-
+    if (!selectedCategory) return;
     setLoading(true);
     try {
-      // Query for users that have the selectedCategory in their interests
-      const { data: profiles, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .contains('interests', [selectedCategory])
-        .neq('id', currentUserId);
+      // Query for profiles containing selectedCategory in their interests,
+      // and exclude current user
+      let { data: profiles, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .contains("interests", [selectedCategory]);
 
       if (error) throw error;
+      // Exclude self
+      profiles = profiles?.filter(profile => profile.id !== currentUserId);
 
-      // Filter results by search query if provided
+      // Filter by query
       let filteredProfiles = profiles;
       if (query.length >= 2) {
-        filteredProfiles = profiles.filter(profile => 
-          profile.full_name?.toLowerCase().includes(query.toLowerCase()) || 
-          profile.username?.toLowerCase().includes(query.toLowerCase())
+        filteredProfiles = profiles.filter(profile =>
+          (profile.full_name ?? "").toLowerCase().includes(query.toLowerCase()) ||
+          (profile.username ?? "").toLowerCase().includes(query.toLowerCase())
         );
       }
 
-      setSearchResults(filteredProfiles.map(profile => ({
+      setSearchResults((filteredProfiles || []).map(profile => ({
         id: profile.id,
         fullName: profile.full_name || '',
         username: profile.username || '',
@@ -93,7 +92,6 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
           Finding users who are interested in <Badge className="bg-[rgba(130,122,255,1)]">{selectedCategory}</Badge>
         </p>
       </div>
-      
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
         <Input
@@ -104,7 +102,6 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
           placeholder="Search by name or username"
         />
       </div>
-      
       <div className="mt-4 space-y-2 max-h-[40vh] overflow-y-auto">
         {loading ? (
           <div className="animate-pulse space-y-2">
