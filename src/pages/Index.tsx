@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -60,6 +61,23 @@ const Index: React.FC = () => {
     };
 
     loadData();
+  }, [getUserData, getAllUsers]);
+
+  useEffect(() => {
+    // Subscribe to auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (session?.user) {
+          setUserId(session.user.id);
+        } else {
+          setUserId(null);
+        }
+      }
+    );
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleTagTeamCardClick = (team: TagTeam) => {
@@ -156,6 +174,8 @@ const Index: React.FC = () => {
           onLeaveTeam={handleLeaveTagTeam}
           onActivityLogged={handleActivityLogged}
           isPartnerLogged={selectedTagTeam.partnerLogged}
+          resetTime={selectedTagTeam.resetTime}
+          frequency={selectedTagTeam.frequency}
         />
       )}
     </main>

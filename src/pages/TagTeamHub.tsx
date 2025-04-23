@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -44,6 +45,23 @@ const TagTeamHub: React.FC = () => {
       }
     };
     loadUserData();
+  }, [getUserData]);
+
+  useEffect(() => {
+    // Subscribe to auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (session?.user) {
+          setUserId(session.user.id);
+        } else {
+          setUserId(null);
+        }
+      }
+    );
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -107,6 +125,7 @@ const TagTeamHub: React.FC = () => {
                   category={team.category}
                   timeLeft={team.timeLeft}
                   frequency={team.frequency}
+                  resetTime={team.resetTime}
                   members={team.members}
                   memberNames={team.memberNames}
                   memberAvatars={team.memberAvatars}
@@ -171,6 +190,8 @@ const TagTeamHub: React.FC = () => {
           onLeaveTeam={handleLeaveTagTeam}
           onActivityLogged={handleActivityLogged}
           isPartnerLogged={selectedTagTeam.partnerLogged}
+          resetTime={selectedTagTeam.resetTime}
+          frequency={selectedTagTeam.frequency}
         />
       )}
     </main>
