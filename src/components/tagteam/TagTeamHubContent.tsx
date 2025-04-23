@@ -10,11 +10,11 @@ interface TagTeamHubContentProps {
   onTagTeamCardClick: (team: TagTeam) => void;
 }
 
-export const TagTeamHubContent: React.FC<TagTeamHubContentProps> = memo(({
+const TagTeamHubContent = memo(({
   loading,
   tagTeams,
   onTagTeamCardClick
-}) => {
+}: TagTeamHubContentProps) => {
   if (loading) {
     return (
       <div className="space-y-4">
@@ -47,3 +47,5 @@ export const TagTeamHubContent: React.FC<TagTeamHubContentProps> = memo(({
 });
 
 TagTeamHubContent.displayName = "TagTeamHubContent";
+
+export { TagTeamHubContent };

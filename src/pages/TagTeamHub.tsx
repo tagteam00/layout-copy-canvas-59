@@ -11,7 +11,7 @@ import { TagTeam } from "@/components/home/TagTeamList";
 import { tagteamNavItems } from "@/components/tagteam/tagteamNavItems";
 import { TagTeamHubContent } from "@/components/tagteam/TagTeamHubContent";
 
-const TagTeamHub: React.FC = () => {
+const TagTeamHub = () => {
   const {
     userProfile,
     userId,
