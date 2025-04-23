@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -10,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { TagTeam } from "@/components/home/TagTeamList";
 import { TagTeamActivitySheet } from "@/components/tagteam/TagTeamActivitySheet";
 import { useTagTeams } from "@/hooks/useTagTeams";
+import { Home, Users, User } from "lucide-react";
 
 const TagTeamHub: React.FC = () => {
   const { getUserData } = useUserData();
@@ -58,7 +60,6 @@ const TagTeamHub: React.FC = () => {
     };
   }, [userId, refetch]);
 
-  // Updated to accept the full TagTeam object
   const handleTagTeamCardClick = (team: TagTeam) => {
     setSelectedTagTeam(team);
   };
@@ -79,6 +80,27 @@ const TagTeamHub: React.FC = () => {
       )
     );
   };
+
+  const navItems = [
+    {
+      name: "Home",
+      icon: <Home />,
+      path: "/",
+      isActive: activeTab === "home",
+    },
+    {
+      name: "Tagteam",
+      icon: <Users />,
+      path: "/tagteam",
+      isActive: activeTab === "tagteam",
+    },
+    {
+      name: "Profile",
+      icon: <User />,
+      path: "/profile",
+      isActive: activeTab === "profile",
+    },
+  ];
 
   return (
     <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto pb-20">
@@ -127,26 +149,7 @@ const TagTeamHub: React.FC = () => {
         )}
       </div>
 
-      <BottomNavigation items={[
-        {
-          name: "Home",
-          icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/c761f5256fcea0afdf72f5aa0ab3d05e40a3545b?placeholderIfAbsent=true",
-          path: "/",
-          isActive: activeTab === "home",
-        },
-        {
-          name: "Tagteam",
-          icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/99b9d22862884f6e83475b74fa086fd10fb5e57f?placeholderIfAbsent=true",
-          path: "/tagteam",
-          isActive: activeTab === "tagteam",
-        },
-        {
-          name: "Profile",
-          icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
-          path: "/profile",
-          isActive: activeTab === "profile",
-        }]}
-      />
+      <BottomNavigation items={navItems} />
       
       <AddTeamButton onClick={() => setIsSheetOpen(true)} />
 

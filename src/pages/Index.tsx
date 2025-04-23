@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -8,6 +9,7 @@ import { toast } from "sonner";
 import { TagTeamActivitySheet } from "@/components/tagteam/TagTeamActivitySheet";
 import { useTagTeams } from "@/hooks/useTagTeams";
 import { TagTeam } from "@/components/home/TagTeamList";
+import { Home, Users, User } from "lucide-react";
 
 // Refactored sections
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -86,19 +88,19 @@ const Index: React.FC = () => {
   const navItems = [
     {
       name: "Home",
-      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/c761f5256fcea0afdf72f5aa0ab3d05e40a3545b?placeholderIfAbsent=true",
+      icon: <Home />,
       path: "/",
       isActive: activeTab === "home",
     },
     {
       name: "Tagteam",
-      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/99b9d22862884f6e83475b74fa086fd10fb5e57f?placeholderIfAbsent=true",
+      icon: <Users />,
       path: "/tagteam",
       isActive: activeTab === "tagteam",
     },
     {
       name: "Profile",
-      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
+      icon: <User />,
       path: "/profile",
       isActive: activeTab === "profile",
     },
