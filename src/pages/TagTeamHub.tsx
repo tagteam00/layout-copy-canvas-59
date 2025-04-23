@@ -173,7 +173,8 @@ const TagTeamHub: React.FC = () => {
           partnerName={selectedTagTeam.partnerName}
           onLeaveTeam={handleLeaveTagTeam}
           onActivityLogged={handleActivityLogged}
-          isPartnerLogged={selectedTagTeam.partnerLogged}
+          isPartnerLogged={selectedTagTeam.isLogged}
+          partnerLogged={selectedTagTeam.partnerLogged}
         />
       )}
     </main>

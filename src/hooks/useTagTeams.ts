@@ -66,6 +66,68 @@ export function useTagTeams(userId: string | null) {
       return {};
     }
   }, []);
+  
+  // New function to check and remove expired teams
+  const checkAndRemoveExpiredTeams = useCallback(async (userId: string, teams: any[]) => {
+    if (!teams || teams.length === 0) return [];
+    
+    const now = new Date();
+    const expiredTeams: string[] = [];
+    
+    // For each team, check if it's past the reset time
+    teams.forEach(team => {
+      const createdAt = new Date(team.created_at);
+      let expiryTime = new Date(createdAt);
+      
+      // Set expiry based on frequency
+      if (team.frequency === "Daily") {
+        expiryTime.setDate(expiryTime.getDate() + 1);
+      } else if (team.frequency === "Weekly") {
+        expiryTime.setDate(expiryTime.getDate() + 7);
+      }
+      
+      // If current time is past expiry and no activity has been logged
+      if (now > expiryTime) {
+        expiredTeams.push(team.id);
+      }
+    });
+    
+    // Remove expired teams from the database
+    if (expiredTeams.length > 0) {
+      try {
+        // Delete teams
+        const { error: teamError } = await supabase
+          .from('teams')
+          .delete()
+          .in('id', expiredTeams)
+          .contains('members', [userId]);
+        
+        if (teamError) {
+          console.error("Error removing expired teams:", teamError);
+        } else {
+          // Delete activity logs for those teams
+          const { error: logError } = await supabase
+            .from('team_activity_logs')
+            .delete()
+            .in('team_id', expiredTeams);
+            
+          if (logError) {
+            console.error("Error removing expired team logs:", logError);
+          }
+          
+          // Notify of expired teams
+          toast.info(`${expiredTeams.length} expired TagTeam(s) have been removed`, {
+            duration: 4000
+          });
+        }
+      } catch (error) {
+        console.error("Error processing expired teams:", error);
+      }
+    }
+    
+    // Return non-expired teams
+    return teams.filter(team => !expiredTeams.includes(team.id));
+  }, []);
 
   const fetchTagTeams = useCallback(async (uid: string) => {
     setLoading(true);
@@ -86,12 +148,21 @@ export function useTagTeams(userId: string | null) {
         setLoading(false);
         return;
       }
+      
+      // Check for expired teams and remove them
+      const activeTeams = await checkAndRemoveExpiredTeams(uid, teams);
 
-      // Get activity logs for all teams
-      const teamIds = teams.map(t => t.id);
+      if (!activeTeams || activeTeams.length === 0) {
+        setTagTeams([]);
+        setLoading(false);
+        return;
+      }
+
+      // Get activity logs for all active teams
+      const teamIds = activeTeams.map(t => t.id);
       const activityLogs = await getActivityLogsForTeams(teamIds, uid);
 
-      const processedTeams = await Promise.all((teams || []).map(async (team: any) => {
+      const processedTeams = await Promise.all((activeTeams || []).map(async (team: any) => {
         const [memberA, memberB] = team.members;
         const partnerId = memberA === uid ? memberB : memberA;
 
@@ -150,7 +221,7 @@ export function useTagTeams(userId: string | null) {
     } finally {
       setLoading(false);
     }
-  }, [getProfileDataForMembers, getActivityLogsForTeams]);
+  }, [getProfileDataForMembers, getActivityLogsForTeams, checkAndRemoveExpiredTeams]);
 
   // Load on mount or userId change
   useEffect(() => {

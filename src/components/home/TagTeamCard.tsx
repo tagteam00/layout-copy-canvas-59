@@ -1,7 +1,9 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { toast } from "sonner";
+
 interface TagTeamCardProps {
   id: string;
   name: string;
@@ -18,6 +20,7 @@ interface TagTeamCardProps {
   memberAvatars?: [string | null, string | null];
   onCardClick?: () => void;
 }
+
 const getInitials = (name: string) => {
   if (!name) return "";
   const parts = name.split(" ");
@@ -40,7 +43,15 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
 }) => {
   const initialsArray: [string, string] = memberInitials || (memberNames.map(getInitials) as [string, string]);
   
-  // Show only *partner* log status for user
+  // Show celebration effect when both users have completed their activity
+  useEffect(() => {
+    if (isLogged && partnerLogged) {
+      toast.success("🎉 Congratulations! TagTeam activity completed by both members!", {
+        duration: 4000
+      });
+    }
+  }, [isLogged, partnerLogged]);
+  
   return <div
     style={{
       boxShadow: "0 1px 5px rgba(130,122,255,0.05)"
@@ -73,13 +84,33 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
       <div className="text-sm text-gray-500 whitespace-nowrap">{timeLeft}</div>
     </div>
     <div className="text-gray-400 text-sm">{frequency}</div>
-    <div className="flex gap-2 mt-1">
-      {/* Show only partner's log pill */}
+    <div className="flex flex-col md:flex-row gap-2 mt-1">
+      {/* Show both user and partner status pills */}
       <div className="rounded-[18px] flex-1 py-2 px-2 text-center font-normal transition-all flex items-center justify-center"
         style={{
-          width: 168,
+          maxWidth: "100%",
           height: 32,
-          fontSize: 14,
+          fontSize: 13,
+          fontWeight: 400,
+          background: !partnerLogged ? "#FEC6A1" : "#8CFF6E",
+          color: "#161616",
+          boxShadow: !partnerLogged ? "0 0 0 2px #ffe7d6" : "0 0 0 2px #c7eec6",
+          border: !partnerLogged ? "1.5px solid #FEC6A1" : "1.5px solid #8CFF6E",
+        }}
+      >
+        {memberNames[0] || "Me"}
+        {
+          partnerLogged
+            ? <span className="ml-1 text-xs opacity-70">(Complete)</span>
+            : <span className="ml-1 text-xs opacity-70">(Pending)</span>
+        }
+      </div>
+      
+      <div className="rounded-[18px] flex-1 py-2 px-2 text-center font-normal transition-all flex items-center justify-center"
+        style={{
+          maxWidth: "100%",
+          height: 32,
+          fontSize: 13,
           fontWeight: 400,
           background: !isLogged ? "#FEC6A1" : "#8CFF6E",
           color: "#161616",
@@ -95,6 +126,13 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
         }
       </div>
     </div>
+    
+    {isLogged && partnerLogged && (
+      <div className="bg-[#e9ffe1] text-center text-green-800 text-xs rounded-lg mt-1 py-1 px-2">
+        ✅ Completed! Great teamwork!
+      </div>
+    )}
   </div>;
 };
+
 export default TagTeamCard;
