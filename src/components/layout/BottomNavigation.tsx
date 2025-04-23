@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 interface NavItem {
   name: string;
@@ -16,9 +16,11 @@ interface BottomNavigationProps {
 export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   items,
 }) => {
+  // Strip any nav item whose name is "Notifications"
+  const filteredItems = items.filter(item => item.name !== "Notifications");
   return (
     <nav className="fixed bottom-0 left-0 right-0 flex w-full items-center gap-2 pt-3 pb-4 px-3 bg-white border-t border-gray-200 max-w-[480px] mx-auto z-50">
-      {items.map((item, index) => (
+      {filteredItems.map((item, index) => (
         <Link
           key={index}
           to={item.path}

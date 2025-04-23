@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -9,7 +8,6 @@ import { useUserData } from "@/hooks/useUserData";
 import { toast } from "sonner";
 
 const TagTeamHub: React.FC = () => {
-  // Add userData hook to get user's full name
   const { getUserData } = useUserData();
   const [userProfile, setUserProfile] = useState({
     fullName: "",
@@ -38,16 +36,10 @@ const TagTeamHub: React.FC = () => {
     loadUserData();
   }, []);
 
-  // State for tag teams
   const [tagTeams, setTagTeams] = useState([]);
-
-  // State for active navigation tab
   const [activeTab, setActiveTab] = useState("tagteam");
-
-  // State for sheet visibility
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  // Navigation items with notifications
   const navItems = [
     {
       name: "Home",
@@ -62,12 +54,6 @@ const TagTeamHub: React.FC = () => {
       isActive: activeTab === "tagteam",
     },
     {
-      name: "Notifications",
-      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
-      path: "/notifications",
-      isActive: activeTab === "notifications",
-    },
-    {
       name: "Profile",
       icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
       path: "/profile",
@@ -75,13 +61,10 @@ const TagTeamHub: React.FC = () => {
     },
   ];
 
-  // Handler for logging activity
   const handleLogActivity = (teamId: string) => {
-    // To be implemented with activity logging sheet
     console.log("Log activity for team:", teamId);
   };
 
-  // Handler for adding a new team
   const handleAddTeam = (newTeam) => {
     setTagTeams([...tagTeams, newTeam]);
     setIsSheetOpen(false);

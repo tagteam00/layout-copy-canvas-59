@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { TagTeamList } from "@/components/home/TagTeamList";
@@ -53,7 +52,7 @@ const Index: React.FC = () => {
   // Available categories from user's interests
   const categories = userProfile.interests;
 
-  // Navigation items with notifications
+  // Navigation items (Notifications removed)
   const navItems = [
     {
       name: "Home",
@@ -66,12 +65,6 @@ const Index: React.FC = () => {
       icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/99b9d22862884f6e83475b74fa086fd10fb5e57f?placeholderIfAbsent=true",
       path: "/tagteam",
       isActive: activeTab === "tagteam",
-    },
-    {
-      name: "Notifications",
-      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
-      path: "/notifications",
-      isActive: activeTab === "notifications",
     },
     {
       name: "Profile",
