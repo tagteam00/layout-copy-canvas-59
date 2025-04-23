@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -90,9 +89,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
       
       <div className="flex flex-col sm:flex-row mt-1 gap-2">
         {memberNames.map((memberName, index) => {
-          // Determine if this is "My Status" or "Partner's Status"
           const isMyStatus = index === 0;
-          // Swap the completion check to correctly reflect status
           const isCompleted = isMyStatus ? partnerLogged : isLogged;
           const statusText = memberName || (isMyStatus ? "Me" : "Partner");
           
