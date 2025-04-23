@@ -39,7 +39,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
   const initialsArray: [string, string] = memberInitials || memberNames.map(getInitials) as [string, string];
   return <div style={{
     boxShadow: "0 1px 5px rgba(130,122,255,0.05)"
-  }} onClick={onCardClick} className="border border-[rgba(130,122,255,0.41)] rounded-2xl p-4 w-full flex flex-col gap-3 cursor-pointer bg-white py-[8px] my-[12px]">
+  }} onClick={onCardClick} className="border border-[rgba(130,122,255,0.41)] rounded-2xl p-4 w-full flex flex-col gap-3 cursor-pointer bg-white py-[7px] my-[16px]">
       <div className="flex items-center mb-1">
         <div className="flex -space-x-2">
           {memberAvatars.map((avatarUrl, index) => <Avatar key={index} className="h-10 w-10 border-2 border-white">
@@ -50,7 +50,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
         </div>
       </div>
       
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between py-0">
         <div className="flex items-center gap-2 max-w-[70%]">
           <h3 className="text-lg font-bold truncate">{name}</h3>
           <Badge className="text-black font-regular px-3 py-0.5 rounded-full bg-[C5FFB6] bg-[#c5ffb6]">{category}</Badge>
