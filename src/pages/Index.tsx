@@ -35,29 +35,12 @@ const Index: React.FC = () => {
         setLoading(false);
       }
     };
-    
+
     loadData();
   }, []);
 
   // State for tag teams
-  const [tagTeams, setTagTeams] = useState([
-    {
-      id: "1",
-      name: "Heavy Lifters",
-      category: "Gym",
-      timeLeft: "2hrs Left",
-      frequency: "Everyday",
-      members: "Parth - Divij",
-    },
-    {
-      id: "2",
-      name: "Sharks",
-      category: "Swimming",
-      timeLeft: "2hrs Left",
-      frequency: "Everyday",
-      members: "Parth - Divij",
-    },
-  ]);
+  const [tagTeams, setTagTeams] = useState([]);
 
   // State for active navigation tab
   const [activeTab, setActiveTab] = useState("home");
@@ -130,7 +113,7 @@ const Index: React.FC = () => {
             </>
           )}
         </div>
-        <TagTeamList teams={tagTeams} onAddTeam={handleOpenSheet} />
+        <TagTeamList teams={tagTeams} onAddTeam={handleOpenSheet} userName={userProfile.username} />
         <div className="px-4">
           <UsersList users={allUsers} loading={loading} />
         </div>

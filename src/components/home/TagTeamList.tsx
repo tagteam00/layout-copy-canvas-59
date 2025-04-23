@@ -2,6 +2,7 @@
 import React from "react";
 import { TagTeamCard } from "./TagTeamCard";
 import { AddTeamButton } from "./AddTeamButton";
+import { Button } from "../ui/button";
 
 interface TagTeam {
   id: string;
@@ -17,11 +18,13 @@ interface TagTeam {
 interface TagTeamListProps {
   teams: TagTeam[];
   onAddTeam?: () => void;
+  userName?: string;
 }
 
 export const TagTeamList: React.FC<TagTeamListProps> = ({
   teams,
   onAddTeam,
+  userName = "",
 }) => {
   return (
     <section className="flex w-full flex-col text-black mt-5 px-4">
@@ -32,8 +35,30 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
       </div>
 
       {teams.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          No active teams. Create your first team!
+        <div className="flex flex-col items-center justify-center py-12 text-gray-500 w-full space-y-5">
+          <img
+            src="/lovable-uploads/31be4148-3505-46fc-af8f-a6bfdc54875f.png"
+            alt="No tagteams yet"
+            style={{ width: 152, height: 145 }}
+            className="mx-auto mb-2"
+            draggable={false}
+          />
+          <div className="text-base text-gray-700 text-center mt-2 mb-2 px-4" style={{ fontFamily: "Hanken Grotesk, sans-serif" }}>
+            {userName ? `${userName} people are out-there to team up with you` : `People are out-there to team up with you`}
+          </div>
+          <Button
+            className="w-full max-w-[448px] mx-4 mt-0 text-base font-semibold bg-black text-white rounded-xl py-6"
+            style={{
+              marginLeft: 16,
+              marginRight: 16,
+              height: 56,
+              fontSize: 18,
+            }}
+            onClick={onAddTeam}
+            size="lg"
+          >
+            Start your first tagteam
+          </Button>
         </div>
       ) : (
         <div className="space-y-4 mt-4">
@@ -52,7 +77,7 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
         </div>
       )}
 
-      <AddTeamButton onClick={onAddTeam} />
+      {teams.length > 0 && <AddTeamButton onClick={onAddTeam} />}
     </section>
   );
 };
