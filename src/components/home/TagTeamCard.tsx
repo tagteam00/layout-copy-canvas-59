@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -64,20 +65,37 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
       <div className="text-gray-400 text-sm">{frequency}</div>
       
       <div className="flex mt-1 gap-4">
-        {memberNames.map((memberName, index) => <div key={index} className={`flex-1 rounded-[18px] py-2 text-center font-normal transition-all`} style={{
-        width: '168px',
-        height: '32px',
-        background: index === 0 ? isLogged ? "#8CFF6E" : "#FEC6A1" : partnerLogged ? "#8CFF6E" : "#FEC6A1",
-        color: "#161616",
-        fontSize: '14px',
-        boxShadow: (index === 0 ? isLogged : partnerLogged) ? "0 0 0 2px #c7eec6" : "0 0 0 2px #ffe7d6",
-        border: (index === 0 ? isLogged : partnerLogged) ? "1.5px solid #8CFF6E" : "1.5px solid #FEC6A1",
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-            {memberName}
-          </div>)}
+        {memberNames.map((memberName, index) => {
+          // Determine if this is "My Status" or "Partner's Status"
+          const isMyStatus = index === 0;
+          const isPending = isMyStatus ? !partnerLogged : !isLogged;
+          const statusText = memberName || (isMyStatus ? "Me" : "Partner");
+          
+          return (
+            <div 
+              key={index} 
+              className="flex-1 rounded-[18px] py-2 text-center font-normal transition-all" 
+              style={{
+                width: '168px',
+                height: '32px',
+                background: isPending ? "#FEC6A1" : "#8CFF6E",
+                color: "#161616",
+                fontSize: '14px',
+                boxShadow: isPending ? "0 0 0 2px #ffe7d6" : "0 0 0 2px #c7eec6",
+                border: isPending ? "1.5px solid #FEC6A1" : "1.5px solid #8CFF6E",
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {statusText}
+              {isMyStatus ? 
+                <span className="ml-1 text-xs opacity-70">{partnerLogged ? "(Completed)" : "(Pending)"}</span> : 
+                <span className="ml-1 text-xs opacity-70">{isLogged ? "(Completed)" : "(Pending)"}</span>
+              }
+            </div>
+          );
+        })}
       </div>
     </div>;
 };

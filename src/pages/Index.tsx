@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TagTeamActivitySheet } from "@/components/tagteam/TagTeamActivitySheet";
 import { useTagTeams } from "@/hooks/useTagTeams";
+import { TagTeam } from "@/components/home/TagTeamList";
 
 // Refactored sections
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -28,11 +29,7 @@ const Index: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("home");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [selectedTagTeam, setSelectedTagTeam] = useState<{
-    id: string;
-    name: string;
-    partnerId: string;
-  } | null>(null);
+  const [selectedTagTeam, setSelectedTagTeam] = useState<TagTeam | null>(null);
   
   // Use the shared hook for TagTeam data
   const { tagTeams, refetch, setTagTeams } = useTagTeams(userId);
@@ -68,20 +65,22 @@ const Index: React.FC = () => {
   }, []);
 
   // Card click handler for TagTeams
-  const handleTagTeamCardClick = (team: { id: string; name: string; partnerId: string }) => {
+  const handleTagTeamCardClick = (team: TagTeam) => {
     setSelectedTagTeam(team);
   };
 
   const handleLeaveTagTeam = () => {
-    setTagTeams(teams => teams.filter(team => team.id !== selectedTagTeam?.id));
-    setSelectedTagTeam(null);
+    if (selectedTagTeam) {
+      setTagTeams(teams => teams.filter(team => team.id !== selectedTagTeam.id));
+      setSelectedTagTeam(null);
+    }
   };
   
   const handleActivityLogged = (teamId: string, completed: boolean) => {
     setTagTeams(teams => 
       teams.map(team => 
         team.id === teamId 
-          ? { ...team, partnerLogged: completed } 
+          ? { ...team, isLogged: completed } 
           : team
       )
     );
@@ -149,15 +148,19 @@ const Index: React.FC = () => {
         }}
         categories={userProfile.interests}
       />
-      <TagTeamActivitySheet
-        isOpen={!!selectedTagTeam}
-        onClose={() => setSelectedTagTeam(null)}
-        teamId={selectedTagTeam?.id || ""}
-        teamName={selectedTagTeam?.name || ""}
-        partnerId={selectedTagTeam?.partnerId || ""}
-        onLeaveTeam={handleLeaveTagTeam}
-        onActivityLogged={handleActivityLogged}
-      />
+      {selectedTagTeam && (
+        <TagTeamActivitySheet
+          isOpen={!!selectedTagTeam}
+          onClose={() => setSelectedTagTeam(null)}
+          teamId={selectedTagTeam.id}
+          teamName={selectedTagTeam.name}
+          partnerId={selectedTagTeam.partnerId || ""}
+          partnerName={selectedTagTeam.partnerName}
+          onLeaveTeam={handleLeaveTagTeam}
+          onActivityLogged={handleActivityLogged}
+          isPartnerLogged={selectedTagTeam.partnerLogged}
+        />
+      )}
     </main>
   );
 };

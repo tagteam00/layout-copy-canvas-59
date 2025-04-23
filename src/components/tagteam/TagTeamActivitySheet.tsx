@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Drawer, 
   DrawerContent, 
@@ -18,8 +18,10 @@ interface TagTeamActivitySheetProps {
   teamId: string;
   teamName: string;
   partnerId: string;
+  partnerName?: string;
   onLeaveTeam: () => void;
   onActivityLogged?: (teamId: string, completed: boolean) => void;
+  isPartnerLogged?: boolean;
 }
 
 export const TagTeamActivitySheet: React.FC<TagTeamActivitySheetProps> = ({
@@ -28,8 +30,10 @@ export const TagTeamActivitySheet: React.FC<TagTeamActivitySheetProps> = ({
   teamId, 
   teamName, 
   partnerId,
+  partnerName = "Partner",
   onLeaveTeam,
-  onActivityLogged
+  onActivityLogged,
+  isPartnerLogged = false
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -52,7 +56,7 @@ export const TagTeamActivitySheet: React.FC<TagTeamActivitySheetProps> = ({
 
       if (error) throw error;
 
-      toast.success(`Partner activity marked as ${completed ? 'Completed' : 'Pending'}`);
+      toast.success(`${partnerName}'s activity marked as ${completed ? 'Completed' : 'Pending'}`);
       
       // Call the callback to update UI state
       if (onActivityLogged) {
@@ -109,16 +113,27 @@ export const TagTeamActivitySheet: React.FC<TagTeamActivitySheetProps> = ({
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>Tag Team: {teamName}</DrawerTitle>
-          <DrawerDescription>Mark your partner's activity or leave the team</DrawerDescription>
+          <DrawerDescription>Log {partnerName}'s activity</DrawerDescription>
         </DrawerHeader>
         <div className="p-4 space-y-4">
+          <div className="text-center mb-4">
+            <p className="text-sm text-gray-500">
+              You can only log your partner's activity. Your partner will log your activity.
+            </p>
+            <p className="text-sm font-medium mt-2">
+              {isPartnerLogged ? 
+                <span className="text-green-600">Your partner has already marked your activity!</span> : 
+                <span className="text-amber-600">Your partner hasn't logged your activity yet.</span>
+              }
+            </p>
+          </div>
           <div className="flex space-x-4">
             <Button 
               onClick={() => handleActivityLog(true)} 
               disabled={isProcessing} 
               className="flex-1 bg-[#8CFF6E] hover:bg-green-600"
             >
-              <Check className="mr-2" /> Mark Completed
+              <Check className="mr-2" /> Mark {partnerName} Completed
             </Button>
             <Button 
               onClick={() => handleActivityLog(false)} 
@@ -126,7 +141,7 @@ export const TagTeamActivitySheet: React.FC<TagTeamActivitySheetProps> = ({
               variant="destructive" 
               className="flex-1"
             >
-              <X className="mr-2" /> Mark Pending
+              <X className="mr-2" /> Mark {partnerName} Pending
             </Button>
           </div>
           <Button 

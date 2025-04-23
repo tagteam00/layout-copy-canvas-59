@@ -51,8 +51,10 @@ export function useTagTeams(userId: string | null) {
       logs?.forEach(log => {
         if (log.team_id) {
           if (log.user_id === currentUserId) {
+            // This is a log I created for my partner
             teamLogs[log.team_id].isLogged = log.completed;
-          } else {
+          } else if (log.partner_id === currentUserId) {
+            // This is a log my partner created for me
             teamLogs[log.team_id].partnerLogged = log.completed;
           }
         }
@@ -94,9 +96,18 @@ export function useTagTeams(userId: string | null) {
         const partnerId = memberA === uid ? memberB : memberA;
 
         // Fetch both members' profiles
-        const memberProfiles = await getProfileDataForMembers([memberA, memberB]);
-        const memberNames = memberProfiles.map((profile) => profile.full_name || "Team Member") as [string, string];
-        const memberAvatars: [string | null, string | null] = [null, null];
+        const memberProfiles = await getProfileDataForMembers([uid, partnerId]);
+        
+        // Make sure current user is always first in the array
+        const currentUserIndex = team.members.indexOf(uid);
+        let memberNames: [string, string] = ["", ""];
+        let memberAvatars: [string | null, string | null] = [null, null];
+        
+        if (currentUserIndex === 0) {
+          memberNames = [memberProfiles[0].full_name || "Me", memberProfiles[1].full_name || "Partner"] as [string, string];
+        } else {
+          memberNames = [memberProfiles[0].full_name || "Me", memberProfiles[1].full_name || "Partner"] as [string, string];
+        }
         
         const getInitials = (name: string) => {
           if (!name) return "";
@@ -123,7 +134,7 @@ export function useTagTeams(userId: string | null) {
           frequency: team.frequency,
           members: team.members,
           partnerId: partnerId,
-          partnerName: memberProfiles[team.members.indexOf(partnerId)]?.full_name || "Team Member",
+          partnerName: memberProfiles[1]?.full_name || "Partner",
           isLogged: teamActivity.isLogged,
           partnerLogged: teamActivity.partnerLogged,
           memberNames,

@@ -21,11 +21,7 @@ const TagTeamHub: React.FC = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("tagteam");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [selectedTagTeam, setSelectedTagTeam] = useState<{
-    id: string;
-    name: string;
-    partnerId: string;
-  } | null>(null);
+  const [selectedTagTeam, setSelectedTagTeam] = useState<TagTeam | null>(null);
 
   const { tagTeams, loading, refetch, setTagTeams } = useTagTeams(userId);
 
@@ -64,27 +60,21 @@ const TagTeamHub: React.FC = () => {
   }, [userId, refetch]);
 
   const handleTagTeamCardClick = (team: TagTeam) => {
-    if (team.id && team.partnerId) {
-      setSelectedTagTeam({
-        id: team.id,
-        name: team.name,
-        partnerId: team.partnerId
-      });
-    } else {
-      toast.error("Cannot open this team. Missing team or partner information.");
-    }
+    setSelectedTagTeam(team);
   };
 
   const handleLeaveTagTeam = () => {
-    setTagTeams(teams => teams.filter(team => team.id !== selectedTagTeam?.id));
-    setSelectedTagTeam(null);
+    if (selectedTagTeam) {
+      setTagTeams(teams => teams.filter(team => team.id !== selectedTagTeam.id));
+      setSelectedTagTeam(null);
+    }
   };
   
   const handleActivityLogged = (teamId: string, completed: boolean) => {
     setTagTeams(teams => 
       teams.map(team => 
         team.id === teamId 
-          ? { ...team, partnerLogged: completed } 
+          ? { ...team, isLogged: completed } 
           : team
       )
     );
@@ -170,15 +160,19 @@ const TagTeamHub: React.FC = () => {
         categories={userProfile.interests}
       />
 
-      <TagTeamActivitySheet
-        isOpen={!!selectedTagTeam}
-        onClose={() => setSelectedTagTeam(null)}
-        teamId={selectedTagTeam?.id || ''}
-        teamName={selectedTagTeam?.name || ''}
-        partnerId={selectedTagTeam?.partnerId || ''}
-        onLeaveTeam={handleLeaveTagTeam}
-        onActivityLogged={handleActivityLogged}
-      />
+      {selectedTagTeam && (
+        <TagTeamActivitySheet
+          isOpen={!!selectedTagTeam}
+          onClose={() => setSelectedTagTeam(null)}
+          teamId={selectedTagTeam.id}
+          teamName={selectedTagTeam.name}
+          partnerId={selectedTagTeam.partnerId || ''}
+          partnerName={selectedTagTeam.partnerName}
+          onLeaveTeam={handleLeaveTagTeam}
+          onActivityLogged={handleActivityLogged}
+          isPartnerLogged={selectedTagTeam.partnerLogged}
+        />
+      )}
     </main>
   );
 };
