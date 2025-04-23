@@ -44,7 +44,7 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
         .from('profiles')
         .select('*')
         .or(`username.ilike.%${query}%,full_name.ilike.%${query}%`)
-        .contains('interests', [selectedCategory])  // Changed from .eq to .contains to properly filter array values
+        .contains('interests', [selectedCategory])  // Fixed using .contains to properly filter array values
         .neq('id', currentUserId)
         .limit(5);
 
@@ -66,9 +66,9 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
     }
   };
 
-  const handleSelectPartner = (username: string) => {
-    onSelectPartner(username);
-    toast.success(`Selected ${username} as your TagTeam partner`);
+  const handleSelectPartner = (fullName: string) => {
+    onSelectPartner(fullName);
+    toast.success(`Selected ${fullName} as your TagTeam partner`);
   };
 
   return (
@@ -109,7 +109,7 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
                 </div>
               </div>
               <button
-                onClick={() => handleSelectPartner(user.username)}
+                onClick={() => handleSelectPartner(user.fullName)}
                 className="flex items-center space-x-1 bg-[#827AFF] text-white px-3 py-1.5 rounded-lg hover:bg-[#827AFF]/90 transition-colors"
               >
                 <Send className="h-4 w-4" />

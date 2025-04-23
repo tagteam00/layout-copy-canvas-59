@@ -1,11 +1,43 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { TagTeamCard } from "@/components/home/TagTeamCard";
 import { AddTeamButton } from "@/components/home/AddTeamButton";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
+import { useUserData } from "@/hooks/useUserData";
+import { toast } from "sonner";
 
 const TagTeamHub: React.FC = () => {
+  // Add userData hook to get user's full name
+  const { getUserData } = useUserData();
+  const [userProfile, setUserProfile] = useState({
+    fullName: "",
+    interests: [] as string[],
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const userData = await getUserData();
+        if (userData) {
+          setUserProfile({
+            fullName: userData.fullName,
+            interests: userData.interests,
+          });
+        }
+      } catch (error) {
+        console.error("Error loading user data:", error);
+        toast.error("Failed to load user profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, []);
+
   // State for tag teams
   const [tagTeams, setTagTeams] = useState([
     {

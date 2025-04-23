@@ -10,6 +10,7 @@ import { UsersList } from "@/components/home/UsersList";
 const Index: React.FC = () => {
   const { getUserData, getAllUsers } = useUserData();
   const [userProfile, setUserProfile] = useState({
+    fullName: "",
     username: "",
     interests: [] as string[],
   });
@@ -23,6 +24,7 @@ const Index: React.FC = () => {
         const userData = await getUserData();
         if (userData) {
           setUserProfile({
+            fullName: userData.fullName,
             username: userData.username,
             interests: userData.interests,
           });
@@ -99,7 +101,7 @@ const Index: React.FC = () => {
             </div>
           ) : (
             <>
-              <h1 className="text-2xl font-bold mb-2">Hello, {userProfile.username}</h1>
+              <h1 className="text-2xl font-bold mb-2">Hello, {userProfile.fullName}</h1>
               <div className="flex items-center gap-1 mt-2">
                 {userProfile.interests.map((interest, index) => (
                   <div
@@ -113,7 +115,7 @@ const Index: React.FC = () => {
             </>
           )}
         </div>
-        <TagTeamList teams={tagTeams} onAddTeam={handleOpenSheet} userName={userProfile.username} />
+        <TagTeamList teams={tagTeams} onAddTeam={handleOpenSheet} userName={userProfile.fullName} />
         <div className="px-4">
           <UsersList users={allUsers} loading={loading} />
         </div>
