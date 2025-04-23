@@ -1,3 +1,4 @@
+
 import React from "react";
 import { TagTeamCard } from "./TagTeamCard";
 import { AddTeamButton } from "./AddTeamButton";
@@ -23,7 +24,7 @@ interface TagTeamListProps {
   teams: TagTeam[];
   onAddTeam?: () => void;
   userName?: string;
-  onTagTeamClick?: (team: { id: string; name: string; partnerId: string }) => void;
+  onTagTeamClick?: (team: TagTeam) => void;  // Updated to accept full TagTeam object
 }
 
 export const TagTeamList: React.FC<TagTeamListProps> = ({
@@ -35,11 +36,7 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
   const handleCardClick = (team: TagTeam) => {
     // Only call onTagTeamClick if partnerId exists
     if (onTagTeamClick && team.partnerId) {
-      onTagTeamClick({
-        id: team.id,
-        name: team.name,
-        partnerId: team.partnerId
-      });
+      onTagTeamClick(team);
     }
   };
 

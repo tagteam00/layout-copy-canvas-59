@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -59,6 +58,7 @@ const TagTeamHub: React.FC = () => {
     };
   }, [userId, refetch]);
 
+  // Updated to accept the full TagTeam object
   const handleTagTeamCardClick = (team: TagTeam) => {
     setSelectedTagTeam(team);
   };

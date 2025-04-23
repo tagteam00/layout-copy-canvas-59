@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -31,7 +30,6 @@ const Index: React.FC = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedTagTeam, setSelectedTagTeam] = useState<TagTeam | null>(null);
   
-  // Use the shared hook for TagTeam data
   const { tagTeams, refetch, setTagTeams } = useTagTeams(userId);
 
   useEffect(() => {
@@ -64,7 +62,6 @@ const Index: React.FC = () => {
     loadData();
   }, []);
 
-  // Card click handler for TagTeams
   const handleTagTeamCardClick = (team: TagTeam) => {
     setSelectedTagTeam(team);
   };

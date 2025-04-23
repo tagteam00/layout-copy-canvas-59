@@ -6,7 +6,7 @@ interface DashboardTagTeamsProps {
   tagTeams: TagTeam[];
   onAddTeam: () => void;
   userName: string;
-  onTagTeamClick: (team: { id: string; name: string; partnerId: string }) => void;
+  onTagTeamClick: (team: TagTeam) => void;  // Updated to accept full TagTeam object
 }
 
 export const DashboardTagTeams: React.FC<DashboardTagTeamsProps> = ({
