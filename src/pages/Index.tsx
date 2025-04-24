@@ -67,7 +67,7 @@ const Index: React.FC = () => {
   return <main className="flex flex-col min-h-screen bg-white max-w-[480px] w-full mx-auto relative pb-20">
       <AppHeader />
       <div className="flex-1 overflow-y-auto">
-        <div className="px-4 py-[12px]">
+        <div className="px-4 py-[8px] my-[12px]">
           {loading ? <div className="animate-pulse">
               <div className="h-8 bg-gray-200 rounded w-3/4 mb-2"></div>
               <div className="flex gap-1 mt-2">
