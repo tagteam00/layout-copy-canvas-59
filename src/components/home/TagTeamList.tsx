@@ -34,17 +34,17 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
         width: 152,
         height: 145
       }} className="mx-auto mb-2" draggable={false} />
-          <div className="text-base text-gray-700 text-center mt-2 mb-2 px-4" style={{
+          <div style={{
         fontFamily: "Hanken Grotesk, sans-serif"
-      }}>
+      }} className="text-base text-gray-700 text-center mt-2 mb-2 px-4 py-[10px]">
             {userName ? `${userName} people are out-there to team up with you` : `People are out-there to team up with you`}
           </div>
-          <Button className="w-full max-w-[448px] mx-4 mt-0 text-base font-semibold bg-black text-white rounded-xl py-6" style={{
+          <Button style={{
         marginLeft: 16,
         marginRight: 16,
         height: 56,
         fontSize: 18
-      }} onClick={onAddTeam} size="lg">
+      }} onClick={onAddTeam} size="lg" className="w-full max-w-[448px] mx-4 mt-0 text-base font-semibold bg-black text-white rounded-xl py-[20px]">
             Start your first tagteam
           </Button>
         </div> : <div className="space-y-4 mt-4">
