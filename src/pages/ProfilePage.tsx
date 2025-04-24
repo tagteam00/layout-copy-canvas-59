@@ -3,13 +3,12 @@ import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { useUserData } from "@/hooks/useUserData";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { EditProfileSheet } from "@/components/profile/EditProfileSheet";
+import { ProfileHeader } from "@/components/profile/ProfileHeader";
+import { ProfileInfo } from "@/components/profile/ProfileInfo";
 
 const ProfilePage: React.FC = () => {
   const [userProfile, setUserProfile] = useState({
@@ -26,35 +25,35 @@ const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        if (!data.session) {
-          navigate("/signin");
-          return;
-        }
-        
-        const userData = await getUserData();
-        if (userData) {
-          setUserProfile({
-            ...userProfile,
-            fullName: userData.fullName,
-            username: userData.username,
-            dateOfBirth: userData.dateOfBirth,
-            gender: userData.gender,
-            interests: userData.interests,
-            commitmentLevel: userData.commitmentLevel
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        toast.error("Failed to load profile data");
-      } finally {
-        setLoading(false);
+  const fetchUserData = async () => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        navigate("/signin");
+        return;
       }
-    };
-    
+      
+      const userData = await getUserData();
+      if (userData) {
+        setUserProfile(prevProfile => ({
+          ...prevProfile,
+          fullName: userData.fullName,
+          username: userData.username,
+          dateOfBirth: userData.dateOfBirth,
+          gender: userData.gender,
+          interests: userData.interests,
+          commitmentLevel: userData.commitmentLevel
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      toast.error("Failed to load profile data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUserData();
   }, [navigate, getUserData]);
 
@@ -72,29 +71,6 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const handleProfileUpdate = async () => {
-    const userData = await getUserData();
-    if (userData) {
-      setUserProfile({
-        ...userProfile,
-        fullName: userData.fullName,
-        username: userData.username,
-        interests: userData.interests,
-      });
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "Not provided";
-    
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }).format(date);
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -107,65 +83,11 @@ const ProfilePage: React.FC = () => {
     <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto">
       <AppHeader />
       <div className="p-4">
-        <div className="flex items-center mb-6">
-          <div className="w-20 h-20 rounded-full overflow-hidden mr-4">
-            <img 
-              src={userProfile.profileImage} 
-              alt={userProfile.username}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold">{userProfile.fullName || "New User"}</h1>
-                <p className="text-gray-600">@{userProfile.username || "username"}</p>
-              </div>
-              <EditProfileSheet 
-                currentProfile={userProfile}
-                onProfileUpdate={handleProfileUpdate}
-              />
-            </div>
-          </div>
-        </div>
-
-        <Card className="mb-4">
-          <CardContent className="p-4">
-            <h2 className="text-lg font-semibold mb-2">Personal Information</h2>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Date of Birth:</span>
-                <span>{formatDate(userProfile.dateOfBirth)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Gender:</span>
-                <span>{userProfile.gender || "Not provided"}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Commitment Level:</span>
-                <Badge variant="outline">{userProfile.commitmentLevel || "Not set"}</Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <h2 className="text-lg font-semibold mb-2">Interests</h2>
-            {userProfile.interests && userProfile.interests.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {userProfile.interests.map((interest, index) => (
-                  <Badge key={index} variant="secondary">
-                    {interest}
-                  </Badge>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500">No interests added yet</p>
-            )}
-          </CardContent>
-        </Card>
-
+        <ProfileHeader 
+          userProfile={userProfile}
+          onProfileUpdate={fetchUserData}
+        />
+        <ProfileInfo userProfile={userProfile} />
         <Button 
           variant="destructive" 
           className="w-full" 
@@ -174,7 +96,6 @@ const ProfilePage: React.FC = () => {
           Log Out
         </Button>
       </div>
-
       <BottomNavigation />
     </main>
   );
