@@ -45,47 +45,6 @@ export type Database = {
         }
         Relationships: []
       }
-      team_activity_logs: {
-        Row: {
-          completed: boolean
-          created_at: string | null
-          id: string
-          partner_id: string
-          period_end: string
-          period_start: string
-          team_id: string
-          user_id: string
-        }
-        Insert: {
-          completed?: boolean
-          created_at?: string | null
-          id?: string
-          partner_id: string
-          period_end: string
-          period_start: string
-          team_id: string
-          user_id: string
-        }
-        Update: {
-          completed?: boolean
-          created_at?: string | null
-          id?: string
-          partner_id?: string
-          period_end?: string
-          period_start?: string
-          team_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "team_activity_logs_team_id_fkey"
-            columns: ["team_id"]
-            isOneToOne: false
-            referencedRelation: "teams"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       team_requests: {
         Row: {
           category: string

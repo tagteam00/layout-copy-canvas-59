@@ -1,170 +1,113 @@
-
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { TagTeamList } from "@/components/home/TagTeamList";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
 import { useUserData } from "@/hooks/useUserData";
-import { toast } from "sonner";
-import { TagTeamActivitySheet } from "@/components/tagteam/TagTeamActivitySheet";
-import { useTagTeams } from "@/hooks/useTagTeams";
-import { TagTeam } from "@/components/home/TagTeamList";
-import { useAuth } from "@/context/AuthContext";
-import { useQuery } from "@tanstack/react-query";
-
-// Refactored sections
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { DashboardTagTeams } from "@/components/dashboard/DashboardTagTeams";
-import { DashboardUsers } from "@/components/dashboard/DashboardUsers";
-
+import { UsersList } from "@/components/home/UsersList";
 const Index: React.FC = () => {
-  const { getUserData, getAllUsers } = useUserData();
-  const { user } = useAuth();
-  const userId = user?.id;
-
+  const {
+    getUserData,
+    getAllUsers
+  } = useUserData();
   const [userProfile, setUserProfile] = useState({
     fullName: "",
     username: "",
-    interests: [] as string[],
+    interests: [] as string[]
   });
-
-  const [activeTab, setActiveTab] = useState("home");
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [selectedTagTeam, setSelectedTagTeam] = useState<TagTeam | null>(null);
-  
-  const { tagTeams, loading: teamLoading, setTagTeams } = useTagTeams(userId);
-
-  // User profile query with caching
-  const { data: userData, isLoading: userLoading } = useQuery({
-    queryKey: ['userData', userId],
-    queryFn: async () => {
-      if (!userId) return null;
-      return await getUserData();
-    },
-    enabled: !!userId,
-    staleTime: 60000, // Cache for 1 minute
-    meta: {
-      onSuccess: (data: any) => {
-        if (data) {
+  const [allUsers, setAllUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const userData = await getUserData();
+        if (userData) {
           setUserProfile({
-            fullName: data.fullName,
-            username: data.username,
-            interests: data.interests,
+            fullName: userData.fullName,
+            username: userData.username,
+            interests: userData.interests
           });
         }
-      },
-      onError: (error: any) => {
-        console.error("Error loading user data:", error);
-        toast.error("Failed to load user profile");
+        const users = await getAllUsers();
+        setAllUsers(users);
+      } catch (error) {
+        console.error("Error loading data:", error);
+      } finally {
+        setLoading(false);
       }
-    }
-  });
+    };
+    loadData();
+  }, []);
 
-  // React to user data changes manually since we're using meta
-  useEffect(() => {
-    if (userData) {
-      setUserProfile({
-        fullName: userData.fullName,
-        username: userData.username,
-        interests: userData.interests,
-      });
-    }
-  }, [userData]);
+  // State for tag teams
+  const [tagTeams, setTagTeams] = useState([]);
 
-  // All users query with caching
-  const { data: allUsers = [], isLoading: allUsersLoading } = useQuery({
-    queryKey: ['allUsers'],
-    queryFn: getAllUsers,
-    staleTime: 300000, // Cache for 5 minutes
-  });
+  // State for active navigation tab
+  const [activeTab, setActiveTab] = useState("home");
 
-  const handleTagTeamCardClick = (team: TagTeam) => {
-    setSelectedTagTeam(team);
+  // State for sheet visibility
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  // Available categories from user's interests
+  const categories = userProfile.interests;
+
+  // Navigation items (Notifications removed)
+  const navItems = [{
+    name: "Home",
+    icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/c761f5256fcea0afdf72f5aa0ab3d05e40a3545b?placeholderIfAbsent=true",
+    path: "/",
+    isActive: activeTab === "home"
+  }, {
+    name: "Tagteam",
+    icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/99b9d22862884f6e83475b74fa086fd10fb5e57f?placeholderIfAbsent=true",
+    path: "/tagteam",
+    isActive: activeTab === "tagteam"
+  }, {
+    name: "Profile",
+    icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
+    path: "/profile",
+    isActive: activeTab === "profile"
+  }];
+
+  // Handler for adding a new team
+  const handleAddTeam = newTeam => {
+    setTagTeams([...tagTeams, newTeam]);
+    setIsSheetOpen(false);
   };
 
-  const handleLeaveTagTeam = () => {
-    if (selectedTagTeam) {
-      setTagTeams(teams => teams.filter(team => team.id !== selectedTagTeam.id));
-      setSelectedTagTeam(null);
-    }
-  };
-  
-  const handleActivityLogged = (teamId: string, completed: boolean) => {
-    setTagTeams(teams => 
-      teams.map(team => 
-        team.id === teamId 
-          ? { ...team, isLogged: completed } 
-          : team
-      )
-    );
-  };
-
-  const navItems = [
-    {
-      name: "Home",
-      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/c761f5256fcea0afdf72f5aa0ab3d05e40a3545b?placeholderIfAbsent=true",
-      path: "/",
-      isActive: activeTab === "home",
-    },
-    {
-      name: "Tagteam",
-      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/99b9d22862884f6e83475b74fa086fd10fb5e57f?placeholderIfAbsent=true",
-      path: "/tagteam",
-      isActive: activeTab === "tagteam",
-    },
-    {
-      name: "Profile",
-      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
-      path: "/profile",
-      isActive: activeTab === "profile",
-    },
-  ];
-
-  const handleAddTeam = () => {
+  // Handler for opening the sheet
+  const handleOpenSheet = () => {
     setIsSheetOpen(true);
   };
-
-  const loading = userLoading || teamLoading;
-
-  return (
-    <main className="flex flex-col min-h-screen bg-white max-w-[480px] w-full mx-auto relative pb-20">
+  return <main className="flex flex-col min-h-screen bg-white max-w-[480px] w-full mx-auto relative pb-20">
       <AppHeader />
       <div className="flex-1 overflow-y-auto">
-        <DashboardHeader loading={loading} fullName={userProfile.fullName} interests={userProfile.interests} />
-        <DashboardTagTeams
-          tagTeams={tagTeams}
-          onAddTeam={handleAddTeam}
-          userName={userProfile.fullName}
-          onTagTeamClick={handleTagTeamCardClick}
-        />
-        <DashboardUsers users={allUsers} loading={allUsersLoading} />
+        <div className="px-4 py-[8px]">
+          {loading ? <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="flex gap-1 mt-2">
+                <div className="h-6 bg-gray-200 rounded w-16"></div>
+                <div className="h-6 bg-gray-200 rounded w-16"></div>
+              </div>
+            </div> : <>
+              <h1 className="text-2xl font-bold mb-2">Hello, {userProfile.fullName}</h1>
+              <div className="flex items-center gap-1 mt-2">
+                {userProfile.interests.map((interest, index) => <div key={index} className="bg-[rgba(130,122,255,1)] text-xs text-white px-2 py-1 rounded-xl whitespace-nowrap">
+                    {interest}
+                  </div>)}
+              </div>
+            </>}
+        </div>
+        <TagTeamList teams={tagTeams} onAddTeam={handleOpenSheet} userName={userProfile.fullName} />
+        <div className="px-4">
+          <UsersList users={allUsers} loading={loading} />
+        </div>
       </div>
-      <BottomNavigation items={navItems} />
-      <CreateTeamSheet
-        isOpen={isSheetOpen}
-        onClose={() => setIsSheetOpen(false)}
-        onCreateTeam={(newTeam) => {
-          setTagTeams(prevTeams => [...prevTeams, newTeam]);
-          setIsSheetOpen(false);
-        }}
-        categories={userProfile.interests}
-      />
-      {selectedTagTeam && (
-        <TagTeamActivitySheet
-          isOpen={!!selectedTagTeam}
-          onClose={() => setSelectedTagTeam(null)}
-          teamId={selectedTagTeam.id}
-          teamName={selectedTagTeam.name}
-          partnerId={selectedTagTeam.partnerId || ""}
-          partnerName={selectedTagTeam.partnerName}
-          onLeaveTeam={handleLeaveTagTeam}
-          onActivityLogged={handleActivityLogged}
-          isPartnerLogged={selectedTagTeam.partnerLogged}
-          resetTime={selectedTagTeam.resetTime}
-          frequency={selectedTagTeam.frequency}
-        />
-      )}
-    </main>
-  );
-};
 
+      <BottomNavigation items={navItems} />
+
+      <CreateTeamSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} onCreateTeam={handleAddTeam} categories={categories} />
+    </main>;
+};
 export default Index;

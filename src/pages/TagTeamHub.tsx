@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { TagTeamCard } from "@/components/home/TagTeamCard";
@@ -7,70 +6,39 @@ import { AddTeamButton } from "@/components/home/AddTeamButton";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
 import { useUserData } from "@/hooks/useUserData";
 import { toast } from "sonner";
-import { TagTeam } from "@/components/home/TagTeamList";
-import { TagTeamActivitySheet } from "@/components/tagteam/TagTeamActivitySheet";
-import { useTagTeams } from "@/hooks/useTagTeams";
-import { useAuth } from "@/context/AuthContext";
 
 const TagTeamHub: React.FC = () => {
   const { getUserData } = useUserData();
-  const { user } = useAuth();
-  const userId = user?.id;
-  
   const [userProfile, setUserProfile] = useState({
     fullName: "",
     interests: [] as string[],
   });
-  
-  const [activeTab, setActiveTab] = useState("tagteam");
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [selectedTagTeam, setSelectedTagTeam] = useState<TagTeam | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const { tagTeams, loading, refetch, setTagTeams } = useTagTeams(userId);
-
-  // Fetch user profile only once on mount
-  React.useEffect(() => {
+  useEffect(() => {
     const loadUserData = async () => {
       try {
-        if (userId) {
-          const userData = await getUserData();
-          if (userData) {
-            setUserProfile({
-              fullName: userData.fullName,
-              interests: userData.interests,
-            });
-          }
+        const userData = await getUserData();
+        if (userData) {
+          setUserProfile({
+            fullName: userData.fullName,
+            interests: userData.interests,
+          });
         }
       } catch (error) {
         console.error("Error loading user data:", error);
         toast.error("Failed to load user profile");
+      } finally {
+        setLoading(false);
       }
     };
-    
+
     loadUserData();
-  }, [userId, getUserData]);
+  }, []);
 
-  // Updated to accept the full TagTeam object
-  const handleTagTeamCardClick = (team: TagTeam) => {
-    setSelectedTagTeam(team);
-  };
-
-  const handleLeaveTagTeam = () => {
-    if (selectedTagTeam) {
-      setTagTeams(teams => teams.filter(team => team.id !== selectedTagTeam.id));
-      setSelectedTagTeam(null);
-    }
-  };
-  
-  const handleActivityLogged = (teamId: string, completed: boolean) => {
-    setTagTeams(teams => 
-      teams.map(team => 
-        team.id === teamId 
-          ? { ...team, isLogged: completed } 
-          : team
-      )
-    );
-  };
+  const [tagTeams, setTagTeams] = useState([]);
+  const [activeTab, setActiveTab] = useState("tagteam");
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const navItems = [
     {
@@ -90,11 +58,20 @@ const TagTeamHub: React.FC = () => {
       icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
       path: "/profile",
       isActive: activeTab === "profile",
-    }
+    },
   ];
 
+  const handleLogActivity = (teamId: string) => {
+    console.log("Log activity for team:", teamId);
+  };
+
+  const handleAddTeam = (newTeam) => {
+    setTagTeams([...tagTeams, newTeam]);
+    setIsSheetOpen(false);
+  };
+
   return (
-    <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto pb-20">
+    <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto">
       <AppHeader />
       <div className="p-4">
         <h1 className="text-2xl font-bold mb-6">TagTeam Hub</h1>
@@ -105,22 +82,18 @@ const TagTeamHub: React.FC = () => {
           </p>
         </div>
 
-        {loading ? (
-          <div className="animate-pulse space-y-4">
-            <div className="h-32 bg-gray-100 rounded-xl"></div>
-            <div className="h-32 bg-gray-100 rounded-xl"></div>
-          </div>
-        ) : tagTeams.length > 0 ? (
-          <div className="space-y-4">
-            {tagTeams.map((team) => (
-              <div key={team.id}>
-                <TagTeamCard
-                  {...team}
-                  onCardClick={() => handleTagTeamCardClick(team)}
-                />
-              </div>
-            ))}
-          </div>
+        {tagTeams.length > 0 ? (
+          tagTeams.map((team) => (
+            <div key={team.id} onClick={() => handleLogActivity(team.id)}>
+              <TagTeamCard
+                name={team.name}
+                category={team.category}
+                timeLeft={team.timeLeft}
+                frequency={team.frequency}
+                members={team.members}
+              />
+            </div>
+          ))
         ) : (
           <div className="text-center py-8">
             <p className="text-gray-500">No active TagTeams yet</p>
@@ -135,28 +108,9 @@ const TagTeamHub: React.FC = () => {
       <CreateTeamSheet
         isOpen={isSheetOpen}
         onClose={() => setIsSheetOpen(false)}
-        onCreateTeam={(newTeam) => {
-          setTagTeams(prevTeams => [...prevTeams, newTeam]);
-          setIsSheetOpen(false);
-        }}
+        onCreateTeam={handleAddTeam}
         categories={userProfile.interests}
       />
-
-      {selectedTagTeam && (
-        <TagTeamActivitySheet
-          isOpen={!!selectedTagTeam}
-          onClose={() => setSelectedTagTeam(null)}
-          teamId={selectedTagTeam.id}
-          teamName={selectedTagTeam.name}
-          partnerId={selectedTagTeam.partnerId || ''}
-          partnerName={selectedTagTeam.partnerName}
-          onLeaveTeam={handleLeaveTagTeam}
-          onActivityLogged={handleActivityLogged}
-          isPartnerLogged={selectedTagTeam.partnerLogged}
-          resetTime={selectedTagTeam.resetTime}
-          frequency={selectedTagTeam.frequency}
-        />
-      )}
     </main>
   );
 };
