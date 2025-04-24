@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      interests: {
+        Row: {
+          category: Database["public"]["Enums"]["interest_category"]
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["interest_category"]
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["interest_category"]
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           commitment_level: string | null
@@ -113,7 +134,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      interest_category: "fitness" | "arts"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -228,6 +249,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      interest_category: ["fitness", "arts"],
+    },
   },
 } as const

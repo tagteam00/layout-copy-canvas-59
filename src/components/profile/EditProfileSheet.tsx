@@ -13,6 +13,14 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil } from "lucide-react";
 import { useUserData } from "@/hooks/useUserData";
 import { toast } from "sonner";
+import { useInterests } from "@/hooks/useInterests";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface EditProfileSheetProps {
   currentProfile: {
@@ -33,8 +41,8 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
   const [fullName, setFullName] = React.useState(currentProfile.fullName);
   const [username, setUsername] = React.useState(currentProfile.username);
   const [interests, setInterests] = React.useState(currentProfile.interests);
-  const [newInterest, setNewInterest] = React.useState("");
   const { saveUserData } = useUserData();
+  const { interests: availableInterests, loading } = useInterests();
 
   const handleSave = async () => {
     try {
@@ -56,16 +64,23 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
     }
   };
 
-  const handleAddInterest = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && newInterest.trim()) {
-      setInterests([...interests, newInterest.trim()]);
-      setNewInterest("");
+  const handleAddInterest = (newInterest: string) => {
+    if (!interests.includes(newInterest)) {
+      setInterests([...interests, newInterest]);
     }
   };
 
   const handleRemoveInterest = (interestToRemove: string) => {
     setInterests(interests.filter(interest => interest !== interestToRemove));
   };
+
+  const groupedInterests = availableInterests.reduce((acc, interest) => {
+    if (!acc[interest.category]) {
+      acc[interest.category] = [];
+    }
+    acc[interest.category].push(interest);
+    return acc;
+  }, {} as Record<string, typeof availableInterests>);
 
   return (
     <Sheet>
@@ -109,12 +124,31 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
                 </Badge>
               ))}
             </div>
-            <Input
-              value={newInterest}
-              onChange={(e) => setNewInterest(e.target.value)}
-              onKeyPress={handleAddInterest}
-              placeholder="Type interest and press Enter"
-            />
+            <Select
+              onValueChange={handleAddInterest}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Add an interest" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(groupedInterests).map(([category, categoryInterests]) => (
+                  <div key={category}>
+                    <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                      {category.charAt(0).toUpperCase() + category.slice(1)}
+                    </div>
+                    {categoryInterests.map((interest) => (
+                      <SelectItem 
+                        key={interest.id} 
+                        value={interest.name}
+                        disabled={interests.includes(interest.name)}
+                      >
+                        {interest.name}
+                      </SelectItem>
+                    ))}
+                  </div>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button className="w-full" onClick={handleSave}>
             Save Changes
