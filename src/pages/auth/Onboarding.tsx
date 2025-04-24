@@ -11,19 +11,6 @@ import type { UserData } from "@/hooks/useUserData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const interests = [
-  "Swimming",
-  "Gym",
-  "Football",
-  "Running",
-  "Yoga",
-  "Cycling",
-  "Meditation",
-  "Reading",
-  "Cooking",
-  "Hiking"
-];
-
 const commitmentLevels = [
   { value: "casual", label: "Casual", description: "Relaxed approach with flexible schedules" },
   { value: "committed", label: "Committed", description: "Consistent engagement with regular check-ins" },
@@ -114,7 +101,6 @@ const Onboarding: React.FC = () => {
 
             {step === 2 && (
               <InterestsSelector
-                interests={interests}
                 selectedInterests={selectedInterests}
                 onToggleInterest={toggleInterest}
                 onNext={handleInterestsSubmit}
