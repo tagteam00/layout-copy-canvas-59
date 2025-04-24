@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { TagTeamList } from "@/components/home/TagTeamList";
@@ -5,6 +6,9 @@ import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
 import { useUserData } from "@/hooks/useUserData";
 import { UsersList } from "@/components/home/UsersList";
+import { Home, Users, User } from "lucide-react";
+import { NavItem } from "@/components/layout/BottomNavigation";
+
 const Index: React.FC = () => {
   const {
     getUserData,
@@ -52,24 +56,6 @@ const Index: React.FC = () => {
   // Available categories from user's interests
   const categories = userProfile.interests;
 
-  // Navigation items (Notifications removed)
-  const navItems = [{
-    name: "Home",
-    icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/c761f5256fcea0afdf72f5aa0ab3d05e40a3545b?placeholderIfAbsent=true",
-    path: "/",
-    isActive: activeTab === "home"
-  }, {
-    name: "Tagteam",
-    icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/99b9d22862884f6e83475b74fa086fd10fb5e57f?placeholderIfAbsent=true",
-    path: "/tagteam",
-    isActive: activeTab === "tagteam"
-  }, {
-    name: "Profile",
-    icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
-    path: "/profile",
-    isActive: activeTab === "profile"
-  }];
-
   // Handler for adding a new team
   const handleAddTeam = newTeam => {
     setTagTeams([...tagTeams, newTeam]);
@@ -105,7 +91,7 @@ const Index: React.FC = () => {
         </div>
       </div>
 
-      <BottomNavigation items={navItems} />
+      <BottomNavigation />
 
       <CreateTeamSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} onCreateTeam={handleAddTeam} categories={categories} />
     </main>;

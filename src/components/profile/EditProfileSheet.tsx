@@ -19,6 +19,9 @@ interface EditProfileSheetProps {
     fullName: string;
     username: string;
     interests: string[];
+    dateOfBirth: string;
+    gender: string;
+    commitmentLevel: string;
   };
   onProfileUpdate: () => void;
 }
@@ -39,6 +42,9 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
         fullName,
         username,
         interests,
+        dateOfBirth: currentProfile.dateOfBirth,
+        gender: currentProfile.gender,
+        commitmentLevel: currentProfile.commitmentLevel
       });
       
       if (success) {

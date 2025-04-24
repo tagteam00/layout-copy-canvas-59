@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -40,27 +41,6 @@ const TagTeamHub: React.FC = () => {
   const [activeTab, setActiveTab] = useState("tagteam");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const navItems = [
-    {
-      name: "Home",
-      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/c761f5256fcea0afdf72f5aa0ab3d05e40a3545b?placeholderIfAbsent=true",
-      path: "/",
-      isActive: activeTab === "home",
-    },
-    {
-      name: "Tagteam",
-      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/99b9d22862884f6e83475b74fa086fd10fb5e57f?placeholderIfAbsent=true",
-      path: "/tagteam",
-      isActive: activeTab === "tagteam",
-    },
-    {
-      name: "Profile",
-      icon: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/6015a6ceb8f49982ed2ff6177f7ee6374f72c48d?placeholderIfAbsent=true",
-      path: "/profile",
-      isActive: activeTab === "profile",
-    },
-  ];
-
   const handleLogActivity = (teamId: string) => {
     console.log("Log activity for team:", teamId);
   };
@@ -101,7 +81,7 @@ const TagTeamHub: React.FC = () => {
         )}
       </div>
 
-      <BottomNavigation items={navItems} />
+      <BottomNavigation />
       
       <AddTeamButton onClick={() => setIsSheetOpen(true)} />
 

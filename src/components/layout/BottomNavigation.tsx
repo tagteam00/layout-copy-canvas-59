@@ -3,7 +3,7 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Home, Users, User } from "lucide-react";
 
-interface NavItem {
+export interface NavItem {
   name: string;
   icon: React.FC<{ size?: number; className?: string }>;
   path: string;
