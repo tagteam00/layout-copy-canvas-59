@@ -1,8 +1,10 @@
+
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Clock } from "lucide-react";
+import { Clock, Check, Square } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface TagTeamCardProps {
   id: string;
@@ -10,15 +12,15 @@ interface TagTeamCardProps {
   category: string;
   timeLeft: string;
   frequency: string;
-  members: string[]; // always an array
+  members: string[];
   partnerId?: string;
   partnerName?: string;
   isLogged?: boolean;
   partnerLogged?: boolean;
-  memberNames?: [string, string]; // Tuple for [self, partner]
-  memberInitials?: [string, string]; // Tuple for [self, partner]
-  memberAvatars?: [string | null, string | null]; // URLs for avatars
-  resetTime?: Date | string; // Added for countdown
+  memberNames?: [string, string];
+  memberInitials?: [string, string];
+  memberAvatars?: [string | null, string | null];
+  resetTime?: Date | string;
   onCardClick?: () => void;
 }
 
@@ -34,7 +36,6 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
   category,
   timeLeft,
   frequency,
-  members = [],
   memberNames = ["", ""],
   memberInitials,
   memberAvatars = [null, null],
@@ -45,18 +46,21 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
 }) => {
   const initialsArray: [string, string] = memberInitials || memberNames.map(getInitials) as [string, string];
   
-  // Format countdown time if resetTime is provided
   const formattedTimeLeft = resetTime ? 
     formatDistanceToNow(new Date(resetTime), { addSuffix: true }) : 
     timeLeft;
+
+  const isCompleted = isLogged && partnerLogged;
   
   return (
     <div 
+      onClick={onCardClick}
+      className={`border rounded-2xl p-4 w-full flex flex-col gap-3 cursor-pointer bg-white my-[16px] py-[16px] transition-all ${
+        isCompleted ? 'border-green-400 bg-green-50' : 'border-[rgba(130,122,255,0.41)]'
+      }`}
       style={{
         boxShadow: "0 1px 5px rgba(130,122,255,0.05)"
-      }} 
-      onClick={onCardClick} 
-      className="border border-[rgba(130,122,255,0.41)] rounded-2xl p-4 w-full flex flex-col gap-3 cursor-pointer bg-white my-[16px] py-[16px]"
+      }}
     >
       <div className="flex items-center mb-1">
         <div className="flex -space-x-2">
@@ -77,7 +81,9 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
       <div className="flex items-center justify-between py-0">
         <div className="flex items-center gap-2 max-w-[70%]">
           <h3 className="text-lg font-bold truncate">{name}</h3>
-          <Badge className="text-black font-regular px-3 py-0.5 rounded-full bg-[#c5ffb6]">{category}</Badge>
+          <Badge className="text-black font-regular px-3 py-0.5 rounded-full bg-[#c5ffb6]">
+            {category}
+          </Badge>
         </div>
         <div className="text-sm text-gray-500 whitespace-nowrap flex items-center gap-1">
           <Clock size={14} />
@@ -90,28 +96,23 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
       <div className="flex flex-col sm:flex-row mt-1 gap-2">
         {memberNames.map((memberName, index) => {
           const isMyStatus = index === 0;
-          const isCompleted = isMyStatus ? partnerLogged : isLogged;
-          const statusText = memberName || (isMyStatus ? "Me" : "Partner");
+          const isChecked = isMyStatus ? partnerLogged : isLogged;
+          const checkboxLabel = memberName || (isMyStatus ? "Me" : "Partner");
           
           return (
             <div 
-              key={index} 
-              className="flex-1 rounded-[18px] py-2 text-center font-normal transition-all" 
-              style={{
-                background: isCompleted ? "#8CFF6E" : "#FEC6A1",
-                color: "#161616",
-                fontSize: '14px',
-                boxShadow: isCompleted ? "0 0 0 2px #c7eec6" : "0 0 0 2px #ffe7d6",
-                border: isCompleted ? "1.5px solid #8CFF6E" : "1.5px solid #FEC6A1",
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
+              key={index}
+              className="flex-1 rounded-[18px] py-2 px-4 flex items-center justify-between bg-gray-50"
+              onClick={(e) => e.stopPropagation()}
             >
-              {statusText}
-              <span className="ml-1 text-xs opacity-70">
-                {isCompleted ? "(Completed)" : "(Pending)"}
-              </span>
+              <span className="text-sm font-medium">{checkboxLabel}</span>
+              <div className="flex items-center gap-2">
+                {isChecked ? (
+                  <Check className="h-5 w-5 text-green-500" />
+                ) : (
+                  <Square className="h-5 w-5 text-gray-300" />
+                )}
+              </div>
             </div>
           );
         })}
