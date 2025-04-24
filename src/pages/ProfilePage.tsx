@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -9,6 +8,7 @@ import { useUserData } from "@/hooks/useUserData";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { EditProfileSheet } from "@/components/profile/EditProfileSheet";
 
 const ProfilePage: React.FC = () => {
   const [userProfile, setUserProfile] = useState({
@@ -50,14 +50,12 @@ const ProfilePage: React.FC = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Check if user is authenticated
         const { data } = await supabase.auth.getSession();
         if (!data.session) {
           navigate("/signin");
           return;
         }
         
-        // Get user profile data
         const userData = await getUserData();
         if (userData) {
           setUserProfile({
@@ -95,6 +93,18 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const handleProfileUpdate = async () => {
+    const userData = await getUserData();
+    if (userData) {
+      setUserProfile({
+        ...userProfile,
+        fullName: userData.fullName,
+        username: userData.username,
+        interests: userData.interests,
+      });
+    }
+  };
+
   const formatDate = (dateString: string) => {
     if (!dateString) return "Not provided";
     
@@ -126,9 +136,17 @@ const ProfilePage: React.FC = () => {
               className="w-full h-full object-cover"
             />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold">{userProfile.fullName || "New User"}</h1>
-            <p className="text-gray-600">@{userProfile.username || "username"}</p>
+          <div className="flex-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold">{userProfile.fullName || "New User"}</h1>
+                <p className="text-gray-600">@{userProfile.username || "username"}</p>
+              </div>
+              <EditProfileSheet 
+                currentProfile={userProfile}
+                onProfileUpdate={handleProfileUpdate}
+              />
+            </div>
           </div>
         </div>
 
@@ -178,7 +196,7 @@ const ProfilePage: React.FC = () => {
         </Button>
       </div>
 
-      <BottomNavigation items={navItems} />
+      <BottomNavigation />
     </main>
   );
 };
