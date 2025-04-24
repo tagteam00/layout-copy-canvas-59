@@ -7,6 +7,10 @@ interface ProfileHeaderProps {
     fullName: string;
     username: string;
     profileImage: string;
+    interests: string[];
+    dateOfBirth: string;
+    gender: string;
+    commitmentLevel: string;
   };
   onProfileUpdate: () => Promise<void>;
 }
