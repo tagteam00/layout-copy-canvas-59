@@ -92,7 +92,7 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            {userProfile.interests.map((interest, index) => <Badge key={index} variant="secondary" className="bg-[#827AFF] text-white hover:bg-[#827AFF]/90">
+            {userProfile.interests.map((interest, index) => <Badge key={index} variant="secondary" className="bg-[#827AFF] text-white hover:bg-[#827AFF]/90 px-[16px] py-[8px]">
                 {interest}
               </Badge>)}
           </div>
