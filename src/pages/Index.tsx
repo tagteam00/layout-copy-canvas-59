@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { TagTeamList } from "@/components/home/TagTeamList";
@@ -6,7 +7,7 @@ import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
 import { useUserData } from "@/hooks/useUserData";
 import { UsersList } from "@/components/home/UsersList";
 import { Home, Users, User } from "lucide-react";
-import { NavItem } from "@/components/layout/BottomNavigation";
+
 const Index: React.FC = () => {
   const {
     getUserData,
