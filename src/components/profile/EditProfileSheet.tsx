@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 interface EditProfileSheetProps {
   currentProfile: {
@@ -30,6 +31,10 @@ interface EditProfileSheetProps {
     dateOfBirth: string;
     gender: string;
     commitmentLevel: string;
+    city?: string;
+    country?: string;
+    occupation?: string;
+    bio?: string;
   };
   onProfileUpdate: () => void;
 }
@@ -41,6 +46,11 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
   const [fullName, setFullName] = React.useState(currentProfile.fullName);
   const [username, setUsername] = React.useState(currentProfile.username);
   const [interests, setInterests] = React.useState(currentProfile.interests);
+  const [city, setCity] = React.useState(currentProfile.city || '');
+  const [country, setCountry] = React.useState(currentProfile.country || '');
+  const [occupation, setOccupation] = React.useState(currentProfile.occupation || '');
+  const [bio, setBio] = React.useState(currentProfile.bio || '');
+
   const { saveUserData } = useUserData();
   const { interests: availableInterests, loading } = useInterests();
 
@@ -52,7 +62,11 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
         interests,
         dateOfBirth: currentProfile.dateOfBirth,
         gender: currentProfile.gender,
-        commitmentLevel: currentProfile.commitmentLevel
+        commitmentLevel: currentProfile.commitmentLevel,
+        city,
+        country,
+        occupation,
+        bio
       });
       
       if (success) {
@@ -89,7 +103,7 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
           <Pencil className="h-4 w-4" />
         </Button>
       </SheetTrigger>
-      <SheetContent>
+      <SheetContent className="overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Edit Profile</SheetTitle>
         </SheetHeader>
@@ -108,6 +122,39 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter your username"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">City</label>
+            <Input
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              placeholder="Enter your city"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Country</label>
+            <Input
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              placeholder="Enter your country"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Occupation</label>
+            <Input
+              value={occupation}
+              onChange={(e) => setOccupation(e.target.value)}
+              placeholder="Enter your occupation"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Bio</label>
+            <Textarea
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Tell us about yourself"
+              rows={4}
             />
           </div>
           <div>

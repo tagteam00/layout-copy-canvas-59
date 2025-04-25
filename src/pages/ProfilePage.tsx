@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -18,6 +19,10 @@ const ProfilePage: React.FC = () => {
     interests: [] as string[],
     commitmentLevel: "",
     profileImage: "https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/59e6c2f5f7d74dddae24e7adf98c5564a2e93e95?placeholderIfAbsent=true",
+    city: "",
+    country: "",
+    occupation: "",
+    bio: ""
   });
 
   const { getUserData } = useUserData();
@@ -41,7 +46,11 @@ const ProfilePage: React.FC = () => {
           dateOfBirth: userData.dateOfBirth,
           gender: userData.gender,
           interests: userData.interests,
-          commitmentLevel: userData.commitmentLevel
+          commitmentLevel: userData.commitmentLevel,
+          city: userData.city,
+          country: userData.country,
+          occupation: userData.occupation,
+          bio: userData.bio
         }));
       }
     } catch (error) {
@@ -89,7 +98,7 @@ const ProfilePage: React.FC = () => {
         <ProfileInfo userProfile={userProfile} />
         <Button 
           variant="destructive" 
-          className="w-full" 
+          className="w-full mt-4" 
           onClick={handleLogout}
         >
           Log Out

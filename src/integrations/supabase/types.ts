@@ -32,35 +32,47 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bio: string | null
+          city: string | null
           commitment_level: string | null
+          country: string | null
           created_at: string | null
           date_of_birth: string | null
           full_name: string | null
           gender: string | null
           id: string
           interests: string[] | null
+          occupation: string | null
           updated_at: string | null
           username: string | null
         }
         Insert: {
+          bio?: string | null
+          city?: string | null
           commitment_level?: string | null
+          country?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           full_name?: string | null
           gender?: string | null
           id: string
           interests?: string[] | null
+          occupation?: string | null
           updated_at?: string | null
           username?: string | null
         }
         Update: {
+          bio?: string | null
+          city?: string | null
           commitment_level?: string | null
+          country?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           full_name?: string | null
           gender?: string | null
           id?: string
           interests?: string[] | null
+          occupation?: string | null
           updated_at?: string | null
           username?: string | null
         }
