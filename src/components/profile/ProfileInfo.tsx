@@ -2,7 +2,7 @@
 import React from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Settings, X } from "lucide-react";
+import { MapPin, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EditProfileSheet } from "./EditProfileSheet";
 
@@ -17,6 +17,7 @@ interface ProfileInfoProps {
     country?: string;
     interests: string[];
     commitmentLevel: string;
+    gender: string; // Added the missing gender property
   };
   onProfileUpdate: () => Promise<void>;
 }
@@ -114,3 +115,4 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({ userProfile, onProfile
     </div>
   );
 };
+

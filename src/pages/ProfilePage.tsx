@@ -12,7 +12,7 @@ const ProfilePage: React.FC = () => {
     fullName: "",
     username: "",
     dateOfBirth: "",
-    gender: "",
+    gender: "", // Ensure gender is initialized
     interests: [] as string[],
     commitmentLevel: "",
     city: "",
