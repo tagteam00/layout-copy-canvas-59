@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Sheet,
@@ -12,6 +13,8 @@ import { useInterests } from "@/hooks/useInterests";
 import { PersonalInfoSection } from "./edit-form/PersonalInfoSection";
 import { BioSection } from "./edit-form/BioSection";
 import { InterestsSection } from "./edit-form/InterestsSection";
+import { toast } from "sonner";
+import { useUserData } from "@/hooks/useUserData";
 
 interface EditProfileSheetProps {
   currentProfile: {
@@ -35,6 +38,7 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
 }) => {
   const [formData, setFormData] = React.useState(currentProfile);
   const { interests: availableInterests, loading } = useInterests();
+  const { saveUserData } = useUserData();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
