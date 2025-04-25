@@ -9,7 +9,7 @@ interface ProfileInterestsProps {
 export const ProfileInterests: React.FC<ProfileInterestsProps> = ({
   interests
 }) => {
-  return <Card className="bg-white border border-gray-100 shadow-sm">
+  return <Card className="bg-white border border-gray-100 shadow-sm bg-[ECEAFF]">
       <CardHeader className="pb-2 py-0">
         <h2 className="text-lg font-semibold">Interests:</h2>
       </CardHeader>
