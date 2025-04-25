@@ -64,8 +64,8 @@ const ProfilePage: React.FC = () => {
   }
 
   return (
-    <main className="bg-white min-h-screen max-w-[480px] w-full mx-auto relative">
-      <div className="absolute top-4 right-4 flex gap-2">
+    <main className="bg-white min-h-screen max-w-[480px] w-full mx-auto relative pb-24">
+      <div className="fixed top-4 right-4 flex gap-2 z-10">
         <Button 
           variant="ghost" 
           size="icon" 
