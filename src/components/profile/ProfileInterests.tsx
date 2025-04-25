@@ -10,7 +10,7 @@ export const ProfileInterests: React.FC<ProfileInterestsProps> = ({
   interests
 }) => {
   return <Card className="bg-white border border-gray-100 shadow-sm">
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-2 py-[2px]">
         <h2 className="text-lg font-semibold">Interests:</h2>
       </CardHeader>
       <CardContent className="py-0">
