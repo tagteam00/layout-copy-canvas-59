@@ -1,59 +1,68 @@
 
 import React from "react";
-import { EditProfileSheet } from "./EditProfileSheet";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { MapPin, Calendar } from "lucide-react";
 
 interface ProfileHeaderProps {
-  userProfile: {
-    fullName: string;
-    username: string;
-    profileImage: string;
-    interests: string[];
-    dateOfBirth: string;
-    gender: string;
-    commitmentLevel: string;
-    city?: string;
-    country?: string;
-    occupation?: string;
-    bio?: string;
-  };
-  onProfileUpdate: () => Promise<void>;
+  fullName: string;
+  username: string;
+  dateOfBirth: string;
+  city?: string;
+  country?: string;
+  occupation?: string;
 }
 
-export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfile, onProfileUpdate }) => {
-  // Function to get initials
-  const getInitials = (fullName: string) => {
-    return fullName
-      .split(' ')
-      .map(name => name.charAt(0).toUpperCase())
-      .slice(0, 2)
-      .join('');
+export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
+  fullName,
+  username,
+  dateOfBirth,
+  city,
+  country,
+  occupation
+}) => {
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
   };
 
   return (
-    <div className="flex flex-col items-center mb-6">
-      <Avatar className="w-32 h-32 border-4 border-primary">
-        {userProfile.profileImage ? (
-          <AvatarImage 
-            src={userProfile.profileImage} 
-            alt={userProfile.username}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <AvatarFallback className="text-4xl font-bold text-primary bg-gray-100">
-            {getInitials(userProfile.fullName)}
+    <div className="space-y-4">
+      <div className="flex flex-col items-center">
+        <Avatar className="w-24 h-24 bg-[#FFE0E0]">
+          <AvatarFallback className="text-3xl text-[#FF9999]">
+            {getInitials(fullName)}
           </AvatarFallback>
+        </Avatar>
+      </div>
+
+      <div className="text-center space-y-1">
+        <h1 className="text-2xl font-bold">{fullName}</h1>
+        <p className="text-gray-500">@{username}</p>
+        {occupation && <p className="text-gray-600">{occupation}</p>}
+      </div>
+
+      <div className="flex justify-center gap-4 text-gray-600 text-sm">
+        {(city || country) && (
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4" />
+            <span>{[city, country].filter(Boolean).join(', ')}</span>
+          </div>
         )}
-      </Avatar>
-      <div className="text-center mt-4">
-        <div className="flex items-center justify-center space-x-2">
-          <h1 className="text-2xl font-bold">{userProfile.fullName || "New User"}</h1>
-          <EditProfileSheet 
-            currentProfile={userProfile}
-            onProfileUpdate={onProfileUpdate}
-          />
-        </div>
-        <p className="text-gray-600">@{userProfile.username || "username"}</p>
+        {dateOfBirth && (
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4" />
+            <span>{formatDate(dateOfBirth)}</span>
+          </div>
+        )}
       </div>
     </div>
   );
