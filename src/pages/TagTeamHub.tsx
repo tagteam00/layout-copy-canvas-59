@@ -7,7 +7,6 @@ import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
 import { useUserData } from "@/hooks/useUserData";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { toast } from "sonner";
-
 const TagTeamHub: React.FC = () => {
   const {
     getUserData
@@ -39,18 +38,14 @@ const TagTeamHub: React.FC = () => {
   const [tagTeams, setTagTeams] = useState([]);
   const [activeTab, setActiveTab] = useState("tagteam");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-
   const handleLogActivity = (teamId: string) => {
     console.log("Log activity for team:", teamId);
   };
-
   const handleAddTeam = newTeam => {
     setTagTeams([...tagTeams, newTeam]);
     setIsSheetOpen(false);
   };
-
-  return (
-    <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto">
+  return <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto">
       <AppHeader />
       <div className="p-4">
         <h1 className="mb-6 font-extrabold text-3xl">Tagteam Hub</h1>
@@ -59,48 +54,24 @@ const TagTeamHub: React.FC = () => {
           
         </div>
 
-        {tagTeams.length > 0 ? (
-          tagTeams.map(team => (
-            <div key={team.id} onClick={() => handleLogActivity(team.id)}>
-              <TagTeamCard 
-                name={team.name}
-                category={team.category}
-                timeLeft={team.timeLeft}
-                frequency={team.frequency}
-                members={team.members}
-              />
-            </div>
-          ))
-        ) : (
-          <div className="flex flex-col items-center justify-center py-8 px-4">
+        {tagTeams.length > 0 ? tagTeams.map(team => <div key={team.id} onClick={() => handleLogActivity(team.id)}>
+              <TagTeamCard name={team.name} category={team.category} timeLeft={team.timeLeft} frequency={team.frequency} members={team.members} />
+            </div>) : <div className="flex flex-col items-center justify-center py-8 px-4">
             <div className="w-full max-w-[280px] mx-auto">
-              <AspectRatio ratio={16/9}>
-                <img
-                  src="/lovable-uploads/6834f7c6-308c-44b6-833b-6bca71374722.png"
-                  alt="People collaborating"
-                  className="w-full h-full object-contain"
-                />
+              <AspectRatio ratio={16 / 9}>
+                <img src="/lovable-uploads/6834f7c6-308c-44b6-833b-6bca71374722.png" alt="People collaborating" className="w-full h-full object-contain" />
               </AspectRatio>
             </div>
-            <p className="text-center text-gray-600 mt-6 italic">
-              Fulfilled personal goals are out there, Just team up
-            </p>
-          </div>
-        )}
+            <p className="text-center text-gray-600 mt-6 italic">You don't seem to be in any tagteam,
+Your next tagteam is just a click away.</p>
+          </div>}
       </div>
 
       <BottomNavigation />
       
       <AddTeamButton onClick={() => setIsSheetOpen(true)} />
 
-      <CreateTeamSheet
-        isOpen={isSheetOpen}
-        onClose={() => setIsSheetOpen(false)}
-        onCreateTeam={handleAddTeam}
-        categories={userProfile.interests}
-      />
-    </main>
-  );
+      <CreateTeamSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} onCreateTeam={handleAddTeam} categories={userProfile.interests} />
+    </main>;
 };
-
 export default TagTeamHub;
