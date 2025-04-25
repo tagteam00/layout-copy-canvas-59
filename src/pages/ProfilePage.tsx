@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { useUserData } from "@/hooks/useUserData";
@@ -5,8 +6,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ProfileInfo } from "@/components/profile/ProfileInfo";
-import { Settings } from "lucide-react";
+import { Settings, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EditProfileSheet } from "@/components/profile/EditProfileSheet";
+
 const ProfilePage: React.FC = () => {
   const [userProfile, setUserProfile] = useState({
     fullName: "",
@@ -20,20 +23,19 @@ const ProfilePage: React.FC = () => {
     occupation: "",
     bio: ""
   });
-  const {
-    getUserData
-  } = useUserData();
+
+  const { getUserData } = useUserData();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+
   const fetchUserData = async () => {
     try {
-      const {
-        data
-      } = await supabase.auth.getSession();
+      const { data } = await supabase.auth.getSession();
       if (!data.session) {
         navigate("/signin");
         return;
       }
+      
       const userData = await getUserData();
       if (userData) {
         setUserProfile(prevProfile => ({
@@ -48,22 +50,36 @@ const ProfilePage: React.FC = () => {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchUserData();
   }, [navigate, getUserData]);
+
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen bg-white">
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-white">
         <p>Loading profile...</p>
-      </div>;
+      </div>
+    );
   }
-  return <main className="bg-white min-h-screen max-w-[480px] w-full mx-auto relative">
-      <div className="absolute top-4 right-4 flex gap-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="rounded-full my-[16px]">
-          <Settings className="h-5 w-5" />
+
+  return (
+    <main className="bg-white min-h-screen max-w-[480px] w-full mx-auto relative pb-24">
+      <div className="fixed top-4 right-4 flex gap-2 z-10">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => navigate("/settings")} 
+          className="rounded-full bg-gray-100/80 hover:bg-gray-200/80"
+        >
+          <Settings className="h-5 w-5 text-gray-900" />
         </Button>
+        <EditProfileSheet currentProfile={userProfile} onProfileUpdate={fetchUserData} />
       </div>
       <ProfileInfo userProfile={userProfile} onProfileUpdate={fetchUserData} />
       <BottomNavigation />
-    </main>;
+    </main>
+  );
 };
+
 export default ProfilePage;
