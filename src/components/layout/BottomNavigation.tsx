@@ -1,3 +1,4 @@
+
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Home, User, Users } from "lucide-react";
@@ -7,12 +8,12 @@ const BottomNavigation: React.FC = () => {
   const location = useLocation();
   
   return (
-    <nav className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white rounded-[20px] px-6 py-3 shadow-lg flex items-center gap-12 w-[calc(100%-32px)] max-w-[480px]">
+    <nav className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white rounded-[20px] px-6 py-3 shadow-lg flex items-center justify-center gap-12 w-[calc(100%-32px)] max-w-[480px]">
       <NavLink
         to="/"
         className={({ isActive }) =>
           cn(
-            "flex flex-col items-center gap-1",
+            "flex flex-col items-center justify-center gap-1",
             isActive ? "text-[#827AFF]" : "text-gray-400"
           )
         }
@@ -25,7 +26,7 @@ const BottomNavigation: React.FC = () => {
         to="/tagteam"
         className={({ isActive }) =>
           cn(
-            "flex flex-col items-center gap-1",
+            "flex flex-col items-center justify-center gap-1",
             isActive ? "text-[#827AFF]" : "text-gray-400"
           )
         }
@@ -38,7 +39,7 @@ const BottomNavigation: React.FC = () => {
         to="/profile"
         className={({ isActive }) =>
           cn(
-            "flex flex-col items-center gap-1",
+            "flex flex-col items-center justify-center gap-1",
             isActive ? "text-[#827AFF]" : "text-gray-400"
           )
         }
