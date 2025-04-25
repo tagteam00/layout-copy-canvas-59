@@ -61,7 +61,7 @@ const ProfilePage: React.FC = () => {
   }
 
   return (
-    <main className="bg-[#F8F7FF] min-h-screen max-w-[480px] w-full mx-auto relative">
+    <main className="bg-white min-h-screen max-w-[480px] w-full mx-auto relative">
       <ProfileInfo userProfile={userProfile} onProfileUpdate={fetchUserData} />
       <BottomNavigation />
     </main>

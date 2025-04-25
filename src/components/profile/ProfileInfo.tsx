@@ -5,6 +5,7 @@ import { MapPin, Calendar, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EditProfileSheet } from "./EditProfileSheet";
 import { useNavigate } from "react-router-dom";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 
 interface ProfileInfoProps {
   userProfile: {
@@ -44,7 +45,7 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({ userProfile, onProfile
   };
 
   return (
-    <div className="p-6 space-y-6 relative bg-[#F8F7FF]">
+    <div className="p-6 space-y-6 relative bg-white">
       <div className="absolute top-4 right-4 flex gap-2">
         <Button
           variant="ghost"
@@ -60,7 +61,6 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({ userProfile, onProfile
         />
       </div>
 
-      {/* Profile Header with Avatar */}
       <div className="flex flex-col items-center mt-8">
         <Avatar className="w-24 h-24 bg-[#FFE0E0]">
           <AvatarFallback className="text-3xl text-[#FF9999]">
@@ -69,7 +69,6 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({ userProfile, onProfile
         </Avatar>
       </div>
 
-      {/* Name and Username */}
       <div className="text-center space-y-1">
         <h1 className="text-3xl font-bold">{userProfile.fullName}</h1>
         <p className="text-gray-500">@{userProfile.username}</p>
@@ -78,7 +77,6 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({ userProfile, onProfile
         )}
       </div>
 
-      {/* Location and Date */}
       <div className="flex justify-center gap-6 text-gray-600">
         {(userProfile.city || userProfile.country) && (
           <div className="flex items-center gap-2">
@@ -94,34 +92,41 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({ userProfile, onProfile
         )}
       </div>
 
-      {/* Bio */}
       {userProfile.bio && (
         <p className="text-center text-gray-600 max-w-md mx-auto">
           {userProfile.bio}
         </p>
       )}
 
-      {/* Commitment Card */}
-      <div className="bg-[#F3F0FF] rounded-xl p-4">
-        <div className="space-y-2">
-          <h2 className="text-lg font-semibold">Commitment:</h2>
-          <Badge variant="secondary" className="bg-white">
+      <Card className="bg-white shadow-sm">
+        <CardHeader>
+          <h2 className="text-lg font-semibold">Commitment</h2>
+        </CardHeader>
+        <CardContent>
+          <Badge variant="secondary" className="bg-[#827AFF] text-white hover:bg-[#827AFF]/90">
             {userProfile.commitmentLevel}
           </Badge>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
       
-      {/* Interests Card */}
-      <div className="bg-[#F3F0FF] rounded-xl p-4">
-        <h2 className="text-lg font-semibold mb-3">Interests</h2>
-        <div className="flex flex-wrap gap-2">
-          {userProfile.interests.map((interest, index) => (
-            <div key={index} className="bg-[#E9E5FF] rounded-full pl-3 pr-2 py-1 flex items-center gap-1">
-              <span className="text-[#827AFF]">{interest}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <Card className="bg-white shadow-sm">
+        <CardHeader>
+          <h2 className="text-lg font-semibold">Interests</h2>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {userProfile.interests.map((interest, index) => (
+              <Badge
+                key={index}
+                variant="secondary"
+                className="bg-[#827AFF] text-white hover:bg-[#827AFF]/90"
+              >
+                {interest}
+              </Badge>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
