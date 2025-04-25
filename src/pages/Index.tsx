@@ -1,17 +1,13 @@
 
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
-import { TagTeamList } from "@/components/home/TagTeamList";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
 import { useUserData } from "@/hooks/useUserData";
-import { UsersList } from "@/components/home/UsersList";
+import { HomeContent } from "@/components/home/HomeContent";
 
 const Index: React.FC = () => {
-  const {
-    getUserData,
-    getAllUsers
-  } = useUserData();
+  const { getUserData, getAllUsers } = useUserData();
   const [userProfile, setUserProfile] = useState({
     fullName: "",
     username: "",
@@ -19,6 +15,9 @@ const Index: React.FC = () => {
   });
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [tagTeams, setTagTeams] = useState([]);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -42,63 +41,25 @@ const Index: React.FC = () => {
     loadData();
   }, []);
 
-  // State for tag teams
-  const [tagTeams, setTagTeams] = useState([]);
-
-  // State for sheet visibility
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-
-  // Available categories from user's interests
   const categories = userProfile.interests;
 
-  // Handler for adding a new team
   const handleAddTeam = newTeam => {
     setTagTeams([...tagTeams, newTeam]);
     setIsSheetOpen(false);
   };
 
-  // Handler for opening the sheet
-  const handleOpenSheet = () => {
-    setIsSheetOpen(true);
-  };
-
   return (
     <main className="flex flex-col min-h-screen bg-white max-w-[480px] w-full mx-auto relative pb-20">
       <AppHeader />
-      <div className="flex-1 overflow-y-auto">
-        <div className="px-4 py-[8px] my-[12px]">
-          {loading ? (
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-3/4 mb-2"></div>
-              <div className="flex gap-1 mt-2">
-                <div className="h-6 bg-gray-200 rounded w-16"></div>
-                <div className="h-6 bg-gray-200 rounded w-16"></div>
-              </div>
-            </div>
-          ) : (
-            <>
-              <h1 className="font-bold mb-2 text-3xl">Hello, {userProfile.fullName}</h1>
-              <div className="flex items-center gap-1 mt-2 text-2xl font-extrabold">
-                {userProfile.interests.map((interest, index) => (
-                  <div 
-                    key={index} 
-                    className="bg-[rgba(130,122,255,1)] text-xs text-white px-2 py-1 rounded-xl whitespace-nowrap"
-                  >
-                    {interest}
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-        <TagTeamList teams={tagTeams} onAddTeam={handleOpenSheet} userName={userProfile.fullName} />
-        <div className="px-4">
-          <UsersList users={allUsers} loading={loading} />
-        </div>
-      </div>
-
+      <HomeContent 
+        userProfile={userProfile}
+        loading={loading}
+        tagTeams={tagTeams}
+        onAddTeam={() => setIsSheetOpen(true)}
+        allUsers={allUsers}
+      />
       <BottomNavigation />
-
+      
       <CreateTeamSheet 
         isOpen={isSheetOpen} 
         onClose={() => setIsSheetOpen(false)} 
