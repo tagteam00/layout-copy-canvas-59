@@ -1,10 +1,8 @@
-
 import React from "react";
 import { Welcome } from "./Welcome";
 import { TagTeamList } from "./TagTeamList";
 import { UsersList } from "./UsersList";
 import { UserData } from "@/hooks/useUserData";
-
 interface HomeContentProps {
   userProfile: {
     fullName: string;
@@ -15,7 +13,6 @@ interface HomeContentProps {
   onAddTeam: () => void;
   allUsers: UserData[];
 }
-
 export const HomeContent: React.FC<HomeContentProps> = ({
   userProfile,
   loading,
@@ -23,23 +20,13 @@ export const HomeContent: React.FC<HomeContentProps> = ({
   onAddTeam,
   allUsers
 }) => {
-  return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="px-4 py-[8px] my-[12px]">
-        <Welcome 
-          fullName={userProfile.fullName}
-          interests={userProfile.interests}
-          loading={loading}
-        />
+  return <div className="flex-1 overflow-y-auto">
+      <div className="px-4 py-0 my-[16px]">
+        <Welcome fullName={userProfile.fullName} interests={userProfile.interests} loading={loading} />
       </div>
-      <TagTeamList 
-        teams={tagTeams} 
-        onAddTeam={onAddTeam} 
-        userName={userProfile.fullName} 
-      />
+      <TagTeamList teams={tagTeams} onAddTeam={onAddTeam} userName={userProfile.fullName} />
       <div className="px-4">
         <UsersList users={allUsers} loading={loading} />
       </div>
-    </div>
-  );
+    </div>;
 };
