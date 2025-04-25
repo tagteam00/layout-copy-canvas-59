@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PersonalInfoForm } from "@/components/onboarding/PersonalInfoForm";
 import { InterestsSelector } from "@/components/onboarding/InterestsSelector";
 import { CommitmentSelector } from "@/components/onboarding/CommitmentSelector";
+import { LocationStep } from "@/components/onboarding/LocationStep";
+import { BioStep } from "@/components/onboarding/BioStep";
 import { StepIndicator } from "@/components/onboarding/StepIndicator";
 import { useUserData } from "@/hooks/useUserData";
 import type { UserData } from "@/hooks/useUserData";
@@ -30,7 +32,10 @@ const Onboarding: React.FC = () => {
     dateOfBirth: "",
     gender: "",
     interests: [],
-    commitmentLevel: ""
+    commitmentLevel: "",
+    city: "",
+    country: "",
+    bio: ""
   });
 
   // Check if user is authenticated
@@ -64,10 +69,20 @@ const Onboarding: React.FC = () => {
     setStep(3);
   };
 
-  const handleCommitmentSubmit = async (level: string) => {
+  const handleCommitmentSubmit = (level: string) => {
+    setFormData({ ...formData, commitmentLevel: level });
+    setStep(4);
+  };
+
+  const handleLocationSubmit = (data: { city: string; country: string }) => {
+    setFormData({ ...formData, ...data });
+    setStep(5);
+  };
+
+  const handleBioSubmit = async (data: { bio: string }) => {
     try {
       setLoading(true);
-      const finalFormData = { ...formData, commitmentLevel: level };
+      const finalFormData = { ...formData, bio: data.bio };
       
       const success = await saveUserData(finalFormData);
       
@@ -90,7 +105,7 @@ const Onboarding: React.FC = () => {
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold text-black">Let's set up your profile</h1>
-          <StepIndicator currentStep={step} totalSteps={3} />
+          <StepIndicator currentStep={step} totalSteps={5} />
         </div>
 
         <Card>
@@ -115,6 +130,20 @@ const Onboarding: React.FC = () => {
                 onCommitmentSelect={(level) => setFormData({ ...formData, commitmentLevel: level })}
                 onComplete={() => handleCommitmentSubmit(formData.commitmentLevel)}
                 onBack={() => setStep(2)}
+              />
+            )}
+
+            {step === 4 && (
+              <LocationStep
+                onSubmit={handleLocationSubmit}
+                onBack={() => setStep(3)}
+              />
+            )}
+
+            {step === 5 && (
+              <BioStep
+                onSubmit={handleBioSubmit}
+                onBack={() => setStep(4)}
                 loading={loading}
               />
             )}
