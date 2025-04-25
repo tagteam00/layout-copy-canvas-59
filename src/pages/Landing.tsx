@@ -6,7 +6,7 @@ const Landing: React.FC = () => {
   return <div className="min-h-screen flex flex-col items-center bg-[#EAE9FF] relative">
       {/* Center Logo - Moved up and added proper spacing */}
       <div className="flex-1 flex items-center justify-center pt-12 mb-32 py-0">
-        <img src="/lovable-uploads/cc8c39f9-28ca-46b1-b6c4-6d0a00ba71dd.png" alt="TagTeam Logo" className="w-48 h-48 object-contain" />
+        <img src="/lovable-uploads/cc8c39f9-28ca-46b1-b6c4-6d0a00ba71dd.png" alt="TagTeam Logo" className="w-48 h-48 object-scale-down" />
       </div>
 
       {/* Permanent Bottom Sheet - Improved shadow and spacing */}
