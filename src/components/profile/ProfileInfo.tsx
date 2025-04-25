@@ -2,7 +2,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
-import { EditProfileSheet } from "./EditProfileSheet";
 import { useNavigate } from "react-router-dom";
 import { ProfileHeader } from "./ProfileHeader";
 import { ProfileBio } from "./ProfileBio";
@@ -14,13 +13,13 @@ interface ProfileInfoProps {
     fullName: string;
     username: string;
     dateOfBirth: string;
-    occupation: string;
-    bio: string;
-    city?: string;
-    country?: string;
+    gender: string;
     interests: string[];
     commitmentLevel: string;
-    gender: string;
+    city?: string;
+    country?: string;
+    occupation?: string;
+    bio?: string;
   };
   onProfileUpdate: () => Promise<void>;
 }
@@ -37,16 +36,11 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({
         <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="rounded-full">
           <Settings className="h-5 w-5" />
         </Button>
-        <EditProfileSheet currentProfile={userProfile} onProfileUpdate={onProfileUpdate} />
       </div>
 
       <ProfileHeader
-        fullName={userProfile.fullName}
-        username={userProfile.username}
-        dateOfBirth={userProfile.dateOfBirth}
-        city={userProfile.city}
-        country={userProfile.country}
-        occupation={userProfile.occupation}
+        userProfile={userProfile}
+        onProfileUpdate={onProfileUpdate}
       />
 
       <ProfileBio bio={userProfile.bio} />

@@ -1,11 +1,12 @@
+
 import React from "react";
 import { EditProfileSheet } from "./EditProfileSheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 interface ProfileHeaderProps {
   userProfile: {
     fullName: string;
     username: string;
-    profileImage: string;
     interests: string[];
     dateOfBirth: string;
     gender: string;
@@ -17,6 +18,7 @@ interface ProfileHeaderProps {
   };
   onProfileUpdate: () => Promise<void>;
 }
+
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   userProfile,
   onProfileUpdate
@@ -25,11 +27,13 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   const getInitials = (fullName: string) => {
     return fullName.split(' ').map(name => name.charAt(0).toUpperCase()).slice(0, 2).join('');
   };
-  return <div className="flex flex-col items-center mb-6">
+
+  return (
+    <div className="flex flex-col items-center mb-6">
       <Avatar className="w-32 h-32 border-4 border-primary">
-        {userProfile.profileImage ? <AvatarImage src={userProfile.profileImage} alt={userProfile.username} className="w-full h-full object-cover" /> : <AvatarFallback className="text-4xl font-bold text-primary bg-gray-100">
-            {getInitials(userProfile.fullName)}
-          </AvatarFallback>}
+        <AvatarFallback className="text-4xl font-bold text-primary bg-gray-100">
+          {getInitials(userProfile.fullName)}
+        </AvatarFallback>
       </Avatar>
       <div className="text-center mt-4">
         <div className="flex items-center justify-center space-x-2 font-thin text-base text-center">
@@ -38,5 +42,6 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         </div>
         <p className="text-gray-600">@{userProfile.username || "username"}</p>
       </div>
-    </div>;
+    </div>
+  );
 };
