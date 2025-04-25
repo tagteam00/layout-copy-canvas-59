@@ -32,20 +32,20 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfile, onPro
 
   return (
     <div className="flex flex-col items-center mb-6">
-      <div className="w-32 h-32 rounded-full border-4 border-primary flex items-center justify-center mb-4 bg-gray-100">
+      <Avatar className="w-32 h-32 border-4 border-primary">
         {userProfile.profileImage ? (
           <AvatarImage 
             src={userProfile.profileImage} 
             alt={userProfile.username}
-            className="w-full h-full object-cover rounded-full"
+            className="w-full h-full object-cover"
           />
         ) : (
-          <AvatarFallback className="text-4xl font-bold text-primary">
+          <AvatarFallback className="text-4xl font-bold text-primary bg-gray-100">
             {getInitials(userProfile.fullName)}
           </AvatarFallback>
         )}
-      </div>
-      <div className="text-center">
+      </Avatar>
+      <div className="text-center mt-4">
         <div className="flex items-center justify-center space-x-2">
           <h1 className="text-2xl font-bold">{userProfile.fullName || "New User"}</h1>
           <EditProfileSheet 

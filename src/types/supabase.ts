@@ -1,4 +1,6 @@
 
+import { Tables } from "@/integrations/supabase/types";
+
 export interface UserData {
   fullName: string;
   username: string;
@@ -11,6 +13,11 @@ export interface UserData {
   occupation?: string;
   bio?: string;
 }
+
+// Define the Profile type based on the Supabase profiles table
+type Profile = Tables<"profiles">;
+// Define the ProfileInsert type for inserting into the profiles table
+type ProfileInsert = Tables<"profiles">;
 
 export const userDataToProfile = (userData: UserData, userId: string): ProfileInsert => {
   return {
