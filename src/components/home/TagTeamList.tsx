@@ -30,10 +30,10 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
       </div>
 
       {teams.length === 0 ? <div className="flex flex-col items-center justify-center text-gray-500 w-full space-y-5 py-[24px]">
-          <img src="/lovable-uploads/31be4148-3505-46fc-af8f-a6bfdc54875f.png" alt="No tagteams yet" style={{
+          <img alt="No tagteams yet" style={{
         width: 152,
         height: 145
-      }} className="mx-auto mb-2" draggable={false} />
+      }} className="mx-auto mb-2" draggable={false} src="/lovable-uploads/28c79c00-3c56-4b4b-8826-f2994012edf6.png" />
           <div style={{
         fontFamily: "Hanken Grotesk, sans-serif"
       }} className="text-base text-gray-700 text-center mt-2 mb-2 px-4 py-[16px]">
