@@ -31,7 +31,9 @@ export const userDataToProfile = (userData: UserData, userId: string): ProfileIn
     city: userData.city,
     country: userData.country,
     occupation: userData.occupation,
-    bio: userData.bio
+    bio: userData.bio,
+    created_at: new Date().toISOString(), // Add current timestamp
+    updated_at: new Date().toISOString()  // Add current timestamp
   };
 };
 
