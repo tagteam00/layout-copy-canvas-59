@@ -6,13 +6,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ProfileInfo } from "@/components/profile/ProfileInfo";
+import { Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const ProfilePage: React.FC = () => {
   const [userProfile, setUserProfile] = useState({
     fullName: "",
     username: "",
     dateOfBirth: "",
-    gender: "", // Ensure gender is initialized
+    gender: "",
     interests: [] as string[],
     commitmentLevel: "",
     city: "",
@@ -54,7 +56,7 @@ const ProfilePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-white">
         <p>Loading profile...</p>
       </div>
     );
@@ -62,6 +64,11 @@ const ProfilePage: React.FC = () => {
 
   return (
     <main className="bg-white min-h-screen max-w-[480px] w-full mx-auto relative">
+      <div className="absolute top-4 right-4 flex gap-2">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="rounded-full">
+          <Settings className="h-5 w-5" />
+        </Button>
+      </div>
       <ProfileInfo userProfile={userProfile} onProfileUpdate={fetchUserData} />
       <BottomNavigation />
     </main>

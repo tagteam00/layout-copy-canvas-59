@@ -1,46 +1,91 @@
 
 import React from "react";
-import { EditProfileSheet } from "./EditProfileSheet";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Pin, Calendar } from "lucide-react";
 
 interface ProfileHeaderProps {
   userProfile: {
     fullName: string;
     username: string;
-    interests: string[];
     dateOfBirth: string;
-    gender: string;
-    commitmentLevel: string;
+    gender?: string;
     city?: string;
     country?: string;
     occupation?: string;
-    bio?: string;
   };
-  onProfileUpdate: () => Promise<void>;
 }
 
-export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
-  userProfile,
-  onProfileUpdate
-}) => {
-  // Function to get initials
-  const getInitials = (fullName: string) => {
-    return fullName.split(' ').map(name => name.charAt(0).toUpperCase()).slice(0, 2).join('');
+export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfile }) => {
+  // Get initials from full name
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
   };
 
+  // Format date of birth
+  const formatDateOfBirth = (dateString: string) => {
+    if (!dateString) return "";
+    
+    try {
+      const date = new Date(dateString);
+      const day = date.getDate();
+      const month = date.toLocaleString('en-US', { month: 'long' });
+      const year = date.getFullYear();
+      
+      // Add suffix to day
+      const suffix = day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th';
+      
+      return `${day}${suffix} ${month} ${year}`;
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return dateString;
+    }
+  };
+  
+  const location = userProfile.city && userProfile.country 
+    ? `${userProfile.city}, ${userProfile.country}`
+    : userProfile.city || userProfile.country || "Location not specified";
+
   return (
-    <div className="flex flex-col items-center mb-6">
-      <Avatar className="w-32 h-32 border-4 border-primary">
-        <AvatarFallback className="text-4xl font-bold text-primary bg-gray-100">
-          {getInitials(userProfile.fullName)}
-        </AvatarFallback>
-      </Avatar>
-      <div className="text-center mt-4">
-        <div className="flex items-center justify-center space-x-2 font-thin text-base text-center">
-          <h1 className="text-2xl font-bold">{userProfile.fullName || "New User"}</h1>
-          <EditProfileSheet currentProfile={userProfile} onProfileUpdate={onProfileUpdate} />
+    <div className="mb-6">
+      <div className="flex items-start mb-6">
+        <div className="relative">
+          <Avatar className="w-24 h-24 border-2 border-white shadow-md bg-pink-100 text-gray-800">
+            <AvatarFallback className="text-2xl font-medium">
+              {getInitials(userProfile.fullName || "User")}
+            </AvatarFallback>
+          </Avatar>
         </div>
-        <p className="text-gray-600">@{userProfile.username || "username"}</p>
+        
+        <div className="flex-1 ml-4">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">{userProfile.fullName || "User"}</h1>
+              <p className="text-gray-500 mb-1">@{userProfile.username || "username"}</p>
+              {userProfile.occupation && (
+                <p className="text-gray-700 text-sm">{userProfile.occupation}</p>
+              )}
+            </div>
+            
+            <div className="mt-2 md:mt-0 text-sm">
+              <div className="flex items-center mb-2 text-gray-600">
+                <Pin className="h-4 w-4 mr-2 text-[#827AFF]" />
+                <span>{location}</span>
+              </div>
+              
+              {userProfile.dateOfBirth && (
+                <div className="flex items-center text-gray-600">
+                  <Calendar className="h-4 w-4 mr-2 text-[#827AFF]" />
+                  <span>{formatDateOfBirth(userProfile.dateOfBirth)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
