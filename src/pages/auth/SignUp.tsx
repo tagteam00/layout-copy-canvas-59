@@ -46,8 +46,8 @@ const SignUp: React.FC = () => {
   };
   return <div className="min-h-screen flex items-center justify-center bg-white p-4">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <img src="/lovable-uploads/dfdd0e96-f205-4b60-95f6-212079ccd7c1.png" alt="TagTeam Logo" className="mx-auto h-16 mb-4 object-scale-down" />
+        <div className="mb-8 text-center py-0">
+          <img alt="TagTeam Logo" src="/lovable-uploads/65e87b1f-aab0-41b8-8b26-142a3baca388.png" className="mx-auto h-30mb-4 object-fill" />
           
         </div>
 
