@@ -6,8 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ProfileInfo } from "@/components/profile/ProfileInfo";
-import { Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 const ProfilePage: React.FC = () => {
   const [userProfile, setUserProfile] = useState({
@@ -64,12 +62,7 @@ const ProfilePage: React.FC = () => {
 
   return (
     <main className="bg-[#F8F7FF] min-h-screen max-w-[480px] w-full mx-auto relative">
-      <div className="absolute top-4 right-4">
-        <Button variant="ghost" size="icon" className="bg-[#E9E5FF] rounded-full">
-          <Settings className="w-5 h-5 text-[#827AFF]" />
-        </Button>
-      </div>
-      <ProfileInfo userProfile={userProfile} />
+      <ProfileInfo userProfile={userProfile} onProfileUpdate={fetchUserData} />
       <BottomNavigation />
     </main>
   );

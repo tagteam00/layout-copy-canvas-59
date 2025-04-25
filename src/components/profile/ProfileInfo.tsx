@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Calendar, Settings, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EditProfileSheet } from "./EditProfileSheet";
 
 interface ProfileInfoProps {
   userProfile: {
@@ -17,9 +18,10 @@ interface ProfileInfoProps {
     interests: string[];
     commitmentLevel: string;
   };
+  onProfileUpdate: () => Promise<void>;
 }
 
-export const ProfileInfo: React.FC<ProfileInfoProps> = ({ userProfile }) => {
+export const ProfileInfo: React.FC<ProfileInfoProps> = ({ userProfile, onProfileUpdate }) => {
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -40,11 +42,11 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({ userProfile }) => {
 
   return (
     <div className="p-6 space-y-6 relative bg-[#F8F7FF]">
-      {/* Settings Button */}
       <div className="absolute top-4 right-4">
-        <Button variant="ghost" size="icon" className="bg-[#E9E5FF] rounded-full">
-          <Settings className="w-5 h-5 text-[#827AFF]" />
-        </Button>
+        <EditProfileSheet 
+          currentProfile={userProfile}
+          onProfileUpdate={onProfileUpdate}
+        />
       </div>
 
       {/* Profile Header with Avatar */}
@@ -105,21 +107,8 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({ userProfile }) => {
           {userProfile.interests.map((interest, index) => (
             <div key={index} className="bg-[#E9E5FF] rounded-full pl-3 pr-2 py-1 flex items-center gap-1">
               <span className="text-[#827AFF]">{interest}</span>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-5 w-5 rounded-full hover:bg-transparent p-0"
-              >
-                <X className="h-3 w-3 text-[#827AFF]" />
-              </Button>
             </div>
           ))}
-          <Button 
-            variant="ghost" 
-            className="bg-[#E9E5FF] text-[#827AFF] rounded-full w-8 h-8 p-0 hover:bg-[#E9E5FF]"
-          >
-            +
-          </Button>
         </div>
       </div>
     </div>
