@@ -47,7 +47,7 @@ export const UsersList = ({
         <div className="border flex-1 h-px border-[rgba(0,0,0,0.5)] border-solid" />
         <div className="flex items-center gap-2">
           <Users className="w-4 h-4" />
-          <h2 className="whitespace-nowrap">TagTeam Members</h2>
+          <h2 className="whitespace-nowrap text-xs">TagTeam Members</h2>
         </div>
         <div className="border flex-1 h-px border-[rgba(0,0,0,0.5)] border-solid" />
       </div>

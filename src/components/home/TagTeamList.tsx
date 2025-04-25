@@ -25,7 +25,7 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
   return <section className="flex w-full flex-col text-black mt-5 px-4">
       <div className="flex items-center gap-[9px] text-xs text-black font-normal py-0">
         <div className="border flex-1 h-px border-[rgba(0,0,0,0.5)] border-solid" />
-        <h2 className="whitespace-nowrap">Active tagteams</h2>
+        <h2 className="whitespace-nowrap text-xs">Active tagteams</h2>
         <div className="border flex-1 h-px border-[rgba(0,0,0,0.5)] border-solid" />
       </div>
 
@@ -36,7 +36,7 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
       }} className="mx-auto mb-2" draggable={false} />
           <div style={{
         fontFamily: "Hanken Grotesk, sans-serif"
-      }} className="text-base text-gray-700 text-center mt-2 mb-2 px-4 py-[10px]">
+      }} className="text-base text-gray-700 text-center mt-2 mb-2 px-4 py-[16px]">
             {userName ? `${userName} people are out-there to team up with you` : `People are out-there to team up with you`}
           </div>
           <Button style={{
@@ -44,7 +44,7 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
         marginRight: 16,
         height: 56,
         fontSize: 18
-      }} onClick={onAddTeam} size="lg" className="w-full max-w-[448px] mx-4 mt-0 text-base font-semibold bg-black text-white rounded-xl py-[20px]">
+      }} onClick={onAddTeam} size="lg" className="w-full max-w-[448px] mx-4 mt-0 text-base font-semibold bg-black text-white rounded-xl py-[16px]">
             Start your first tagteam
           </Button>
         </div> : <div className="space-y-4 mt-4">
