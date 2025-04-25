@@ -1,108 +1,107 @@
 
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Briefcase, ScrollText } from "lucide-react";
+import { MapPin, Calendar } from "lucide-react";
 
 interface ProfileInfoProps {
   userProfile: {
+    fullName: string;
+    username: string;
     dateOfBirth: string;
-    gender: string;
-    commitmentLevel: string;
-    interests: string[];
+    occupation: string;
+    bio: string;
     city?: string;
     country?: string;
-    occupation?: string;
-    bio?: string;
+    interests: string[];
+    commitmentLevel: string;
   };
 }
 
 export const ProfileInfo: React.FC<ProfileInfoProps> = ({ userProfile }) => {
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "Not provided";
-    
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }).format(date);
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase();
   };
 
-  const renderInfoCard = (icon: React.ReactNode, title: string, value: string) => (
-    <div className="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg">
-      {icon}
-      <div>
-        <p className="text-sm text-gray-600">{title}</p>
-        <p className="font-semibold">{value || "Not provided"}</p>
-      </div>
-    </div>
-  );
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardContent className="p-4 space-y-4">
-          <h2 className="text-lg font-semibold mb-2">Personal Details</h2>
-          
-          <div className="grid grid-cols-2 gap-4">
-            {renderInfoCard(
-              <Calendar className="text-primary" />, 
-              "Date of Birth", 
-              formatDate(userProfile.dateOfBirth)
-            )}
-            {renderInfoCard(
-              <MapPin className="text-primary" />, 
-              "Location", 
-              `${userProfile.city || ''}, ${userProfile.country || ''}`.trim() || "Not provided"
-            )}
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            {renderInfoCard(
-              <Briefcase className="text-primary" />, 
-              "Occupation", 
-              userProfile.occupation
-            )}
-            <div className="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg">
-              <ScrollText className="text-primary" />
-              <div>
-                <p className="text-sm text-gray-600">Bio</p>
-                <p className="font-semibold">{userProfile.bio || "No bio yet"}</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="p-6 space-y-6">
+      <div className="flex flex-col items-center space-y-4">
+        <Avatar className="w-24 h-24 bg-[#FFE0E0]">
+          <AvatarFallback className="text-3xl text-[#FF9999]">
+            {getInitials(userProfile.fullName)}
+          </AvatarFallback>
+        </Avatar>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-1">{userProfile.fullName}</h1>
+          <p className="text-gray-500">@{userProfile.username}</p>
+        </div>
+        {userProfile.occupation && (
+          <p className="text-gray-600">{userProfile.occupation}</p>
+        )}
+      </div>
 
-      <Card>
-        <CardContent className="p-4">
-          <h2 className="text-lg font-semibold mb-2">Profile Insights</h2>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Commitment Level</span>
-              <Badge variant="outline">{userProfile.commitmentLevel || "Not set"}</Badge>
-            </div>
+      <div className="space-y-2">
+        {(userProfile.city || userProfile.country) && (
+          <div className="flex items-center justify-center gap-2 text-gray-600">
+            <MapPin className="w-4 h-4" />
+            <span>{[userProfile.city, userProfile.country].filter(Boolean).join(', ')}</span>
           </div>
-        </CardContent>
-      </Card>
+        )}
+        {userProfile.dateOfBirth && (
+          <div className="flex items-center justify-center gap-2 text-gray-600">
+            <Calendar className="w-4 h-4" />
+            <span>{formatDate(userProfile.dateOfBirth)}</span>
+          </div>
+        )}
+      </div>
 
-      <Card>
-        <CardContent className="p-4">
+      {userProfile.bio && (
+        <p className="text-center text-gray-600 max-w-md mx-auto">
+          {userProfile.bio}
+        </p>
+      )}
+
+      <div className="bg-[#F3F0FF] rounded-xl p-4">
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold mb-2">Commitment:</h2>
+          <Badge variant="secondary" className="bg-white">
+            {userProfile.commitmentLevel}
+          </Badge>
+        </div>
+        
+        <div>
           <h2 className="text-lg font-semibold mb-2">Interests</h2>
-          {userProfile.interests && userProfile.interests.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {userProfile.interests.map((interest, index) => (
-                <Badge key={index} variant="secondary">
-                  {interest}
-                </Badge>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500">No interests added yet</p>
-          )}
-        </CardContent>
-      </Card>
+          <div className="flex flex-wrap gap-2">
+            {userProfile.interests.map((interest, index) => (
+              <Badge 
+                key={index}
+                className="bg-[#E9E5FF] text-[#827AFF] hover:bg-[#E9E5FF]"
+              >
+                {interest}
+              </Badge>
+            ))}
+            <Badge 
+              className="bg-[#E9E5FF] text-[#827AFF] hover:bg-[#E9E5FF] cursor-pointer"
+            >
+              +
+            </Badge>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
