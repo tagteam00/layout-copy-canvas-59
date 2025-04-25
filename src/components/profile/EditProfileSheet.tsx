@@ -99,8 +99,12 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Pencil className="h-4 w-4" />
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="rounded-full bg-gray-100/80 hover:bg-gray-200/80"
+        >
+          <Pencil className="h-5 w-5 text-gray-900" />
         </Button>
       </SheetTrigger>
       <SheetContent className="overflow-y-auto">

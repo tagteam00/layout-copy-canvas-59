@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
+import { ArrowLeft } from "lucide-react";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -41,7 +42,17 @@ const Settings = () => {
 
   return (
     <main className="bg-[#F8F7FF] min-h-screen max-w-[480px] w-full mx-auto relative p-6">
-      <h1 className="text-2xl font-bold mb-8">Settings</h1>
+      <div className="flex items-center gap-4 mb-8">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate(-1)}
+          className="rounded-full"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <h1 className="text-2xl font-bold">Settings</h1>
+      </div>
       
       <div className="space-y-6">
         <section className="space-y-4">
