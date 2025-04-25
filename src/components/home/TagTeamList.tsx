@@ -22,14 +22,14 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
   onAddTeam,
   userName = ""
 }) => {
-  return <section className="flex w-full flex-col text-black mt-5 px-4">
+  return <section className="flex w-full flex-col text-black mt-5 px-4 my-0">
       <div className="flex items-center gap-[9px] text-xs text-black font-normal py-0 my-0">
         <div className="border flex-1 h-px border-[rgba(0,0,0,0.5)] border-solid" />
         <h2 className="whitespace-nowrap text-xs">Active tagteams</h2>
         <div className="border flex-1 h-px border-[rgba(0,0,0,0.5)] border-solid" />
       </div>
 
-      {teams.length === 0 ? <div className="flex flex-col items-center justify-center text-gray-500 w-full space-y-5 py-[2px]">
+      {teams.length === 0 ? <div className="flex flex-col items-center justify-center text-gray-500 w-full space-y-5 py-0">
           <img alt="No tagteams yet" style={{
         width: 152,
         height: 145
