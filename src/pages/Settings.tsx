@@ -1,0 +1,71 @@
+
+import React from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { BottomNavigation } from "@/components/layout/BottomNavigation";
+
+const Settings = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      toast.success("Successfully logged out");
+      navigate("/signin");
+    } catch (error) {
+      console.error("Error logging out:", error);
+      toast.error("Failed to log out");
+    }
+  };
+
+  const handleDeactivateAccount = async () => {
+    const confirm = window.confirm(
+      "Are you sure you want to deactivate your account? This action cannot be undone."
+    );
+
+    if (confirm) {
+      try {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+        toast.success("Account deactivated successfully");
+        navigate("/signin");
+      } catch (error) {
+        console.error("Error deactivating account:", error);
+        toast.error("Failed to deactivate account");
+      }
+    }
+  };
+
+  return (
+    <main className="bg-[#F8F7FF] min-h-screen max-w-[480px] w-full mx-auto relative p-6">
+      <h1 className="text-2xl font-bold mb-8">Settings</h1>
+      
+      <div className="space-y-6">
+        <section className="space-y-4">
+          <h2 className="text-xl font-semibold">Account</h2>
+          <Button
+            variant="outline"
+            className="w-full justify-start"
+            onClick={handleLogout}
+          >
+            Log Out
+          </Button>
+          <Button
+            variant="destructive"
+            className="w-full justify-start"
+            onClick={handleDeactivateAccount}
+          >
+            Deactivate Account
+          </Button>
+        </section>
+      </div>
+
+      <BottomNavigation />
+    </main>
+  );
+};
+
+export default Settings;

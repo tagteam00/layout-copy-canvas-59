@@ -1,10 +1,10 @@
-
 import React from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar } from "lucide-react";
+import { MapPin, Calendar, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EditProfileSheet } from "./EditProfileSheet";
+import { useNavigate } from "react-router-dom";
 
 interface ProfileInfoProps {
   userProfile: {
@@ -17,12 +17,14 @@ interface ProfileInfoProps {
     country?: string;
     interests: string[];
     commitmentLevel: string;
-    gender: string; // Added the missing gender property
+    gender: string;
   };
   onProfileUpdate: () => Promise<void>;
 }
 
 export const ProfileInfo: React.FC<ProfileInfoProps> = ({ userProfile, onProfileUpdate }) => {
+  const navigate = useNavigate();
+
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -43,7 +45,15 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({ userProfile, onProfile
 
   return (
     <div className="p-6 space-y-6 relative bg-[#F8F7FF]">
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 flex gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/settings")}
+          className="rounded-full"
+        >
+          <Settings className="h-5 w-5" />
+        </Button>
         <EditProfileSheet 
           currentProfile={userProfile}
           onProfileUpdate={onProfileUpdate}
@@ -115,4 +125,3 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({ userProfile, onProfile
     </div>
   );
 };
-
