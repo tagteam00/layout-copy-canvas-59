@@ -15,7 +15,7 @@ export const ProfileInterests: React.FC<ProfileInterestsProps> = ({
       </CardHeader>
       <CardContent className="py-0">
         <div className="flex flex-nowrap gap-2 overflow-x-auto pb-2 scrollbar-none">
-          {interests.map((interest, index) => <Badge key={index} variant="secondary" className="bg-[#827AFF] text-white hover:bg-[#827AFF]/90 px-4 py-1.5 whitespace-nowrap rounded-full flex-shrink-0">
+          {interests.map((interest, index) => <Badge key={index} variant="secondary" className="bg-[#827AFF] text-white hover:bg-[#827AFF]/90 px-4 whitespace-nowrap rounded-full flex-shrink-0 py-[12px]">
               {interest}
             </Badge>)}
           <Button variant="outline" size="icon" className="rounded-full flex-shrink-0 w-8 h-8 border-[#827AFF] text-[#827AFF]">

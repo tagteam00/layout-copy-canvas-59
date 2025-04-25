@@ -12,7 +12,7 @@ export const ProfileCommitment: React.FC<ProfileCommitmentProps> = ({
         <h2 className="text-lg font-semibold">Commitment:</h2>
       </CardHeader>
       <CardContent className="my-0 py-[4px]">
-        <Badge variant="secondary" className="text-white py-1.5 px-4 rounded-full bg-slate-950">
+        <Badge variant="secondary" className="text-white px-4 rounded-full bg-slate-950 py-[12px]">
           {commitmentLevel || "Not specified"}
         </Badge>
       </CardContent>
