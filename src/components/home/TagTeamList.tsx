@@ -33,7 +33,7 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
           <img alt="No tagteams yet" style={{
         width: 152,
         height: 145
-      }} className="mx-auto mb-2" draggable={false} src="/lovable-uploads/28c79c00-3c56-4b4b-8826-f2994012edf6.png" />
+      }} draggable={false} src="/lovable-uploads/28c79c00-3c56-4b4b-8826-f2994012edf6.png" className="mx-auto mb-2 object-scale-down" />
           <div style={{
         fontFamily: "Hanken Grotesk, sans-serif"
       }} className="text-base text-gray-700 text-center mt-2 mb-2 px-4 py-[16px]">
