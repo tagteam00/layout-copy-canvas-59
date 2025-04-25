@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { TagTeamList } from "@/components/home/TagTeamList";
@@ -5,8 +6,7 @@ import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
 import { useUserData } from "@/hooks/useUserData";
 import { UsersList } from "@/components/home/UsersList";
-import { Home, Users, User } from "lucide-react";
-import { NavItem } from "@/components/layout/BottomNavigation";
+
 const Index: React.FC = () => {
   const {
     getUserData,
@@ -45,9 +45,6 @@ const Index: React.FC = () => {
   // State for tag teams
   const [tagTeams, setTagTeams] = useState([]);
 
-  // State for active navigation tab
-  const [activeTab, setActiveTab] = useState("home");
-
   // State for sheet visibility
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
@@ -64,24 +61,35 @@ const Index: React.FC = () => {
   const handleOpenSheet = () => {
     setIsSheetOpen(true);
   };
-  return <main className="flex flex-col min-h-screen bg-white max-w-[480px] w-full mx-auto relative pb-20">
+
+  return (
+    <main className="flex flex-col min-h-screen bg-white max-w-[480px] w-full mx-auto relative pb-20">
       <AppHeader />
       <div className="flex-1 overflow-y-auto">
         <div className="px-4 py-[8px] my-[12px]">
-          {loading ? <div className="animate-pulse">
+          {loading ? (
+            <div className="animate-pulse">
               <div className="h-8 bg-gray-200 rounded w-3/4 mb-2"></div>
               <div className="flex gap-1 mt-2">
                 <div className="h-6 bg-gray-200 rounded w-16"></div>
                 <div className="h-6 bg-gray-200 rounded w-16"></div>
               </div>
-            </div> : <>
+            </div>
+          ) : (
+            <>
               <h1 className="font-bold mb-2 text-3xl">Hello, {userProfile.fullName}</h1>
               <div className="flex items-center gap-1 mt-2 text-2xl font-extrabold">
-                {userProfile.interests.map((interest, index) => <div key={index} className="bg-[rgba(130,122,255,1)] text-xs text-white px-2 py-1 rounded-xl whitespace-nowrap">
+                {userProfile.interests.map((interest, index) => (
+                  <div 
+                    key={index} 
+                    className="bg-[rgba(130,122,255,1)] text-xs text-white px-2 py-1 rounded-xl whitespace-nowrap"
+                  >
                     {interest}
-                  </div>)}
+                  </div>
+                ))}
               </div>
-            </>}
+            </>
+          )}
         </div>
         <TagTeamList teams={tagTeams} onAddTeam={handleOpenSheet} userName={userProfile.fullName} />
         <div className="px-4">
@@ -91,7 +99,14 @@ const Index: React.FC = () => {
 
       <BottomNavigation />
 
-      <CreateTeamSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} onCreateTeam={handleAddTeam} categories={categories} />
-    </main>;
+      <CreateTeamSheet 
+        isOpen={isSheetOpen} 
+        onClose={() => setIsSheetOpen(false)} 
+        onCreateTeam={handleAddTeam} 
+        categories={categories} 
+      />
+    </main>
+  );
 };
+
 export default Index;
