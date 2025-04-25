@@ -10,12 +10,12 @@ export const ProfileInterests: React.FC<ProfileInterestsProps> = ({
   interests
 }) => {
   return <Card className="border border-gray-100 shadow-sm bg-[ECEAFF] bg-[#eceaff] px-0 py-[8px] my-[12px]">
-      <CardHeader className="pb-2 py-0 bg-[ECEAFF] px-0">
-        <h2 className="text-lg font-semibold px-[8px]">Interests:</h2>
+      <CardHeader className="pb-2 bg-[ECEAFF] px-0 my-[2px] py-[4px]">
+        <h2 className="text-lg font-semibold px-[8px] my-0 py-0">Interests:</h2>
       </CardHeader>
       <CardContent className="py-0 px-0">
         <div className="flex flex-nowrap gap-2 overflow-x-auto pb-2 scrollbar-none py-0 px-[8px]">
-          {interests.map((interest, index) => <Badge key={index} variant="secondary" className="bg-[#827AFF] text-white hover:bg-[#827AFF]/90 px-4 whitespace-nowrap rounded-full flex-shrink-0 py-[8px]">
+          {interests.map((interest, index) => <Badge key={index} variant="secondary" className="bg-[#827AFF] text-white hover:bg-[#827AFF]/90 px-4 whitespace-nowrap rounded-full flex-shrink-0 py-[7px]">
               {interest}
             </Badge>)}
           <Button variant="outline" size="icon" className="rounded-full flex-shrink-0 w-8 h-8 border-[#827AFF] text-[#827AFF]">
