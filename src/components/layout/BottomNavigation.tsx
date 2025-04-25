@@ -4,7 +4,7 @@ import { Home, User, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 const BottomNavigation: React.FC = () => {
   const location = useLocation();
-  return <nav className="fixed bottom-6 left-1/2 transform -translate-x-1/2 rounded-[20px] px-6 py-3 shadow-[0_4px_15px_rgba(130,122,255,0.1)] border border-gray-100/50 flex items-center justify-center gap-12 w-[calc(100%-32px)] max-w-[480px] bg-[#f6f5ff]">
+  return <nav className="fixed bottom-6 left-1/2 transform -translate-x-1/2 rounded-[20px] px-6 shadow-[0_4px_15px_rgba(130,122,255,0.1)] border border-gray-100/50 flex items-center justify-center gap-12 w-[calc(100%-32px)] max-w-[480px] bg-[#f6f5ff] my-0 py-[25px]">
       <NavLink to="/" className={({
       isActive
     }) => cn("flex flex-col items-center justify-center gap-1", isActive ? "text-[#827AFF]" : "text-gray-400")}>
