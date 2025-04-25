@@ -44,7 +44,7 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
         marginRight: 16,
         height: 56,
         fontSize: 18
-      }} onClick={onAddTeam} size="lg" className="w-full max-w-[448px] mx-4 mt-0 text-base font-semibold bg-black text-white rounded-xl py-[16px]">
+      }} onClick={onAddTeam} size="lg" className="w-full max-w-[448px] mx-4 mt-0 text-base font-semibold bg-black text-white rounded-xl py-[12px]">
             Start your first tagteam
           </Button>
         </div> : <div className="space-y-4 mt-4">
