@@ -1,8 +1,6 @@
-
 import React from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Pin, Calendar } from "lucide-react";
-
 interface ProfileHeaderProps {
   userProfile: {
     fullName: string;
@@ -14,50 +12,39 @@ interface ProfileHeaderProps {
     occupation?: string;
   };
 }
-
-export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfile }) => {
+export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
+  userProfile
+}) => {
   // Get initials from full name
   const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
+    return name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2);
   };
 
   // Format date of birth
   const formatDateOfBirth = (dateString: string) => {
     if (!dateString) return "";
-    
     try {
       const date = new Date(dateString);
       const day = date.getDate();
-      const month = date.toLocaleString('en-US', { month: 'long' });
+      const month = date.toLocaleString('en-US', {
+        month: 'long'
+      });
       const year = date.getFullYear();
-      
+
       // Add suffix to day
       const suffix = day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th';
-      
       return `${day}${suffix} ${month} ${year}`;
     } catch (error) {
       console.error("Error formatting date:", error);
       return dateString;
     }
   };
-  
-  const location = userProfile.city && userProfile.country 
-    ? `${userProfile.city}, ${userProfile.country}`
-    : userProfile.city || userProfile.country || "Location not specified";
-
-  return (
-    <div className="mb-6">
+  const location = userProfile.city && userProfile.country ? `${userProfile.city}, ${userProfile.country}` : userProfile.city || userProfile.country || "Location not specified";
+  return <div className="mb-6">
       <div className="flex items-start mb-6">
         <div className="relative">
           <Avatar className="w-24 h-24 border-2 border-white shadow-md bg-pink-100 text-gray-800">
-            <AvatarFallback className="text-2xl font-medium">
-              {getInitials(userProfile.fullName || "User")}
-            </AvatarFallback>
+            
           </Avatar>
         </div>
         
@@ -66,9 +53,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfile }) => 
             <div>
               <h1 className="text-2xl font-bold">{userProfile.fullName || "User"}</h1>
               <p className="text-gray-500 mb-1">@{userProfile.username || "username"}</p>
-              {userProfile.occupation && (
-                <p className="text-gray-700 text-sm">{userProfile.occupation}</p>
-              )}
+              {userProfile.occupation && <p className="text-gray-700 text-sm">{userProfile.occupation}</p>}
             </div>
             
             <div className="mt-2 md:mt-0 text-sm">
@@ -77,16 +62,13 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfile }) => 
                 <span>{location}</span>
               </div>
               
-              {userProfile.dateOfBirth && (
-                <div className="flex items-center text-gray-600">
+              {userProfile.dateOfBirth && <div className="flex items-center text-gray-600">
                   <Calendar className="h-4 w-4 mr-2 text-[#827AFF]" />
                   <span>{formatDateOfBirth(userProfile.dateOfBirth)}</span>
-                </div>
-              )}
+                </div>}
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
