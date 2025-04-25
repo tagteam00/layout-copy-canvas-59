@@ -7,12 +7,12 @@ interface ProfileCommitmentProps {
 export const ProfileCommitment: React.FC<ProfileCommitmentProps> = ({
   commitmentLevel
 }) => {
-  return <Card className="border border-gray-100 shadow-sm bg-[#eceaff]">
-      <CardHeader className="pb-2 py-0">
-        <h2 className="text-lg font-semibold">Commitment:</h2>
+  return <Card className="border border-gray-100 shadow-sm bg-[#eceaff] py-[8px]">
+      <CardHeader className="pb-2 px-[8px] py-[4px]">
+        <h2 className="text-lg font-semibold px-0">Commitment:</h2>
       </CardHeader>
-      <CardContent className="my-[2px] py-[4px]">
-        <Badge variant="secondary" className="text-white px-4 rounded-full bg-slate-950 py-[12px]">
+      <CardContent className="px-[8px] py-0 my-0">
+        <Badge variant="secondary" className="text-white px-4 rounded-full bg-slate-950 py-[8px]">
           {commitmentLevel || "Not specified"}
         </Badge>
       </CardContent>
