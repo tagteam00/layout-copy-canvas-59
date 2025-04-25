@@ -8,7 +8,7 @@ export const ProfileCommitment: React.FC<ProfileCommitmentProps> = ({
   commitmentLevel
 }) => {
   return <Card className="border border-gray-100 shadow-sm bg-[#eceaff] py-[8px]">
-      <CardHeader className="pb-2 px-[8px] py-[4px]">
+      <CardHeader className="pb-2 px-[8px] py-[4px] my-[2px]">
         <h2 className="text-lg font-semibold px-0">Commitment:</h2>
       </CardHeader>
       <CardContent className="px-[8px] py-0 my-0">
