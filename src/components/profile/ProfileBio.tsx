@@ -8,7 +8,7 @@ export const ProfileBio: React.FC<ProfileBioProps> = ({
 }) => {
   if (!bio) return null;
   return <Card className="bg-white border border-gray-100 shadow-sm">
-      <CardContent className="pt-4 px-[12px]">
+      <CardContent className="pt-4 px-[12px] py-[6px]">
         <p className="text-gray-700 text-sm">
           {bio}
         </p>
