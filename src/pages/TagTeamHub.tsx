@@ -48,7 +48,7 @@ const TagTeamHub: React.FC = () => {
   return <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto">
       <AppHeader />
       <div className="p-4">
-        <h1 className="mb-6 font-extrabold text-3xl">Tagteam Hub</h1>
+        <h1 className="mb-6 font-extrabold text-lg">Tagteam Hub</h1>
         
         <div className="mb-4">
           
