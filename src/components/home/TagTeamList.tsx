@@ -36,7 +36,7 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
       }} draggable={false} src="/lovable-uploads/28c79c00-3c56-4b4b-8826-f2994012edf6.png" className="mx-auto mb-2 object-scale-down" />
           <div style={{
         fontFamily: "Hanken Grotesk, sans-serif"
-      }} className="text-base text-gray-700 text-center mt-2 mb-2 px-4 py-0 my-0">
+      }} className="text-base text-gray-700 text-center mt-2 mb-2 px-4 py-0 my-[4px]">
             {userName ? `${userName} people are out-there to team up with you` : `People are out-there to team up with you`}
           </div>
           <Button style={{
