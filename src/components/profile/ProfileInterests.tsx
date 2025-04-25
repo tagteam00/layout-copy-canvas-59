@@ -9,12 +9,12 @@ interface ProfileInterestsProps {
 export const ProfileInterests: React.FC<ProfileInterestsProps> = ({
   interests
 }) => {
-  return <Card className="border border-gray-100 shadow-sm bg-[ECEAFF] bg-[#eceaff] py-[10px] px-0">
+  return <Card className="border border-gray-100 shadow-sm bg-[ECEAFF] bg-[#eceaff] px-0 py-[8px] my-[12px]">
       <CardHeader className="pb-2 py-0 bg-[ECEAFF] px-0">
-        <h2 className="text-lg font-semibold px-0">Interests:</h2>
+        <h2 className="text-lg font-semibold px-[8px]">Interests:</h2>
       </CardHeader>
       <CardContent className="py-0 px-0">
-        <div className="flex flex-nowrap gap-2 overflow-x-auto pb-2 scrollbar-none">
+        <div className="flex flex-nowrap gap-2 overflow-x-auto pb-2 scrollbar-none py-0 px-[8px]">
           {interests.map((interest, index) => <Badge key={index} variant="secondary" className="bg-[#827AFF] text-white hover:bg-[#827AFF]/90 px-4 whitespace-nowrap rounded-full flex-shrink-0 py-[8px]">
               {interest}
             </Badge>)}
