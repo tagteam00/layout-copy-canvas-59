@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { TagTeamList } from "@/components/home/TagTeamList";
@@ -7,7 +6,7 @@ import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
 import { useUserData } from "@/hooks/useUserData";
 import { UsersList } from "@/components/home/UsersList";
 import { Home, Users, User } from "lucide-react";
-
+import { NavItem } from "@/components/layout/BottomNavigation";
 const Index: React.FC = () => {
   const {
     getUserData,
@@ -77,7 +76,7 @@ const Index: React.FC = () => {
               </div>
             </div> : <>
               <h1 className="font-bold mb-2 text-3xl">Hello, {userProfile.fullName}</h1>
-              <div className="flex items-center gap-1 mt-2">
+              <div className="flex items-center gap-1 mt-2 text-2xl font-extrabold">
                 {userProfile.interests.map((interest, index) => <div key={index} className="bg-[rgba(130,122,255,1)] text-xs text-white px-2 py-1 rounded-xl whitespace-nowrap">
                     {interest}
                   </div>)}
