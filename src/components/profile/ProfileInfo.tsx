@@ -80,7 +80,7 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({
           <h2 className="text-lg font-semibold">Commitment</h2>
         </CardHeader>
         <CardContent>
-          <Badge variant="secondary" className="text-white bg-slate-800">
+          <Badge variant="secondary" className="text-white bg-slate-800 py-[8px] px-[16px]">
             {userProfile.commitmentLevel}
           </Badge>
         </CardContent>
