@@ -1,11 +1,9 @@
-
 import React from "react";
 import { ProfileHeader } from "./ProfileHeader";
 import { ProfileBio } from "./ProfileBio";
 import { ProfileCommitment } from "./ProfileCommitment";
 import { ProfileInterests } from "./ProfileInterests";
 import { LogoutButton } from "./LogoutButton";
-
 interface ProfileInfoProps {
   userProfile: {
     fullName: string;
@@ -21,13 +19,11 @@ interface ProfileInfoProps {
   };
   onProfileUpdate: () => Promise<void>;
 }
-
 export const ProfileInfo: React.FC<ProfileInfoProps> = ({
   userProfile,
   onProfileUpdate
 }) => {
-  return (
-    <div className="p-6 space-y-6 relative bg-white">
+  return <div className="p-6 space-y-6 relative bg-white py-[36px]">
       <ProfileHeader userProfile={userProfile} />
       <ProfileBio bio={userProfile.bio} />
       
@@ -39,6 +35,5 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({
       <div className="pt-4">
         <LogoutButton />
       </div>
-    </div>
-  );
+    </div>;
 };
