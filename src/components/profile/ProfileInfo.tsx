@@ -2,7 +2,8 @@
 import React from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar } from "lucide-react";
+import { MapPin, Calendar, Settings, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface ProfileInfoProps {
   userProfile: {
@@ -38,68 +39,87 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({ userProfile }) => {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex flex-col items-center space-y-4">
+    <div className="p-6 space-y-6 relative bg-[#F8F7FF]">
+      {/* Settings Button */}
+      <div className="absolute top-4 right-4">
+        <Button variant="ghost" size="icon" className="bg-[#E9E5FF] rounded-full">
+          <Settings className="w-5 h-5 text-[#827AFF]" />
+        </Button>
+      </div>
+
+      {/* Profile Header with Avatar */}
+      <div className="flex flex-col items-center mt-8">
         <Avatar className="w-24 h-24 bg-[#FFE0E0]">
           <AvatarFallback className="text-3xl text-[#FF9999]">
             {getInitials(userProfile.fullName)}
           </AvatarFallback>
         </Avatar>
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-1">{userProfile.fullName}</h1>
-          <p className="text-gray-500">@{userProfile.username}</p>
-        </div>
+      </div>
+
+      {/* Name and Username */}
+      <div className="text-center space-y-1">
+        <h1 className="text-3xl font-bold">{userProfile.fullName}</h1>
+        <p className="text-gray-500">@{userProfile.username}</p>
         {userProfile.occupation && (
-          <p className="text-gray-600">{userProfile.occupation}</p>
+          <p className="text-gray-600 text-lg">{userProfile.occupation}</p>
         )}
       </div>
 
-      <div className="space-y-2">
+      {/* Location and Date */}
+      <div className="flex justify-center gap-6 text-gray-600">
         {(userProfile.city || userProfile.country) && (
-          <div className="flex items-center justify-center gap-2 text-gray-600">
+          <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4" />
             <span>{[userProfile.city, userProfile.country].filter(Boolean).join(', ')}</span>
           </div>
         )}
         {userProfile.dateOfBirth && (
-          <div className="flex items-center justify-center gap-2 text-gray-600">
+          <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4" />
             <span>{formatDate(userProfile.dateOfBirth)}</span>
           </div>
         )}
       </div>
 
+      {/* Bio */}
       {userProfile.bio && (
         <p className="text-center text-gray-600 max-w-md mx-auto">
           {userProfile.bio}
         </p>
       )}
 
+      {/* Commitment Card */}
       <div className="bg-[#F3F0FF] rounded-xl p-4">
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold mb-2">Commitment:</h2>
+        <div className="space-y-2">
+          <h2 className="text-lg font-semibold">Commitment:</h2>
           <Badge variant="secondary" className="bg-white">
             {userProfile.commitmentLevel}
           </Badge>
         </div>
-        
-        <div>
-          <h2 className="text-lg font-semibold mb-2">Interests</h2>
-          <div className="flex flex-wrap gap-2">
-            {userProfile.interests.map((interest, index) => (
-              <Badge 
-                key={index}
-                className="bg-[#E9E5FF] text-[#827AFF] hover:bg-[#E9E5FF]"
+      </div>
+      
+      {/* Interests Card */}
+      <div className="bg-[#F3F0FF] rounded-xl p-4">
+        <h2 className="text-lg font-semibold mb-3">Interests</h2>
+        <div className="flex flex-wrap gap-2">
+          {userProfile.interests.map((interest, index) => (
+            <div key={index} className="bg-[#E9E5FF] rounded-full pl-3 pr-2 py-1 flex items-center gap-1">
+              <span className="text-[#827AFF]">{interest}</span>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-5 w-5 rounded-full hover:bg-transparent p-0"
               >
-                {interest}
-              </Badge>
-            ))}
-            <Badge 
-              className="bg-[#E9E5FF] text-[#827AFF] hover:bg-[#E9E5FF] cursor-pointer"
-            >
-              +
-            </Badge>
-          </div>
+                <X className="h-3 w-3 text-[#827AFF]" />
+              </Button>
+            </div>
+          ))}
+          <Button 
+            variant="ghost" 
+            className="bg-[#E9E5FF] text-[#827AFF] rounded-full w-8 h-8 p-0 hover:bg-[#E9E5FF]"
+          >
+            +
+          </Button>
         </div>
       </div>
     </div>
