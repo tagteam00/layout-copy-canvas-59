@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Sheet,
@@ -8,20 +7,11 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Pencil } from "lucide-react";
-import { useUserData } from "@/hooks/useUserData";
-import { toast } from "sonner";
 import { useInterests } from "@/hooks/useInterests";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { PersonalInfoSection } from "./edit-form/PersonalInfoSection";
+import { BioSection } from "./edit-form/BioSection";
+import { InterestsSection } from "./edit-form/InterestsSection";
 
 interface EditProfileSheetProps {
   currentProfile: {
@@ -31,10 +21,10 @@ interface EditProfileSheetProps {
     dateOfBirth: string;
     gender: string;
     commitmentLevel: string;
-    city?: string;
-    country?: string;
-    occupation?: string;
-    bio?: string;
+    city: string;
+    country: string;
+    occupation: string;
+    bio: string;
   };
   onProfileUpdate: () => void;
 }
@@ -43,30 +33,42 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
   currentProfile,
   onProfileUpdate,
 }) => {
-  const [fullName, setFullName] = React.useState(currentProfile.fullName);
-  const [username, setUsername] = React.useState(currentProfile.username);
-  const [interests, setInterests] = React.useState(currentProfile.interests);
-  const [city, setCity] = React.useState(currentProfile.city || '');
-  const [country, setCountry] = React.useState(currentProfile.country || '');
-  const [occupation, setOccupation] = React.useState(currentProfile.occupation || '');
-  const [bio, setBio] = React.useState(currentProfile.bio || '');
-
-  const { saveUserData } = useUserData();
+  const [formData, setFormData] = React.useState(currentProfile);
   const { interests: availableInterests, loading } = useInterests();
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddInterest = (newInterest: string) => {
+    if (!formData.interests.includes(newInterest)) {
+      setFormData((prev) => ({
+        ...prev,
+        interests: [...prev.interests, newInterest],
+      }));
+    }
+  };
+
+  const handleRemoveInterest = (interestToRemove: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      interests: prev.interests.filter((interest) => interest !== interestToRemove),
+    }));
+  };
 
   const handleSave = async () => {
     try {
       const success = await saveUserData({
-        fullName,
-        username,
-        interests,
+        fullName: formData.fullName,
+        username: formData.username,
+        interests: formData.interests,
         dateOfBirth: currentProfile.dateOfBirth,
         gender: currentProfile.gender,
         commitmentLevel: currentProfile.commitmentLevel,
-        city,
-        country,
-        occupation,
-        bio
+        city: formData.city,
+        country: formData.country,
+        occupation: formData.occupation,
+        bio: formData.bio
       });
       
       if (success) {
@@ -77,24 +79,6 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
       toast.error("Failed to update profile");
     }
   };
-
-  const handleAddInterest = (newInterest: string) => {
-    if (!interests.includes(newInterest)) {
-      setInterests([...interests, newInterest]);
-    }
-  };
-
-  const handleRemoveInterest = (interestToRemove: string) => {
-    setInterests(interests.filter(interest => interest !== interestToRemove));
-  };
-
-  const groupedInterests = availableInterests.reduce((acc, interest) => {
-    if (!acc[interest.category]) {
-      acc[interest.category] = [];
-    }
-    acc[interest.category].push(interest);
-    return acc;
-  }, {} as Record<string, typeof availableInterests>);
 
   return (
     <Sheet>
@@ -112,95 +96,24 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
           <SheetTitle>Edit Profile</SheetTitle>
         </SheetHeader>
         <div className="space-y-4 mt-4">
-          <div>
-            <label className="text-sm font-medium mb-2 block">Full Name</label>
-            <Input
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Enter your full name"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium mb-2 block">Username</label>
-            <Input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium mb-2 block">City</label>
-            <Input
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="Enter your city"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium mb-2 block">Country</label>
-            <Input
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              placeholder="Enter your country"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium mb-2 block">Occupation</label>
-            <Input
-              value={occupation}
-              onChange={(e) => setOccupation(e.target.value)}
-              placeholder="Enter your occupation"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium mb-2 block">Bio</label>
-            <Textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              placeholder="Tell us about yourself"
-              rows={4}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium mb-2 block">Interests</label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {interests.map((interest, index) => (
-                <Badge
-                  key={index}
-                  variant="secondary"
-                  className="cursor-pointer"
-                  onClick={() => handleRemoveInterest(interest)}
-                >
-                  {interest} ×
-                </Badge>
-              ))}
-            </div>
-            <Select
-              onValueChange={handleAddInterest}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Add an interest" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(groupedInterests).map(([category, categoryInterests]) => (
-                  <div key={category}>
-                    <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                      {category.charAt(0).toUpperCase() + category.slice(1)}
-                    </div>
-                    {categoryInterests.map((interest) => (
-                      <SelectItem 
-                        key={interest.id} 
-                        value={interest.name}
-                        disabled={interests.includes(interest.name)}
-                      >
-                        {interest.name}
-                      </SelectItem>
-                    ))}
-                  </div>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <PersonalInfoSection
+            fullName={formData.fullName}
+            username={formData.username}
+            city={formData.city}
+            country={formData.country}
+            occupation={formData.occupation}
+            onInputChange={handleInputChange}
+          />
+          <BioSection 
+            bio={formData.bio} 
+            onInputChange={handleInputChange} 
+          />
+          <InterestsSection
+            interests={formData.interests}
+            availableInterests={availableInterests}
+            onAddInterest={handleAddInterest}
+            onRemoveInterest={handleRemoveInterest}
+          />
           <Button className="w-full" onClick={handleSave}>
             Save Changes
           </Button>
