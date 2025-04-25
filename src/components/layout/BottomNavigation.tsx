@@ -7,7 +7,7 @@ const BottomNavigation: React.FC = () => {
   const location = useLocation();
   
   return (
-    <nav className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white rounded-full px-6 py-3 shadow-lg flex items-center gap-12">
+    <nav className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white rounded-[20px] px-6 py-3 shadow-lg flex items-center gap-12 w-[calc(100%-32px)] max-w-[480px]">
       <NavLink
         to="/"
         className={({ isActive }) =>
