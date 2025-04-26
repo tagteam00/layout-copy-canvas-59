@@ -38,7 +38,7 @@ const SignIn: React.FC = () => {
       if (authData) {
         toast.success("Signed in successfully!");
         // Redirect to home page
-        navigate("/");
+        navigate("/home");
       }
     } catch (error) {
       console.error("Sign in error:", error);
