@@ -10,7 +10,7 @@ export const AppHeader = () => {
         </Link>
         <button aria-label="Notifications" onClick={() => navigate("/notifications")} style={{
         boxShadow: "0 1px 2px rgba(130,122,255,0.04)"
-      }} className="flex min-h-10 items-center gap-2.5 overflow-hidden justify-center w-10 h-10 rounded-[100px] bg-[#e4e4e4]">
+      }} className="flex min-h-10 items-center gap-2.5 overflow-hidden justify-center w-10 h-10 rounded-[100px] bg-gray-100">
           <Bell className="w-[18px] h-[18px]" />
         </button>
       </div>
