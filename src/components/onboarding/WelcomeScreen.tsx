@@ -12,7 +12,7 @@ const WelcomeScreen: React.FC = () => {
         {/* Logo */}
         <div className="relative w-[35%] aspect-square mb-8 mt-4">
           <img
-            src="/public/lovable-uploads/dcc36042-2b42-407d-8eb1-e3324a3a3f5b.png"
+            src="/lovable-uploads/dcc36042-2b42-407d-8eb1-e3324a3a3f5b.png"
             alt="TagTeam Logo"
             className="w-full h-full object-contain"
           />
