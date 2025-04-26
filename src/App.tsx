@@ -1,10 +1,11 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { AnimatePresence } from "framer-motion";
+import PageTransition from "./components/layout/PageTransition";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import SignIn from "./pages/auth/SignIn";
@@ -91,64 +92,92 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
+const AnimatedRoutes = () => {
+  const location = useLocation();
+  
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        {/* Public routes - redirect to home if already authenticated */}
+        <Route path="/" element={
+          <PublicRoute>
+            <PageTransition>
+              <WelcomeScreen />
+            </PageTransition>
+          </PublicRoute>
+        } />
+        <Route path="/signin" element={
+          <PublicRoute>
+            <PageTransition>
+              <SignIn />
+            </PageTransition>
+          </PublicRoute>
+        } />
+        <Route path="/signup" element={
+          <PublicRoute>
+            <PageTransition>
+              <SignUp />
+            </PageTransition>
+          </PublicRoute>
+        } />
+        <Route path="/onboarding" element={
+          <PublicRoute>
+            <PageTransition>
+              <Onboarding />
+            </PageTransition>
+          </PublicRoute>
+        } />
+
+        {/* Protected routes - require authentication */}
+        <Route path="/home" element={
+          <ProtectedRoute>
+            <PageTransition>
+              <Index />
+            </PageTransition>
+          </ProtectedRoute>
+        } />
+        <Route path="/tagteam" element={
+          <ProtectedRoute>
+            <PageTransition>
+              <TagTeamHub />
+            </PageTransition>
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <PageTransition>
+              <ProfilePage />
+            </PageTransition>
+          </ProtectedRoute>
+        } />
+        <Route path="/notifications" element={
+          <ProtectedRoute>
+            <PageTransition>
+              <NotificationsPage />
+            </PageTransition>
+          </ProtectedRoute>
+        } />
+        <Route path="/settings" element={
+          <ProtectedRoute>
+            <PageTransition>
+              <Settings />
+            </PageTransition>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AnimatePresence>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          {/* Public routes - redirect to home if already authenticated */}
-          <Route path="/" element={
-            <PublicRoute>
-              <WelcomeScreen />
-            </PublicRoute>
-          } />
-          <Route path="/signin" element={
-            <PublicRoute>
-              <SignIn />
-            </PublicRoute>
-          } />
-          <Route path="/signup" element={
-            <PublicRoute>
-              <SignUp />
-            </PublicRoute>
-          } />
-          <Route path="/onboarding" element={
-            <PublicRoute>
-              <Onboarding />
-            </PublicRoute>
-          } />
-
-          {/* Protected routes - require authentication */}
-          <Route path="/home" element={
-            <ProtectedRoute>
-              <Index />
-            </ProtectedRoute>
-          } />
-          <Route path="/tagteam" element={
-            <ProtectedRoute>
-              <TagTeamHub />
-            </ProtectedRoute>
-          } />
-          <Route path="/profile" element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          } />
-          <Route path="/notifications" element={
-            <ProtectedRoute>
-              <NotificationsPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings" element={
-            <ProtectedRoute>
-              <Settings />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AnimatedRoutes />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
