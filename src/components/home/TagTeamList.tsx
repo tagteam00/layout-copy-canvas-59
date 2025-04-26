@@ -25,7 +25,7 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
   return <section className="flex w-full flex-col text-black mt-5 px-4 my-0">
       <div className="flex items-center gap-[9px] text-xs text-black font-normal py-0 my-0">
         <div className="border flex-1 h-px border-[rgba(0,0,0,0.5)] border-solid" />
-        <h2 className="whitespace-nowrap text-xs">Active tagteams</h2>
+        <h2 className="whitespace-nowrap text-xs text-[#707070]">Active tagteams</h2>
         <div className="border flex-1 h-px border-[rgba(0,0,0,0.5)] border-solid" />
       </div>
 
