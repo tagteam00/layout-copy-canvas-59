@@ -42,21 +42,21 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   const location = userProfile.city && userProfile.country ? `${userProfile.city}, ${userProfile.country}` : userProfile.city || userProfile.country || "Location not specified";
   return <div className="mb-6">
       <div className="flex items-start mb-6">
-        <div className="relative">
+        <div className="relative my-[18px]">
           <Avatar className="w-24 h-24 border-2 border-white shadow-md bg-pink-100 text-gray-800">
             
           </Avatar>
         </div>
         
         <div className="flex-1 ml-4">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between my-0">
             <div>
-              <h1 className="text-2xl font-bold">{userProfile.fullName || "User"}</h1>
-              <p className="text-gray-500 mb-1">@{userProfile.username || "username"}</p>
+              <h1 className="text-2xl font-bold my-0">{userProfile.fullName || "User"}</h1>
+              <p className="text-gray-500 mb-1 py-0">@{userProfile.username || "username"}</p>
               {userProfile.occupation && <p className="text-gray-700 text-sm">{userProfile.occupation}</p>}
             </div>
             
-            <div className="mt-2 md:mt-0 text-sm">
+            <div className="mt-2 md:mt-0 text-sm my-[16px]">
               <div className="flex items-center mb-2 text-gray-600">
                 <Pin className="h-4 w-4 mr-2 text-[#827AFF]" />
                 <span>{location}</span>
