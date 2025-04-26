@@ -7,10 +7,12 @@ import { PlusCircle } from "lucide-react";
 
 interface ProfileInterestsProps {
   interests: string[];
+  isPublicView?: boolean;
 }
 
 export const ProfileInterests: React.FC<ProfileInterestsProps> = ({
-  interests
+  interests,
+  isPublicView = false
 }) => {
   return (
     <Card className="border border-gray-100 shadow-sm bg-[ECEAFF] bg-[#eceaff] px-0 py-[8px] my-[12px]">
@@ -28,14 +30,16 @@ export const ProfileInterests: React.FC<ProfileInterestsProps> = ({
               {interest}
             </Badge>
           ))}
-          <Button
-            variant="outline"
-            size="icon"
-            className="rounded-full w-8 h-8 border-[#827AFF] text-[#827AFF]"
-          >
-            <PlusCircle className="h-5 w-5" />
-            <span className="sr-only">Add interest</span>
-          </Button>
+          {!isPublicView && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full w-8 h-8 border-[#827AFF] text-[#827AFF]"
+            >
+              <PlusCircle className="h-5 w-5" />
+              <span className="sr-only">Add interest</span>
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
