@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +13,7 @@ import TagTeamHub from "./pages/TagTeamHub";
 import ProfilePage from "./pages/ProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
 import Settings from "./pages/Settings";
+import WelcomeScreen from "./components/onboarding/WelcomeScreen";
 
 const queryClient = new QueryClient();
 
@@ -22,7 +24,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<WelcomeScreen />} />
+          <Route path="/home" element={<Index />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/onboarding" element={<Onboarding />} />
