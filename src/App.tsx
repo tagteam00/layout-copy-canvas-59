@@ -165,14 +165,6 @@ const AnimatedRoutes = () => {
           </ProtectedRoute>
         } />
         
-        <Route path="/user/:userId" element={
-          <ProtectedRoute>
-            <PageTransition>
-              <UserProfilePage />
-            </PageTransition>
-          </ProtectedRoute>
-        } />
-        
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
