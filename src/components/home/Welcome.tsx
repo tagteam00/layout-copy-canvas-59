@@ -21,7 +21,7 @@ export const Welcome: React.FC<WelcomeProps> = ({
   return <>
       <h1 className="font-bold mb-2 text-3xl text-black">Hello, {fullName}</h1>
       <div className="flex items-center gap-1 mt-2 text-2xl font-extrabold my-[9px]">
-        {interests.map((interest, index) => <div key={index} className="text-xs text-white px-2 py-1 rounded-xl whitespace-nowrap bg-[8CFF6E] bg-[#74f253]">
+        {interests.map((interest, index) => <div key={index} className="text-xs text-white px-2 rounded-xl whitespace-nowrap bg-[8CFF6E] bg-[#74f253] py-[8px]">
             {interest}
           </div>)}
       </div>
