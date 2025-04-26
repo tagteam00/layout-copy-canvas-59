@@ -44,7 +44,7 @@ export const UsersList = ({
   }
   return <section className="mt-8 my-0">
       <div className="flex items-center gap-[9px] text-xs text-black font-normal mb-4">
-        <div className="border flex-1 h-px border-[rgba(0,0,0,0.5)] border-solid bg-[#707070]" />
+        <div className="border flex-1 h-px border-[rgba(0,0,0,0.5)] border-solid bg-slate-50" />
         <div className="flex items-center gap-2">
           
           <h2 className="whitespace-nowrap text-xs text-[#707070]">Community</h2>
