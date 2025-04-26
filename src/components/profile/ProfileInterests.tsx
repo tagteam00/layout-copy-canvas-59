@@ -18,10 +18,7 @@ export const ProfileInterests: React.FC<ProfileInterestsProps> = ({
           {interests.map((interest, index) => <Badge key={index} variant="secondary" className="text-white px-4 whitespace-nowrap py-[7px] bg-[#6be04d]">
               {interest}
             </Badge>)}
-          <Button variant="outline" size="icon" className="rounded-full w-8 h-8 border-[#827AFF] text-[#827AFF]">
-            <PlusCircle className="h-5 w-5" />
-            <span className="sr-only">Add interest</span>
-          </Button>
+          
         </div>
       </CardContent>
     </Card>;
