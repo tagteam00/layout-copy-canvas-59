@@ -29,7 +29,7 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
         <div className="border flex-1 h-px border-[rgba(0,0,0,0.5)] border-solid" />
       </div>
 
-      {teams.length === 0 ? <div className="flex flex-col items-center justify-center text-gray-500 w-full space-y-5 py-0">
+      {teams.length === 0 ? <div className="flex flex-col items-center justify-center text-gray-500 w-full space-y-5 py-0 my-[8px]">
           <img alt="No tagteams yet" style={{
         width: 152,
         height: 145
