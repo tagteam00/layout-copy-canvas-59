@@ -4,4 +4,4 @@ export type Frequency = {
   day?: string; // For weekly frequency
 };
 
-export type CreateTeamStep = 'name' | 'interest' | 'frequency' | 'partner';
+export type CreateTeamStep = 'interest' | 'partner' | 'frequency' | 'name';

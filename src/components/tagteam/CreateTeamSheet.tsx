@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -25,7 +24,7 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
   onCreateTeam,
   categories,
 }) => {
-  const [currentStep, setCurrentStep] = useState<CreateTeamStep>("name");
+  const [currentStep, setCurrentStep] = useState<CreateTeamStep>("interest");
   const [teamName, setTeamName] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedPartner, setSelectedPartner] = useState("");
@@ -33,19 +32,17 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
   const [frequency, setFrequency] = useState<{ type: 'daily' | 'weekly'; day?: string }>({
     type: 'daily'
   });
-  // Use user's interests directly from props so only their interests are used
   const userInterests = categories || [];
   const { getUserData } = useUserData();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Set default category to first user interest if available
     if (isOpen && userInterests && userInterests.length > 0) {
       setSelectedCategory(userInterests[0]);
     }
   }, [isOpen, userInterests]);
 
-  const steps: CreateTeamStep[] = ["name", "interest", "frequency", "partner"];
+  const steps: CreateTeamStep[] = ["interest", "partner", "frequency", "name"];
   const currentStepIndex = steps.indexOf(currentStep);
 
   const handleNext = () => {
@@ -74,7 +71,6 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
         return;
       }
 
-      // Insert a team request in the 'team_requests' table
       const { error } = await supabase
         .from('team_requests')
         .insert({
@@ -105,19 +101,19 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
     setSelectedPartner("");
     setPartnerId("");
     setFrequency({ type: 'daily' });
-    setCurrentStep("name");
+    setCurrentStep("interest");
   };
 
   const canProceed = () => {
     switch (currentStep) {
-      case "name":
-        return teamName.trim().length > 0;
       case "interest":
         return selectedCategory.length > 0;
-      case "frequency":
-        return frequency.type === 'daily' || (frequency.type === 'weekly' && frequency.day);
       case "partner":
         return selectedPartner.length > 0 && partnerId.length > 0;
+      case "frequency":
+        return frequency.type === 'daily' || (frequency.type === 'weekly' && frequency.day);
+      case "name":
+        return teamName.trim().length > 0;
       default:
         return false;
     }
@@ -125,8 +121,6 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
 
   const getCurrentStep = () => {
     switch (currentStep) {
-      case "name":
-        return <NameStep teamName={teamName} setTeamName={setTeamName} />;
       case "interest":
         return (
           <InterestStep
@@ -135,8 +129,6 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
             setSelectedCategory={setSelectedCategory}
           />
         );
-      case "frequency":
-        return <FrequencyStep frequency={frequency} setFrequency={setFrequency} />;
       case "partner":
         return (
           <PartnerStep
@@ -145,6 +137,10 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
             onSelectPartnerId={setPartnerId}
           />
         );
+      case "frequency":
+        return <FrequencyStep frequency={frequency} setFrequency={setFrequency} />;
+      case "name":
+        return <NameStep teamName={teamName} setTeamName={setTeamName} />;
       default:
         return null;
     }
