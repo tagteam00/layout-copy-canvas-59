@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import PageTransition from "./components/layout/PageTransition";
 import Index from "./pages/Index";
@@ -17,64 +17,28 @@ import ProfilePage from "./pages/ProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
 import Settings from "./pages/Settings";
 import WelcomeScreen from "./components/onboarding/WelcomeScreen";
-import { supabase } from "./integrations/supabase/client";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { lazy, Suspense } from "react";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // Improve performance by preventing unnecessary refetches
+      retry: 1, // Limit retries to improve performance
+    }
+  }
+});
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-      
-      // Check if user has completed onboarding
-      if (data.user) {
-        const { data: profileData, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-          
-        // If there's profile data, user has completed onboarding
-        setHasCompletedOnboarding(!!profileData);
-      }
-      
-      setLoading(false);
-    };
-    
-    checkUser();
-    
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setUser(session?.user || null);
-        
-        // Check onboarding status when auth state changes
-        if (session?.user) {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-            
-          setHasCompletedOnboarding(!!profileData);
-        } else {
-          setHasCompletedOnboarding(false);
-        }
-      }
-    );
-
-    return () => {
-      authListener?.subscription?.unsubscribe();
-    };
-  }, []);
-
+  const { user, loading, hasCompletedOnboarding } = useAuth();
+  
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-pulse text-center">
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    </div>;
   }
 
   if (!user) {
@@ -91,31 +55,14 @@ const ProtectedRoute = ({ children }) => {
 
 // Onboarding route - accessible only to authenticated users who haven't completed onboarding
 const OnboardingRoute = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-      setLoading(false);
-    };
-    
-    checkUser();
-    
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user || null);
-      }
-    );
-
-    return () => {
-      authListener?.subscription?.unsubscribe();
-    };
-  }, []);
+  const { user, loading } = useAuth();
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-pulse text-center">
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    </div>;
   }
 
   if (!user) {
@@ -127,56 +74,14 @@ const OnboardingRoute = ({ children }) => {
 
 // Public route - redirects to home if already authenticated
 const PublicRoute = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-      
-      // Check if user has completed onboarding
-      if (data.user) {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-          
-        setHasCompletedOnboarding(!!profileData);
-      }
-      
-      setLoading(false);
-    };
-    
-    checkUser();
-    
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setUser(session?.user || null);
-        
-        if (session?.user) {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-            
-          setHasCompletedOnboarding(!!profileData);
-        } else {
-          setHasCompletedOnboarding(false);
-        }
-      }
-    );
-
-    return () => {
-      authListener?.subscription?.unsubscribe();
-    };
-  }, []);
+  const { user, loading, hasCompletedOnboarding } = useAuth();
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-pulse text-center">
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    </div>;
   }
 
   // If user exists and has completed onboarding, redirect to home
@@ -275,13 +180,15 @@ const AnimatedRoutes = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AnimatedRoutes />
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AnimatedRoutes />
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

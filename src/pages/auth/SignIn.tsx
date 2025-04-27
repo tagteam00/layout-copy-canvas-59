@@ -31,14 +31,23 @@ const SignIn: React.FC = () => {
         email: data.email,
         password: data.password
       });
+      
       if (error) {
         toast.error(error.message);
         return;
       }
+      
       if (authData) {
         toast.success("Signed in successfully!");
-        // Redirect to home page
-        navigate("/home");
+        // Check if user has completed onboarding
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authData.user.id)
+          .single();
+          
+        // Redirect to appropriate page based on onboarding status
+        navigate(profileData ? "/home" : "/onboarding");
       }
     } catch (error) {
       console.error("Sign in error:", error);
@@ -55,6 +64,7 @@ const SignIn: React.FC = () => {
             src="/lovable-uploads/dfdd0e96-f205-4b60-95f6-212079ccd7c1.png" 
             alt="TagTeam Logo" 
             className="mx-auto h-12 mb-4 object-contain" 
+            loading="eager"
           />
         </div>
 

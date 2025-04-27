@@ -14,10 +14,14 @@ const SignUp: React.FC = () => {
     handleSubmit,
     formState: {
       errors
-    }
+    },
+    watch
   } = useForm();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Watch password to use in validation
+  const watchPassword = watch("password", "");
 
   const onSubmit = async data => {
     try {
@@ -29,14 +33,19 @@ const SignUp: React.FC = () => {
         error
       } = await supabase.auth.signUp({
         email: data.email,
-        password: data.password
+        password: data.password,
+        options: {
+          emailRedirectTo: window.location.origin,
+        }
       });
+      
       if (error) {
         toast.error(error.message);
         return;
       }
+      
       if (authData) {
-        toast.success("Account created successfully! Please complete the onboarding process.");
+        toast.success("Account created successfully! Redirecting to onboarding...");
         // Redirect to onboarding page
         navigate("/onboarding");
       }
@@ -51,7 +60,7 @@ const SignUp: React.FC = () => {
   return <div className="min-h-screen flex items-center justify-center bg-white p-4">
       <div className="w-full max-w-md py-0 my-0">
         <div className="mb-6 text-center">
-          <img src="/lovable-uploads/dfdd0e96-f205-4b60-95f6-212079ccd7c1.png" alt="TagTeam Logo" className="mx-auto h-12 mb-4 object-contain" />
+          <img src="/lovable-uploads/dfdd0e96-f205-4b60-95f6-212079ccd7c1.png" alt="TagTeam Logo" className="mx-auto h-12 mb-4 object-contain" loading="eager" />
         </div>
 
         <Card>
@@ -64,7 +73,11 @@ const SignUp: React.FC = () => {
               <div>
                 <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
                 <Input id="email" type="email" placeholder="Your email" {...register("email", {
-                required: "Email is required"
+                required: "Email is required",
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: "Invalid email address"
+                }
               })} className="w-full border border-[rgba(130,122,255,0.41)] rounded-xl" />
                 {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message as string}</p>}
               </div>
@@ -84,7 +97,8 @@ const SignUp: React.FC = () => {
               <div>
                 <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">Confirm Password</label>
                 <Input id="confirmPassword" type="password" placeholder="Confirm your password" {...register("confirmPassword", {
-                required: "Please confirm your password"
+                required: "Please confirm your password",
+                validate: value => value === watchPassword || "Passwords do not match"
               })} className="w-full border border-[rgba(130,122,255,0.41)] rounded-xl" />
                 {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message as string}</p>}
               </div>

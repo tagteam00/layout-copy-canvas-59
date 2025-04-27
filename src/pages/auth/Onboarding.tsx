@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { PersonalInfoForm } from "@/components/onboarding/PersonalInfoForm";
@@ -10,8 +10,8 @@ import { BioStep } from "@/components/onboarding/BioStep";
 import { StepIndicator } from "@/components/onboarding/StepIndicator";
 import { useUserData } from "@/hooks/useUserData";
 import type { UserData } from "@/hooks/useUserData";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const commitmentLevels = [
   { value: "casual", label: "Casual", description: "Relaxed approach with flexible schedules" },
@@ -25,6 +25,7 @@ const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const { saveUserData } = useUserData();
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
   
   const [formData, setFormData] = useState<UserData>({
     fullName: "",
@@ -38,18 +39,10 @@ const Onboarding: React.FC = () => {
     bio: ""
   });
 
-  // Check if user is authenticated
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        toast.error("Please sign in to continue");
-        navigate("/signin");
-      }
-    };
-    
-    checkAuth();
-  }, [navigate]);
+  // If no user is authenticated, don't render the form
+  if (!user) {
+    return null; // The auth routing will handle redirecting to login
+  }
 
   const handlePersonalInfoSubmit = (data: any) => {
     setFormData({ ...formData, ...data });
@@ -88,7 +81,7 @@ const Onboarding: React.FC = () => {
       
       if (success) {
         toast.success("Profile saved successfully!");
-        navigate("/");
+        navigate("/home");
       } else {
         toast.error("Failed to save profile. Please try again.");
       }
