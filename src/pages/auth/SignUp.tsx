@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
 const SignUp: React.FC = () => {
   const {
     register,
@@ -16,6 +18,7 @@ const SignUp: React.FC = () => {
   } = useForm();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
   const onSubmit = async data => {
     try {
       setLoading(true);
@@ -33,7 +36,7 @@ const SignUp: React.FC = () => {
         return;
       }
       if (authData) {
-        toast.success("Account created successfully! Please proceed to onboarding.");
+        toast.success("Account created successfully! Please complete the onboarding process.");
         // Redirect to onboarding page
         navigate("/onboarding");
       }
@@ -44,6 +47,7 @@ const SignUp: React.FC = () => {
       setLoading(false);
     }
   };
+  
   return <div className="min-h-screen flex items-center justify-center bg-white p-4">
       <div className="w-full max-w-md py-0 my-0">
         <div className="mb-6 text-center">
@@ -102,4 +106,5 @@ const SignUp: React.FC = () => {
       </div>
     </div>;
 };
+
 export default SignUp;

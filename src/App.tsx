@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,6 +23,74 @@ const queryClient = new QueryClient();
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+      
+      // Check if user has completed onboarding
+      if (data.user) {
+        const { data: profileData, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+          
+        // If there's profile data, user has completed onboarding
+        setHasCompletedOnboarding(!!profileData);
+      }
+      
+      setLoading(false);
+    };
+    
+    checkUser();
+    
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setUser(session?.user || null);
+        
+        // Check onboarding status when auth state changes
+        if (session?.user) {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+            
+          setHasCompletedOnboarding(!!profileData);
+        } else {
+          setHasCompletedOnboarding(false);
+        }
+      }
+    );
+
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
+  }, []);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+  
+  // Redirect to onboarding if the user hasn't completed it yet
+  if (!hasCompletedOnboarding) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  return children;
+};
+
+// Onboarding route - accessible only to authenticated users who haven't completed onboarding
+const OnboardingRoute = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -50,7 +119,7 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/signin" replace />;
   }
 
   return children;
@@ -60,19 +129,44 @@ const ProtectedRoute = ({ children }) => {
 const PublicRoute = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
       const { data } = await supabase.auth.getUser();
       setUser(data.user);
+      
+      // Check if user has completed onboarding
+      if (data.user) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+          
+        setHasCompletedOnboarding(!!profileData);
+      }
+      
       setLoading(false);
     };
     
     checkUser();
     
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setUser(session?.user || null);
+        
+        if (session?.user) {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+            
+          setHasCompletedOnboarding(!!profileData);
+        } else {
+          setHasCompletedOnboarding(false);
+        }
       }
     );
 
@@ -85,8 +179,14 @@ const PublicRoute = ({ children }) => {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
-  if (user) {
+  // If user exists and has completed onboarding, redirect to home
+  if (user && hasCompletedOnboarding) {
     return <Navigate to="/home" replace />;
+  }
+  
+  // If user exists but hasn't completed onboarding, redirect to onboarding
+  if (user && !hasCompletedOnboarding) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return children;
@@ -120,15 +220,17 @@ const AnimatedRoutes = () => {
             </PageTransition>
           </PublicRoute>
         } />
+        
+        {/* Onboarding route - for authenticated users who haven't completed onboarding */}
         <Route path="/onboarding" element={
-          <PublicRoute>
+          <OnboardingRoute>
             <PageTransition>
               <Onboarding />
             </PageTransition>
-          </PublicRoute>
+          </OnboardingRoute>
         } />
 
-        {/* Protected routes - require authentication */}
+        {/* Protected routes - require authentication and completed onboarding */}
         <Route path="/home" element={
           <ProtectedRoute>
             <PageTransition>
