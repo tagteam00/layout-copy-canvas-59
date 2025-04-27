@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useInterests } from "@/hooks/useInterests";
 import {
@@ -24,14 +24,19 @@ export const InterestsSelector: React.FC<InterestsSelectorProps> = ({
   onBack,
 }) => {
   const { interests, loading, error } = useInterests();
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
-  const groupedInterests = interests.reduce((acc, interest) => {
-    if (!acc[interest.category]) {
-      acc[interest.category] = [];
-    }
-    acc[interest.category].push(interest);
-    return acc;
-  }, {} as Record<string, typeof interests>);
+  // Get unique categories from interests
+  const categories = useMemo(() => {
+    const uniqueCategories = [...new Set(interests.map(interest => interest.category))];
+    return uniqueCategories;
+  }, [interests]);
+
+  // Filter interests by selected category
+  const filteredInterests = useMemo(() => {
+    if (!selectedCategory) return [];
+    return interests.filter(interest => interest.category === selectedCategory);
+  }, [interests, selectedCategory]);
 
   if (loading) {
     return <div>Loading interests...</div>;
@@ -47,30 +52,48 @@ export const InterestsSelector: React.FC<InterestsSelectorProps> = ({
       <p className="text-gray-600 text-sm">Choose an activity you want to be accountable for</p>
       
       <div className="space-y-4">
-        <Select
-          value={selectedInterests[0] || ""}
-          onValueChange={(value) => {
-            onToggleInterest(value);
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select an interest" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(groupedInterests).map(([category, categoryInterests]) => (
-              <div key={category}>
-                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+        {/* Category Selection */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Category</label>
+          <Select
+            value={selectedCategory}
+            onValueChange={setSelectedCategory}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((category) => (
+                <SelectItem key={category} value={category}>
                   {category.charAt(0).toUpperCase() + category.slice(1)}
-                </div>
-                {categoryInterests.map((interest) => (
-                  <SelectItem key={interest.id} value={interest.name}>
-                    {interest.name}
-                  </SelectItem>
-                ))}
-              </div>
-            ))}
-          </SelectContent>
-        </Select>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Interest Selection */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Interest</label>
+          <Select
+            value={selectedInterests[0] || ""}
+            onValueChange={(value) => {
+              onToggleInterest(value);
+            }}
+            disabled={!selectedCategory}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select an interest" />
+            </SelectTrigger>
+            <SelectContent>
+              {filteredInterests.map((interest) => (
+                <SelectItem key={interest.id} value={interest.name}>
+                  {interest.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       
       <div className="flex justify-between">
