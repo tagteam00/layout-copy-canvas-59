@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface Interest {
   id: string;
   name: string;
-  category: 'fitness' | 'arts';
+  category: string; // Changed from 'fitness' | 'arts' to string to match the database
 }
 
 export const useInterests = () => {
