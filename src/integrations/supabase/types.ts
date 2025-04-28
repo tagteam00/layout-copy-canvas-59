@@ -9,7 +9,141 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      interests: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          bio: string | null
+          city: string | null
+          commitment_level: string | null
+          country: string | null
+          created_at: string | null
+          date_of_birth: string | null
+          full_name: string | null
+          gender: string | null
+          id: string
+          interests: string[] | null
+          occupation: string | null
+          updated_at: string | null
+          username: string | null
+        }
+        Insert: {
+          bio?: string | null
+          city?: string | null
+          commitment_level?: string | null
+          country?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id: string
+          interests?: string[] | null
+          occupation?: string | null
+          updated_at?: string | null
+          username?: string | null
+        }
+        Update: {
+          bio?: string | null
+          city?: string | null
+          commitment_level?: string | null
+          country?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string
+          interests?: string[] | null
+          occupation?: string | null
+          updated_at?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+      team_requests: {
+        Row: {
+          category: string
+          created_at: string | null
+          frequency: string
+          id: string
+          name: string
+          receiver_id: string
+          sender_id: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          frequency: string
+          id?: string
+          name: string
+          receiver_id: string
+          sender_id: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          frequency?: string
+          id?: string
+          name?: string
+          receiver_id?: string
+          sender_id?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      teams: {
+        Row: {
+          category: string
+          created_at: string | null
+          frequency: string
+          id: string
+          members: string[]
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          frequency: string
+          id?: string
+          members: string[]
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          frequency?: string
+          id?: string
+          members?: string[]
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
