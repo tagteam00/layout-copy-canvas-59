@@ -22,6 +22,7 @@ const SignIn: React.FC = () => {
   const onSubmit = async data => {
     try {
       setLoading(true);
+      console.log("Attempting to sign in with:", data.email);
 
       // Sign in with Supabase
       const {
@@ -33,18 +34,24 @@ const SignIn: React.FC = () => {
       });
       
       if (error) {
+        console.error("Sign in error:", error);
         toast.error(error.message);
         return;
       }
       
       if (authData) {
         toast.success("Signed in successfully!");
+        
         // Check if user has completed onboarding
-        const { data: profileData } = await supabase
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', authData.user.id)
-          .single();
+          .maybeSingle();
+          
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+        }
           
         // Redirect to appropriate page based on onboarding status
         navigate(profileData ? "/home" : "/onboarding");

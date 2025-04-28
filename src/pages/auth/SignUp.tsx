@@ -35,7 +35,11 @@ const SignUp: React.FC = () => {
         email: data.email,
         password: data.password,
         options: {
+          // For testing purposes, we're not requiring email verification
           emailRedirectTo: window.location.origin,
+          data: {
+            full_name: data.email.split('@')[0] // Just a placeholder for testing
+          }
         }
       });
       
@@ -44,8 +48,21 @@ const SignUp: React.FC = () => {
         return;
       }
       
-      if (authData) {
-        toast.success("Account created successfully! Redirecting to onboarding...");
+      if (authData && authData.user) {
+        toast.success("Account created successfully!");
+        
+        // For testing, we'll sign in the user immediately after sign up
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: data.password
+        });
+        
+        if (signInError) {
+          toast.error("Sign in failed after registration: " + signInError.message);
+          navigate("/signin");
+          return;
+        }
+        
         // Redirect to onboarding page
         navigate("/onboarding");
       }
