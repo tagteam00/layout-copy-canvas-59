@@ -29,25 +29,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Set up the auth state listener first
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        console.log("Auth state changed:", event);
         setSession(currentSession);
         setUser(currentSession?.user || null);
         
         // Defer profile check to prevent auth deadlocks
         if (currentSession?.user) {
           setTimeout(async () => {
-            try {
-              const { data } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', currentSession.user.id)
-                .maybeSingle();
-              
-              setHasCompletedOnboarding(!!data);
-              console.log("Onboarding status:", !!data);
-            } catch (error) {
-              console.error("Error checking profile:", error);
-            }
+            const { data } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', currentSession.user.id)
+              .single();
+            
+            setHasCompletedOnboarding(!!data);
           }, 0);
         } else {
           setHasCompletedOnboarding(false);
@@ -58,25 +52,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Then check for existing session
     const checkUser = async () => {
       try {
-        console.log("Checking for existing session");
         const { data } = await supabase.auth.getSession();
         setSession(data.session);
         setUser(data.session?.user || null);
         
         // Check if user has completed onboarding
         if (data.session?.user) {
-          try {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', data.session.user.id)
-              .maybeSingle();
-              
-            setHasCompletedOnboarding(!!profileData);
-            console.log("User has profile:", !!profileData);
-          } catch (profileError) {
-            console.error("Error checking profile:", profileError);
-          }
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', data.session.user.id)
+            .single();
+            
+          setHasCompletedOnboarding(!!profileData);
         }
       } catch (error) {
         console.error("Error checking auth status:", error);

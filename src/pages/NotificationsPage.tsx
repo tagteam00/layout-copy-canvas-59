@@ -101,7 +101,7 @@ const NotificationsPage: React.FC = () => {
             name: requestToAccept.name,
             category: requestToAccept.category,
             frequency: requestToAccept.frequency,
-            members: [requestToAccept.sender_id, requestToAccept.receiver_id]
+            members: [requestToAccept.sender_id, requestToAccept.receiver_id],
           });
 
         if (teamError) throw teamError;

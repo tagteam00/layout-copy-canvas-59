@@ -1,7 +1,12 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Interest } from '@/types/supabase';
+
+export interface Interest {
+  id: string;
+  name: string;
+  category: 'fitness' | 'arts';
+}
 
 export const useInterests = () => {
   const [interests, setInterests] = useState<Interest[]>([]);
@@ -17,7 +22,7 @@ export const useInterests = () => {
           .order('name');
 
         if (error) throw error;
-        setInterests(data || []);
+        setInterests(data);
       } catch (err) {
         console.error('Error fetching interests:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch interests');

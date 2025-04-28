@@ -14,11 +14,10 @@ export interface UserData {
   bio?: string;
 }
 
-export type Profile = Tables<"profiles">;
-export type ProfileInsert = Tables<"profiles">;
-export type TeamRequest = Tables<"team_requests">;
-export type Team = Tables<"teams">;
-export type Interest = Tables<"interests">;
+// Define the Profile type based on the Supabase profiles table
+type Profile = Tables<"profiles">;
+// Define the ProfileInsert type for inserting into the profiles table
+type ProfileInsert = Tables<"profiles">;
 
 export const userDataToProfile = (userData: UserData, userId: string): ProfileInsert => {
   return {
@@ -33,8 +32,8 @@ export const userDataToProfile = (userData: UserData, userId: string): ProfileIn
     country: userData.country,
     occupation: userData.occupation,
     bio: userData.bio,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    created_at: new Date().toISOString(), // Add current timestamp
+    updated_at: new Date().toISOString()  // Add current timestamp
   };
 };
 
