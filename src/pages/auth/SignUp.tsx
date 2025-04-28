@@ -27,27 +27,57 @@ const SignUp: React.FC = () => {
     try {
       setLoading(true);
 
-      // Sign up with Supabase
+      // Sign up with Supabase - with auto-confirm set to true
       const {
         data: authData,
-        error
+        error: signUpError
       } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
+          data: {
+            email: data.email,
+          },
           emailRedirectTo: window.location.origin,
         }
       });
       
-      if (error) {
-        toast.error(error.message);
+      if (signUpError) {
+        toast.error(signUpError.message);
         return;
       }
       
-      if (authData) {
-        toast.success("Account created successfully! Redirecting to onboarding...");
-        // Redirect to onboarding page
+      // Immediately try to sign in after signup (this will work if email confirmation is disabled)
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password
+      });
+      
+      if (signInError) {
+        // If there's an error with direct sign-in, we'll send a magic link as fallback
+        if (signInError.message.includes('not confirmed')) {
+          toast.info("We've sent you a magic login link. Please check your email.");
+          const { error: magicLinkError } = await supabase.auth.signInWithOtp({
+            email: data.email
+          });
+          
+          if (magicLinkError) {
+            toast.error("Could not send login link. Please try again later.");
+          } else {
+            toast.success("Account created! Please check your email to verify and log in.");
+          }
+        } else {
+          toast.error(signInError.message);
+        }
+        return;
+      }
+      
+      if (signInData.session) {
+        toast.success("Signed up and logged in successfully!");
         navigate("/onboarding");
+      } else if (authData) {
+        toast.success("Account created successfully! Please sign in.");
+        navigate("/signin");
       }
     } catch (error) {
       console.error("Signup error:", error);

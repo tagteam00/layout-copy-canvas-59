@@ -14,9 +14,11 @@ const SignIn: React.FC = () => {
     handleSubmit,
     formState: {
       errors
-    }
+    },
+    getValues
   } = useForm();
   const [loading, setLoading] = useState(false);
+  const [sendingMagicLink, setSendingMagicLink] = useState(false);
   const navigate = useNavigate();
 
   const onSubmit = async data => {
@@ -33,6 +35,10 @@ const SignIn: React.FC = () => {
       });
       
       if (error) {
+        if (error.message.includes('not confirmed')) {
+          toast.error("Email not confirmed. Try using the magic link option below.");
+          return;
+        }
         toast.error(error.message);
         return;
       }
@@ -54,6 +60,37 @@ const SignIn: React.FC = () => {
       toast.error("Failed to sign in. Please try again later.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const sendMagicLink = async () => {
+    const email = getValues("email");
+    
+    if (!email || !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    
+    try {
+      setSendingMagicLink(true);
+      
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: window.location.origin,
+        }
+      });
+      
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Magic link sent! Check your email.");
+      }
+    } catch (error) {
+      console.error("Magic link error:", error);
+      toast.error("Failed to send magic link. Please try again later.");
+    } finally {
+      setSendingMagicLink(false);
     }
   };
 
@@ -94,6 +131,18 @@ const SignIn: React.FC = () => {
               <Button type="submit" className="w-full bg-black text-white hover:bg-black/90" disabled={loading}>
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
+              
+              <div className="text-center mt-2">
+                <Button 
+                  type="button" 
+                  variant="link" 
+                  onClick={sendMagicLink} 
+                  disabled={sendingMagicLink} 
+                  className="text-[rgba(130,122,255,1)] text-sm px-0"
+                >
+                  {sendingMagicLink ? "Sending..." : "Send me a magic link instead"}
+                </Button>
+              </div>
             </form>
           </CardContent>
           <CardFooter className="flex justify-center">

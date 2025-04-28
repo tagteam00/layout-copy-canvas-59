@@ -26,9 +26,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
 
   useEffect(() => {
-    // Set up the auth state listener first
+    // Set up the auth state listener first to avoid missing auth events
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
+      (event, currentSession) => {
+        // Update session and user synchronously
         setSession(currentSession);
         setUser(currentSession?.user || null);
         
