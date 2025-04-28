@@ -9,135 +9,7 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      interests: {
-        Row: {
-          category: Database["public"]["Enums"]["interest_category"]
-          created_at: string
-          id: string
-          name: string
-        }
-        Insert: {
-          category: Database["public"]["Enums"]["interest_category"]
-          created_at?: string
-          id?: string
-          name: string
-        }
-        Update: {
-          category?: Database["public"]["Enums"]["interest_category"]
-          created_at?: string
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          bio: string | null
-          city: string | null
-          commitment_level: string | null
-          country: string | null
-          created_at: string | null
-          date_of_birth: string | null
-          full_name: string | null
-          gender: string | null
-          id: string
-          interests: string[] | null
-          occupation: string | null
-          updated_at: string | null
-          username: string | null
-        }
-        Insert: {
-          bio?: string | null
-          city?: string | null
-          commitment_level?: string | null
-          country?: string | null
-          created_at?: string | null
-          date_of_birth?: string | null
-          full_name?: string | null
-          gender?: string | null
-          id: string
-          interests?: string[] | null
-          occupation?: string | null
-          updated_at?: string | null
-          username?: string | null
-        }
-        Update: {
-          bio?: string | null
-          city?: string | null
-          commitment_level?: string | null
-          country?: string | null
-          created_at?: string | null
-          date_of_birth?: string | null
-          full_name?: string | null
-          gender?: string | null
-          id?: string
-          interests?: string[] | null
-          occupation?: string | null
-          updated_at?: string | null
-          username?: string | null
-        }
-        Relationships: []
-      }
-      team_requests: {
-        Row: {
-          category: string
-          created_at: string
-          frequency: string
-          id: string
-          name: string
-          receiver_id: string
-          sender_id: string
-          status: string
-        }
-        Insert: {
-          category: string
-          created_at?: string
-          frequency: string
-          id?: string
-          name: string
-          receiver_id: string
-          sender_id: string
-          status?: string
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          frequency?: string
-          id?: string
-          name?: string
-          receiver_id?: string
-          sender_id?: string
-          status?: string
-        }
-        Relationships: []
-      }
-      teams: {
-        Row: {
-          category: string
-          created_at: string
-          frequency: string
-          id: string
-          members: string[]
-          name: string
-        }
-        Insert: {
-          category: string
-          created_at?: string
-          frequency: string
-          id?: string
-          members: string[]
-          name: string
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          frequency?: string
-          id?: string
-          members?: string[]
-          name?: string
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
@@ -146,7 +18,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      interest_category: "fitness" | "arts"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -261,8 +133,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      interest_category: ["fitness", "arts"],
-    },
+    Enums: {},
   },
 } as const
