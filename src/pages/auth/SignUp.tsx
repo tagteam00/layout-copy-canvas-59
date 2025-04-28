@@ -26,45 +26,79 @@ const SignUp: React.FC = () => {
   const onSubmit = async data => {
     try {
       setLoading(true);
+      console.log("Attempting to sign up with:", data.email);
 
       // Sign up with Supabase
       const {
         data: authData,
-        error
+        error: signUpError
       } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
-          // For testing purposes, we're not requiring email verification
-          emailRedirectTo: window.location.origin,
           data: {
             full_name: data.email.split('@')[0] // Just a placeholder for testing
           }
         }
       });
       
-      if (error) {
-        toast.error(error.message);
+      if (signUpError) {
+        console.error("Sign up error:", signUpError);
+        toast.error(signUpError.message);
         return;
       }
       
       if (authData && authData.user) {
         toast.success("Account created successfully!");
         
-        // For testing, we'll sign in the user immediately after sign up
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        // After successful signup, attempt to sign in directly
+        // This bypasses the email verification step for testing
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email: data.email,
           password: data.password
         });
         
         if (signInError) {
-          toast.error("Sign in failed after registration: " + signInError.message);
-          navigate("/signin");
+          console.error("Sign in error after registration:", signInError);
+          
+          // If there's an email confirmation error, we'll force sign in with OTP
+          if (signInError.message.includes("Email not confirmed")) {
+            // Generate OTP for the user - this is a workaround for testing purposes
+            const { error: otpError } = await supabase.auth.signInWithOtp({
+              email: data.email,
+            });
+            
+            if (otpError) {
+              toast.error("Failed to authenticate: " + otpError.message);
+              navigate("/signin");
+              return;
+            }
+            
+            // Ask the user to check their email for the OTP code
+            toast.info("Please check your email for a login link");
+            
+            // Try to sign in again after a short delay
+            setTimeout(async () => {
+              const { data: sessionData } = await supabase.auth.getSession();
+              if (sessionData.session) {
+                navigate("/onboarding");
+              } else {
+                navigate("/signin");
+              }
+            }, 2000);
+          } else {
+            toast.error("Sign in failed: " + signInError.message);
+            navigate("/signin");
+          }
           return;
         }
         
-        // Redirect to onboarding page
-        navigate("/onboarding");
+        // If sign-in was successful, redirect to onboarding
+        if (signInData.session) {
+          navigate("/onboarding");
+        } else {
+          navigate("/signin");
+        }
       }
     } catch (error) {
       console.error("Signup error:", error);

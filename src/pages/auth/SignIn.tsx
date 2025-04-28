@@ -35,7 +35,28 @@ const SignIn: React.FC = () => {
       
       if (error) {
         console.error("Sign in error:", error);
-        toast.error(error.message);
+        
+        // If email not confirmed error, offer to send magic link
+        if (error.message.includes("Email not confirmed")) {
+          toast.error("Your email is not confirmed yet");
+          
+          // Ask if user wants to receive a magic link
+          const wantsMagicLink = window.confirm("Would you like to receive a magic link to sign in?");
+          
+          if (wantsMagicLink) {
+            const { error: otpError } = await supabase.auth.signInWithOtp({
+              email: data.email,
+            });
+            
+            if (otpError) {
+              toast.error("Failed to send login link: " + otpError.message);
+            } else {
+              toast.success("Check your email for the login link");
+            }
+          }
+        } else {
+          toast.error(error.message);
+        }
         return;
       }
       
