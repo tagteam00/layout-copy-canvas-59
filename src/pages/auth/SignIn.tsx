@@ -105,10 +105,8 @@ const SignIn: React.FC = () => {
     try {
       setSendingMagicLink(true);
       
-      // First check if the user exists
-      const { data: getUserData, error: getUserError } = await supabase.auth.admin
-        .getUserByEmail(email)
-        .catch(() => ({ data: null, error: null })); // Ignore any errors here
+      // Remove the attempt to use getUserByEmail which doesn't exist
+      // and is causing the TypeScript error
       
       // Attempt to send a magic link login
       const { error } = await supabase.auth.signInWithOtp({
