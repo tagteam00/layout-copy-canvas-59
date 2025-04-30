@@ -11,20 +11,20 @@ export type Database = {
     Tables: {
       interests: {
         Row: {
-          category: string
-          created_at: string | null
+          category: Database["public"]["Enums"]["interest_category"]
+          created_at: string
           id: string
           name: string
         }
         Insert: {
-          category: string
-          created_at?: string | null
+          category: Database["public"]["Enums"]["interest_category"]
+          created_at?: string
           id?: string
           name: string
         }
         Update: {
-          category?: string
-          created_at?: string | null
+          category?: Database["public"]["Enums"]["interest_category"]
+          created_at?: string
           id?: string
           name?: string
         }
@@ -81,66 +81,60 @@ export type Database = {
       team_requests: {
         Row: {
           category: string
-          created_at: string | null
+          created_at: string
           frequency: string
           id: string
           name: string
           receiver_id: string
           sender_id: string
           status: string
-          updated_at: string | null
         }
         Insert: {
           category: string
-          created_at?: string | null
+          created_at?: string
           frequency: string
           id?: string
           name: string
           receiver_id: string
           sender_id: string
           status?: string
-          updated_at?: string | null
         }
         Update: {
           category?: string
-          created_at?: string | null
+          created_at?: string
           frequency?: string
           id?: string
           name?: string
           receiver_id?: string
           sender_id?: string
           status?: string
-          updated_at?: string | null
         }
         Relationships: []
       }
       teams: {
         Row: {
           category: string
-          created_at: string | null
+          created_at: string
           frequency: string
           id: string
           members: string[]
           name: string
-          updated_at: string | null
         }
         Insert: {
           category: string
-          created_at?: string | null
+          created_at?: string
           frequency: string
           id?: string
           members: string[]
           name: string
-          updated_at?: string | null
         }
         Update: {
           category?: string
-          created_at?: string | null
+          created_at?: string
           frequency?: string
           id?: string
           members?: string[]
           name?: string
-          updated_at?: string | null
         }
         Relationships: []
       }
@@ -152,7 +146,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      interest_category: "fitness" | "arts"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -267,6 +261,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      interest_category: ["fitness", "arts"],
+    },
   },
 } as const
