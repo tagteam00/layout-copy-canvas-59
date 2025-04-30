@@ -27,7 +27,7 @@ const SignUp: React.FC = () => {
     try {
       setLoading(true);
 
-      // Sign up with Supabase - with auto-confirm set to true
+      // Sign up with Supabase
       const {
         data: authData,
         error: signUpError
@@ -35,9 +35,11 @@ const SignUp: React.FC = () => {
         email: data.email,
         password: data.password,
         options: {
+          // Store initial user data that will be used during onboarding
           data: {
             email: data.email,
           },
+          // This should redirect back to our app after email verification
           emailRedirectTo: window.location.origin,
         }
       });
@@ -47,37 +49,33 @@ const SignUp: React.FC = () => {
         return;
       }
       
-      // Immediately try to sign in after signup (this will work if email confirmation is disabled)
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password
-      });
-      
-      if (signInError) {
-        // If there's an error with direct sign-in, we'll send a magic link as fallback
-        if (signInError.message.includes('not confirmed')) {
-          toast.info("We've sent you a magic login link. Please check your email.");
-          const { error: magicLinkError } = await supabase.auth.signInWithOtp({
-            email: data.email
-          });
-          
-          if (magicLinkError) {
-            toast.error("Could not send login link. Please try again later.");
-          } else {
-            toast.success("Account created! Please check your email to verify and log in.");
+      // If user is created and auto-confirmed (common in development)
+      if (authData && authData.user && !authData.user.identities?.[0].identity_data?.email_verified) {
+        // Send magic link as fallback for development
+        toast.info("Check your email for a verification link to complete signup.");
+        
+        const { error: magicLinkError } = await supabase.auth.signInWithOtp({
+          email: data.email,
+          options: {
+            emailRedirectTo: window.location.origin,
           }
+        });
+        
+        if (magicLinkError) {
+          toast.error("Could not send verification email. Please try again.");
         } else {
-          toast.error(signInError.message);
+          toast.success("Verification email sent! Please check your inbox.");
         }
+        
         return;
       }
       
-      if (signInData.session) {
-        toast.success("Signed up and logged in successfully!");
+      // If we have a session already (email confirmation disabled in Supabase)
+      if (authData && authData.session) {
+        toast.success("Account created successfully!");
         navigate("/onboarding");
-      } else if (authData) {
-        toast.success("Account created successfully! Please sign in.");
-        navigate("/signin");
+      } else {
+        toast.info("Please check your email to verify your account.");
       }
     } catch (error) {
       console.error("Signup error:", error);

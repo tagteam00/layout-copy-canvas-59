@@ -36,6 +36,7 @@ const SignIn: React.FC = () => {
       
       if (error) {
         if (error.message.includes('not confirmed')) {
+          // If email isn't confirmed, offer to resend verification
           toast.error("Email not confirmed. Try using the magic link option below.");
           return;
         }
