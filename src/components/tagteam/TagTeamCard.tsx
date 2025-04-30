@@ -52,7 +52,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
       clearInterval(timerId);
     };
   }, []);
-  return <div onClick={onClick} className="w-full rounded-2xl bg-[#F5F4FF] border border-[#E5DEFF] p-4 cursor-pointer hover:shadow-md transition-shadow">
+  return <div onClick={onClick} className="w-full rounded-2xl border border-[#E5DEFF] p-4 cursor-pointer hover:shadow-md transition-shadow bg-slate-50">
       {/* Header Section */}
       <h3 className="text-center text-[20px] text-[#827AFF] mb-4 truncate font-extrabold">
         {name}
