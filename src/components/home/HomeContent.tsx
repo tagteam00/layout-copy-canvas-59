@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Welcome } from "./Welcome";
 import { TagTeamList } from "./TagTeamList";
@@ -25,7 +24,7 @@ export const HomeContent: React.FC<HomeContentProps> = ({
       <div className="px-4 py-0 my-[15px]">
         <Welcome fullName={userProfile.fullName} interests={userProfile.interests} loading={loading} />
       </div>
-      <TagTeamList teams={tagTeams} onAddTeam={onAddTeam} userName={userProfile.fullName} useEnhancedCards={true} />
+      <TagTeamList teams={tagTeams} onAddTeam={onAddTeam} userName={userProfile.fullName} />
       <div className="px-4">
         <UsersList users={allUsers} loading={loading} />
       </div>

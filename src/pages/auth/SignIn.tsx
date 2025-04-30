@@ -25,8 +25,6 @@ const SignIn: React.FC = () => {
     try {
       setLoading(true);
 
-      console.log("Attempting sign in with:", data.email);
-      
       // Sign in with Supabase
       const {
         data: authData,
@@ -37,7 +35,10 @@ const SignIn: React.FC = () => {
       });
       
       if (error) {
-        console.error("Sign in error:", error);
+        if (error.message.includes('not confirmed')) {
+          toast.error("Email not confirmed. Try using the magic link option below.");
+          return;
+        }
         toast.error(error.message);
         return;
       }
@@ -73,7 +74,7 @@ const SignIn: React.FC = () => {
     try {
       setSendingMagicLink(true);
       
-      const { error, data } = await supabase.auth.signInWithOtp({
+      const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: window.location.origin,
@@ -81,7 +82,6 @@ const SignIn: React.FC = () => {
       });
       
       if (error) {
-        console.error("Magic link error:", error);
         toast.error(error.message);
       } else {
         toast.success("Magic link sent! Check your email.");
