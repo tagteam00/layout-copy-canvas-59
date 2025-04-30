@@ -1,6 +1,4 @@
-
 import React from "react";
-
 interface TagTeamCardProps {
   name: string;
   firstUser: {
@@ -16,7 +14,6 @@ interface TagTeamCardProps {
   frequency: string;
   onClick?: () => void;
 }
-
 export const TagTeamCard: React.FC<TagTeamCardProps> = ({
   name,
   firstUser,
@@ -26,11 +23,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
   frequency,
   onClick
 }) => {
-  return (
-    <div 
-      onClick={onClick}
-      className="w-full max-w-[400px] rounded-2xl bg-[#F5F4FF] border border-[#E5DEFF] p-4 cursor-pointer hover:shadow-md transition-shadow"
-    >
+  return <div onClick={onClick} className="w-full max-w-[400px] rounded-2xl bg-[#F5F4FF] border border-[#E5DEFF] p-4 cursor-pointer hover:shadow-md transition-shadow px-[17px]">
       {/* Header Section */}
       <h3 className="text-center text-[20px] font-medium text-[#827AFF] mb-4">
         {name}
@@ -43,11 +36,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
           <span className="text-[16px] font-medium text-gray-800">
             {firstUser.name}
           </span>
-          <span className={`py-1 px-3 rounded-full text-sm font-medium ${
-            firstUser.status === "completed" 
-              ? "bg-[#DCFFDC] text-green-700" 
-              : "bg-[#FFE8CC] text-amber-700"
-          }`}>
+          <span className={`py-1 px-3 rounded-full text-sm font-medium ${firstUser.status === "completed" ? "bg-[#DCFFDC] text-green-700" : "bg-[#FFE8CC] text-amber-700"}`}>
             {firstUser.status === "completed" ? "Completed" : "Pending"}
           </span>
         </div>
@@ -67,11 +56,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
           <span className="text-[16px] font-medium text-gray-800">
             {secondUser.name}
           </span>
-          <span className={`py-1 px-3 rounded-full text-sm font-medium ${
-            secondUser.status === "completed" 
-              ? "bg-[#DCFFDC] text-green-700" 
-              : "bg-[#FFE8CC] text-amber-700"
-          }`}>
+          <span className={`py-1 px-3 rounded-full text-sm font-medium ${secondUser.status === "completed" ? "bg-[#DCFFDC] text-green-700" : "bg-[#FFE8CC] text-amber-700"}`}>
             {secondUser.status === "completed" ? "Completed" : "Pending"}
           </span>
         </div>
@@ -91,6 +76,5 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
           <span className="text-[14px] font-medium text-gray-800">{frequency}</span>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
