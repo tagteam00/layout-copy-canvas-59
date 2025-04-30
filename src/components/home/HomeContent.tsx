@@ -24,8 +24,8 @@ export const HomeContent: React.FC<HomeContentProps> = ({
   allUsers
 }) => {
   return (
-    <div className="flex-1 overflow-y-auto py-0">
-      <div className="px-4 py-0 my-[15px]">
+    <div className="flex-1 overflow-y-auto">
+      <div className="my-[15px]">
         <Welcome fullName={userProfile.fullName} interests={userProfile.interests} loading={loading} />
       </div>
       <TagTeamList 
@@ -34,7 +34,7 @@ export const HomeContent: React.FC<HomeContentProps> = ({
         userName={userProfile.fullName} 
         loading={loading}
       />
-      <div className="px-4">
+      <div>
         <UsersList users={allUsers} loading={loading} />
       </div>
     </div>

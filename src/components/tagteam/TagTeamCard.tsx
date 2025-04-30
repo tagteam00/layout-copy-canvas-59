@@ -1,3 +1,4 @@
+
 import React from "react";
 interface TagTeamCardProps {
   name: string;
@@ -23,9 +24,9 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
   frequency,
   onClick
 }) => {
-  return <div onClick={onClick} className="w-full max-w-[400px] rounded-2xl bg-[#F5F4FF] border border-[#E5DEFF] p-4 cursor-pointer hover:shadow-md transition-shadow px-[17px]">
+  return <div onClick={onClick} className="w-full rounded-2xl bg-[#F5F4FF] border border-[#E5DEFF] p-4 cursor-pointer hover:shadow-md transition-shadow">
       {/* Header Section */}
-      <h3 className="text-center text-[20px] font-medium text-[#827AFF] mb-4">
+      <h3 className="text-center text-[20px] font-medium text-[#827AFF] mb-4 truncate">
         {name}
       </h3>
 
@@ -33,7 +34,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
       <div className="flex justify-between items-start mb-4">
         {/* First User */}
         <div className="flex flex-col items-center space-y-2">
-          <span className="text-[16px] font-medium text-gray-800">
+          <span className="text-[16px] font-medium text-gray-800 text-center truncate max-w-[100px]">
             {firstUser.name}
           </span>
           <span className={`py-1 px-3 rounded-full text-sm font-medium ${firstUser.status === "completed" ? "bg-[#DCFFDC] text-green-700" : "bg-[#FFE8CC] text-amber-700"}`}>
@@ -53,7 +54,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
 
         {/* Second User */}
         <div className="flex flex-col items-center space-y-2">
-          <span className="text-[16px] font-medium text-gray-800">
+          <span className="text-[16px] font-medium text-gray-800 text-center truncate max-w-[100px]">
             {secondUser.name}
           </span>
           <span className={`py-1 px-3 rounded-full text-sm font-medium ${secondUser.status === "completed" ? "bg-[#DCFFDC] text-green-700" : "bg-[#FFE8CC] text-amber-700"}`}>
@@ -66,8 +67,8 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
       <div className="h-px w-full bg-[#E0E0E0] my-4"></div>
 
       {/* Information Section */}
-      <div className="flex justify-between items-center">
-        <div>
+      <div className="flex flex-wrap justify-between items-center">
+        <div className="mb-2 sm:mb-0">
           <span className="text-[14px] text-gray-600">Tagteam's Interest: </span>
           <span className="text-[14px] font-medium text-gray-800">{interest}</span>
         </div>

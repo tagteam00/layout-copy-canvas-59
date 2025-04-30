@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -106,10 +105,10 @@ const TagTeamHub: React.FC = () => {
   };
 
   return (
-    <main className="bg-white max-w-[480px] w-full overflow-hidden mx-auto">
+    <main className="flex flex-col min-h-screen bg-white w-full mx-auto relative pb-20">
       <AppHeader />
-      <div className="p-4">
-        <h1 className="mb-6 font-extrabold text-lg">Tagteam Hub</h1>
+      <div className="max-w-[480px] w-full mx-auto px-4">
+        <h1 className="mb-6 font-extrabold text-lg pt-4">Tagteam Hub</h1>
         
         {loading ? (
           <div className="flex justify-center p-8">
@@ -131,7 +130,7 @@ const TagTeamHub: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-8 px-4">
+          <div className="flex flex-col items-center justify-center py-8">
             <div className="w-full max-w-[280px] mx-auto">
               <AspectRatio ratio={16 / 9}>
                 <img 

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "../ui/button";
 import { TagTeamCard } from "../tagteam/TagTeamCard";
@@ -29,11 +30,11 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
   loading = false
 }) => {
   if (loading) {
-    return <section className="flex w-full flex-col text-black mt-5 px-4 my-0">
+    return <section className="flex w-full flex-col text-black mt-5 my-0">
         <div className="animate-pulse text-center py-8">Loading your tagteams...</div>
       </section>;
   }
-  return <section className="flex w-full flex-col text-black mt-5 px-4 my-0">
+  return <section className="flex w-full flex-col text-black mt-5 my-0">
       <div className="flex items-center gap-[9px] text-xs text-black font-normal py-0 my-0">
         <div className="border flex-1 h-px border-[rgba(0,0,0,0.5)] border-solid" />
         <h2 className="whitespace-nowrap text-xs text-[#707070]">Active tagteams</h2>
@@ -51,14 +52,12 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
             {userName ? `${userName}, people are out-there to team up with you` : `People are out-there to team up with you`}
           </div>
           <Button style={{
-        marginLeft: 16,
-        marginRight: 16,
         height: 56,
         fontSize: 18
-      }} onClick={onAddTeam} size="lg" className="w-full max-w-[448px] mx-4 mt-0 text-base font-semibold bg-black text-white rounded-xl py-0 my-[8px]">
+      }} onClick={onAddTeam} size="lg" className="w-full max-w-[448px] mt-0 text-base font-semibold bg-black text-white rounded-xl py-0 my-[8px]">
             Start your first tagteam
           </Button>
-        </div> : <div className="space-y-4 mt-4 px-0">
+        </div> : <div className="space-y-4 mt-4">
           {teams.map(team => <div key={team.id} className="mb-4">
               <TagTeamCard name={team.name} firstUser={team.firstUser} secondUser={team.secondUser} resetTime={team.resetTime} interest={team.interest} frequency={team.frequency} />
             </div>)}

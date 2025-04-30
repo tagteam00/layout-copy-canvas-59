@@ -108,15 +108,17 @@ const Index: React.FC = () => {
   };
 
   return (
-    <main className="flex flex-col min-h-screen bg-white max-w-[480px] w-full mx-auto relative pb-20">
+    <main className="flex flex-col min-h-screen bg-white w-full mx-auto relative pb-20">
       <AppHeader />
-      <HomeContent 
-        userProfile={userProfile}
-        loading={loading}
-        tagTeams={tagTeams}
-        onAddTeam={() => setIsSheetOpen(true)}
-        allUsers={allUsers}
-      />
+      <div className="max-w-[480px] w-full mx-auto px-4">
+        <HomeContent 
+          userProfile={userProfile}
+          loading={loading}
+          tagTeams={tagTeams}
+          onAddTeam={() => setIsSheetOpen(true)}
+          allUsers={allUsers}
+        />
+      </div>
       <BottomNavigation />
       
       <CreateTeamSheet 
