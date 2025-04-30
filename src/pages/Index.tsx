@@ -5,6 +5,8 @@ import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
 import { useUserData } from "@/hooks/useUserData";
 import { HomeContent } from "@/components/home/HomeContent";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Index: React.FC = () => {
   const { getUserData, getAllUsers } = useUserData();
@@ -32,18 +34,75 @@ const Index: React.FC = () => {
         }
         const users = await getAllUsers();
         setAllUsers(users);
+        
+        // Fetch user's teams
+        await fetchUserTeams(userData);
       } catch (error) {
         console.error("Error loading data:", error);
+        toast.error("Failed to load data");
       } finally {
         setLoading(false);
       }
     };
     loadData();
   }, []);
+  
+  const fetchUserTeams = async (userData: any) => {
+    try {
+      if (!userData) return;
+      
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user) return;
+      
+      const { data: teamsData, error } = await supabase
+        .from('teams')
+        .select('*')
+        .contains('members', [authData.user.id]);
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Transform team data for display
+      if (teamsData) {
+        const transformedTeams = await Promise.all(teamsData.map(async (team) => {
+          // Get the partner ID (the other member that is not the current user)
+          const partnerId = team.members.find(id => id !== authData.user!.id);
+          
+          // Fetch partner profile
+          const { data: partnerData } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', partnerId)
+            .single();
+            
+          return {
+            id: team.id,
+            name: team.name,
+            firstUser: {
+              name: userData.fullName,
+              status: "pending" as const // For now, hardcoded
+            },
+            secondUser: {
+              name: partnerData?.full_name || "Partner",
+              status: "completed" as const // For now, hardcoded
+            },
+            resetTime: "00:30:00", // To be implemented with actual timer
+            interest: team.category,
+            frequency: team.frequency
+          };
+        }));
+        
+        setTagTeams(transformedTeams);
+      }
+    } catch (error) {
+      console.error("Error fetching teams:", error);
+    }
+  };
 
   const categories = userProfile.interests;
 
-  const handleAddTeam = newTeam => {
+  const handleAddTeam = (newTeam: any) => {
     setTagTeams([...tagTeams, newTeam]);
     setIsSheetOpen(false);
   };

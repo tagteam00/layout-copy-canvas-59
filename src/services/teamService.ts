@@ -1,0 +1,41 @@
+
+import { supabase } from '@/integrations/supabase/client';
+
+export const fetchTeams = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('teams')
+      .select('*')
+      .contains('members', [userId]);
+      
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching teams:', error);
+    throw error;
+  }
+};
+
+export const createTeam = async (teamData: any) => {
+  try {
+    const { data, error } = await supabase
+      .from('teams')
+      .insert([teamData])
+      .select();
+      
+    if (error) throw error;
+    return data?.[0];
+  } catch (error) {
+    console.error('Error creating team:', error);
+    throw error;
+  }
+};
+
+export const getUserTeamActivity = async (teamId: string, userId: string) => {
+  // This would be implemented once we have an activities table
+  // For now, returning mock data
+  return {
+    completed: Math.random() > 0.5,
+    lastCompletedAt: new Date().toISOString(),
+  };
+};
