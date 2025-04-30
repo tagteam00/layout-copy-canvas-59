@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,7 +19,6 @@ import Settings from "./pages/Settings";
 import WelcomeScreen from "./components/onboarding/WelcomeScreen";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { lazy, Suspense } from "react";
-import TagTeamDemo from "./pages/TagTeamDemo";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -149,11 +149,6 @@ const AnimatedRoutes = () => {
               <TagTeamHub />
             </PageTransition>
           </ProtectedRoute>
-        } />
-        <Route path="/tagteam-demo" element={
-          <PageTransition>
-            <TagTeamDemo />
-          </PageTransition>
         } />
         <Route path="/profile" element={
           <ProtectedRoute>

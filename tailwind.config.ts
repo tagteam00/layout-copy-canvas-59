@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -62,21 +61,6 @@ export default {
           'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))'
-        },
-        // Add custom colors for TagTeam cards
-        tagteam: {
-          background: '#F5F4FF',
-          border: '#E5E1FF',
-          title: '#827AFF',
-          completed: {
-            bg: '#DCFFDC',
-            text: '#2A7B17'
-          },
-          pending: {
-            bg: '#FFE8CC',
-            text: '#B76E00'
-          },
-          divider: '#E0E0E0'
         }
       },
       fontFamily: {
