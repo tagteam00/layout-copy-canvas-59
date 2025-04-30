@@ -13,7 +13,6 @@ interface TagTeam {
     name: string;
     status: "completed" | "pending";
   };
-  resetTime: string;
   interest: string;
   frequency: string;
 }
@@ -59,7 +58,13 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
           </Button>
         </div> : <div className="space-y-4 mt-4">
           {teams.map(team => <div key={team.id} className="mb-4">
-              <TagTeamCard name={team.name} firstUser={team.firstUser} secondUser={team.secondUser} resetTime={team.resetTime} interest={team.interest} frequency={team.frequency} />
+              <TagTeamCard 
+                name={team.name} 
+                firstUser={team.firstUser} 
+                secondUser={team.secondUser} 
+                interest={team.interest} 
+                frequency={team.frequency} 
+              />
             </div>)}
         </div>}
     </section>;

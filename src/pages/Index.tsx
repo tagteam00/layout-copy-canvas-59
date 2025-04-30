@@ -87,7 +87,6 @@ const Index: React.FC = () => {
               name: partnerData?.full_name || "Partner",
               status: "completed" as const // For now, hardcoded
             },
-            resetTime: "00:30:00", // To be implemented with actual timer
             interest: team.category,
             frequency: team.frequency
           };

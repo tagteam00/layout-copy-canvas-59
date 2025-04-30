@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -80,7 +81,6 @@ const TagTeamHub: React.FC = () => {
               name: partnerData?.full_name || "Partner",
               status: "completed" as const // For now, hardcoded
             },
-            resetTime: "00:30:00", // To be implemented with actual timer
             interest: team.category,
             frequency: team.frequency
           };
@@ -122,7 +122,6 @@ const TagTeamHub: React.FC = () => {
                   name={team.name}
                   firstUser={team.firstUser}
                   secondUser={team.secondUser}
-                  resetTime={team.resetTime}
                   interest={team.interest}
                   frequency={team.frequency}
                 />
