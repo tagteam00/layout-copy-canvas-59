@@ -134,20 +134,29 @@ const SignUp: React.FC = () => {
   const signUpWithGoogle = async () => {
     try {
       setGoogleLoading(true);
+      console.log("Attempting Google sign-in...");
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       });
       
       if (error) {
         console.error("Google sign up error:", error);
-        toast.error("Failed to sign up with Google. Please try again.");
+        toast.error(`Failed to sign up with Google: ${error.message}`);
+      } else {
+        console.log("Google sign-in initiated:", data);
+        toast.info("Redirecting to Google for authentication...");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Google sign up error:", error);
-      toast.error("Failed to sign up with Google. Please try again later.");
+      toast.error(`Failed to sign up with Google: ${error.message || "Unknown error"}`);
     } finally {
       setGoogleLoading(false);
     }

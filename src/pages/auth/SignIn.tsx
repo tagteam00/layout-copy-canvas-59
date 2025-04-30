@@ -99,20 +99,29 @@ const SignIn: React.FC = () => {
   const signInWithGoogle = async () => {
     try {
       setGoogleLoading(true);
+      console.log("Attempting Google sign-in...");
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       });
       
       if (error) {
         console.error("Google sign in error:", error);
-        toast.error("Failed to sign in with Google. Please try again.");
+        toast.error(`Failed to sign in with Google: ${error.message}`);
+      } else {
+        console.log("Google sign-in initiated:", data);
+        toast.info("Redirecting to Google for authentication...");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Google sign in error:", error);
-      toast.error("Failed to sign in with Google. Please try again later.");
+      toast.error(`Failed to sign in with Google: ${error.message || "Unknown error"}`);
     } finally {
       setGoogleLoading(false);
     }
@@ -128,9 +137,6 @@ const SignIn: React.FC = () => {
     
     try {
       setSendingMagicLink(true);
-      
-      // Remove the attempt to use getUserByEmail which doesn't exist
-      // and is causing the TypeScript error
       
       // Attempt to send a magic link login
       const { error } = await supabase.auth.signInWithOtp({
