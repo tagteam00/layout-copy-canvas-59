@@ -38,9 +38,7 @@ const SignUp: React.FC = () => {
           // Store initial user data that will be used during onboarding
           data: {
             email: data.email,
-          },
-          // This should redirect back to our app after email verification
-          emailRedirectTo: window.location.origin,
+          }
         }
       });
       
@@ -49,33 +47,27 @@ const SignUp: React.FC = () => {
         return;
       }
       
-      // If user is created and auto-confirmed (common in development)
-      if (authData && authData.user && !authData.user.identities?.[0].identity_data?.email_verified) {
-        // Send magic link as fallback for development
-        toast.info("Check your email for a verification link to complete signup.");
-        
-        const { error: magicLinkError } = await supabase.auth.signInWithOtp({
-          email: data.email,
-          options: {
-            emailRedirectTo: window.location.origin,
-          }
-        });
-        
-        if (magicLinkError) {
-          toast.error("Could not send verification email. Please try again.");
-        } else {
-          toast.success("Verification email sent! Please check your inbox.");
-        }
-        
+      console.log("Sign up response:", authData);
+      
+      // Immediately sign in after successful signup
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password
+      });
+      
+      if (signInError) {
+        console.error("Sign in error after signup:", signInError);
+        toast.error(`Sign in failed: ${signInError.message}`);
+        navigate("/signin");
         return;
       }
       
-      // If we have a session already (email confirmation disabled in Supabase)
-      if (authData && authData.session) {
+      if (signInData && signInData.session) {
         toast.success("Account created successfully!");
         navigate("/onboarding");
       } else {
-        toast.info("Please check your email to verify your account.");
+        toast.error("Something went wrong. Please try signing in manually.");
+        navigate("/signin");
       }
     } catch (error) {
       console.error("Signup error:", error);

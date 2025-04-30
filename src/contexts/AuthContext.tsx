@@ -26,24 +26,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
 
   useEffect(() => {
+    console.log("AuthProvider initialized");
+    
     // Set up the auth state listener first to avoid missing auth events
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
+      async (event, currentSession) => {
+        console.log("Auth state changed:", event, !!currentSession);
+        
         // Update session and user synchronously
         setSession(currentSession);
         setUser(currentSession?.user || null);
         
-        // Defer profile check to prevent auth deadlocks
+        // Check profile data
         if (currentSession?.user) {
-          setTimeout(async () => {
-            const { data } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', currentSession.user.id)
-              .single();
-            
-            setHasCompletedOnboarding(!!data);
-          }, 0);
+          const { data } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', currentSession.user.id)
+            .single();
+          
+          console.log("Profile data for user:", data);
+          setHasCompletedOnboarding(!!data);
         } else {
           setHasCompletedOnboarding(false);
         }
@@ -53,7 +56,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Then check for existing session
     const checkUser = async () => {
       try {
+        console.log("Checking for existing session");
         const { data } = await supabase.auth.getSession();
+        console.log("Session check result:", !!data.session);
+        
         setSession(data.session);
         setUser(data.session?.user || null);
         
@@ -65,6 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             .eq('id', data.session.user.id)
             .single();
             
+          console.log("Profile data from initial check:", profileData);
           setHasCompletedOnboarding(!!profileData);
         }
       } catch (error) {
