@@ -1,7 +1,7 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useUserData } from "@/hooks/useUserData";
+import { toast } from "sonner";
 
 type AuthContextType = {
   user: any;
@@ -26,9 +26,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
 
   useEffect(() => {
+    console.log("AuthProvider initialized");
+    
     // Set up the auth state listener first to avoid missing auth events
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
+        console.log("Auth state changed:", event, !!currentSession);
+        
         // Update session and user synchronously
         setSession(currentSession);
         setUser(currentSession?.user || null);
@@ -36,13 +40,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Defer profile check to prevent auth deadlocks
         if (currentSession?.user) {
           setTimeout(async () => {
-            const { data } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', currentSession.user.id)
-              .single();
-            
-            setHasCompletedOnboarding(!!data);
+            try {
+              const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', currentSession.user.id)
+                .maybeSingle();
+              
+              if (error) {
+                console.error("Error checking profile:", error);
+              }
+              
+              setHasCompletedOnboarding(!!data);
+            } catch (err) {
+              console.error("Error in profile check:", err);
+            }
           }, 0);
         } else {
           setHasCompletedOnboarding(false);
@@ -53,19 +65,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Then check for existing session
     const checkUser = async () => {
       try {
-        const { data } = await supabase.auth.getSession();
+        console.log("Checking for existing session");
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Session check error:", error);
+        }
+        
+        console.log("Session check result:", !!data.session);
         setSession(data.session);
         setUser(data.session?.user || null);
         
         // Check if user has completed onboarding
         if (data.session?.user) {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', data.session.user.id)
-            .single();
+          try {
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', data.session.user.id)
+              .maybeSingle();
+              
+            if (profileError) {
+              console.error("Error fetching profile:", profileError);
+            }
             
-          setHasCompletedOnboarding(!!profileData);
+            setHasCompletedOnboarding(!!profileData);
+          } catch (err) {
+            console.error("Error in profile fetch:", err);
+          }
         }
       } catch (error) {
         console.error("Error checking auth status:", error);

@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,18 +20,36 @@ const SignUp: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Check for existing session on component mount
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      
+      if (data.session) {
+        // User is already signed in, redirect to home or onboarding
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.session.user.id)
+          .maybeSingle();
+          
+        navigate(profileData ? "/home" : "/onboarding");
+      }
+    };
+    
+    checkSession();
+  }, [navigate]);
+
   // Watch password to use in validation
   const watchPassword = watch("password", "");
 
   const onSubmit = async data => {
     try {
       setLoading(true);
+      console.log("Attempting to sign up with email:", data.email);
 
-      // Sign up with Supabase - with auto-confirm set to true
-      const {
-        data: authData,
-        error: signUpError
-      } = await supabase.auth.signUp({
+      // Try to sign up the user
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
@@ -43,44 +61,68 @@ const SignUp: React.FC = () => {
       });
       
       if (signUpError) {
-        toast.error(signUpError.message);
+        // Handle sign up errors
+        console.error("Sign up error:", signUpError);
+        if (signUpError.message.includes('User already registered')) {
+          toast.error("This email is already registered. Please sign in instead.");
+        } else {
+          toast.error(signUpError.message || "Failed to create account");
+        }
         return;
       }
       
-      // Immediately try to sign in after signup (this will work if email confirmation is disabled)
+      console.log("Sign up response:", authData);
+      
+      // Immediately try to sign in after signup
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password
       });
       
       if (signInError) {
-        // If there's an error with direct sign-in, we'll send a magic link as fallback
+        console.error("Sign in error after signup:", signInError);
+        
+        // If there's an error with direct sign-in, try a passwordless link
         if (signInError.message.includes('not confirmed')) {
-          toast.info("We've sent you a magic login link. Please check your email.");
-          const { error: magicLinkError } = await supabase.auth.signInWithOtp({
-            email: data.email
-          });
-          
-          if (magicLinkError) {
-            toast.error("Could not send login link. Please try again later.");
-          } else {
-            toast.success("Account created! Please check your email to verify and log in.");
+          try {
+            const { error: otpError } = await supabase.auth.signInWithOtp({
+              email: data.email,
+              options: {
+                emailRedirectTo: window.location.origin,
+              }
+            });
+            
+            if (otpError) {
+              if (otpError.status === 429) {
+                toast.info("Too many requests. Please wait a moment and try signing in later.");
+              } else {
+                toast.error(otpError.message || "Failed to send login link");
+              }
+            } else {
+              toast.success("Account created! Please check your email to verify and log in.");
+            }
+          } catch (e) {
+            console.error("OTP error:", e);
+            toast.error("Could not send verification email. Please try signing in later.");
           }
         } else {
-          toast.error(signInError.message);
+          toast.error(signInError.message || "Account created but couldn't sign in automatically. Please try signing in manually.");
         }
+        
+        // Redirect to sign in page after a successful signup but failed sign in
+        setTimeout(() => {
+          navigate("/signin");
+        }, 2000);
+        
         return;
       }
       
-      if (signInData.session) {
+      if (signInData?.user) {
         toast.success("Signed up and logged in successfully!");
         navigate("/onboarding");
-      } else if (authData) {
-        toast.success("Account created successfully! Please sign in.");
-        navigate("/signin");
       }
     } catch (error) {
-      console.error("Signup error:", error);
+      console.error("Signup/signin process error:", error);
       toast.error("Failed to create account. Please try again later.");
     } finally {
       setLoading(false);
@@ -117,8 +159,8 @@ const SignUp: React.FC = () => {
                 <Input id="password" type="password" placeholder="Create a password" {...register("password", {
                 required: "Password is required",
                 minLength: {
-                  value: 8,
-                  message: "Password must be at least 8 characters"
+                  value: 6,
+                  message: "Password must be at least 6 characters"
                 }
               })} className="w-full border border-[rgba(130,122,255,0.41)] rounded-xl" />
                 {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message as string}</p>}

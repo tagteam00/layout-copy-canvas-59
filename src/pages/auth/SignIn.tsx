@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,45 +17,76 @@ const SignIn: React.FC = () => {
     },
     getValues
   } = useForm();
+  
   const [loading, setLoading] = useState(false);
   const [sendingMagicLink, setSendingMagicLink] = useState(false);
   const navigate = useNavigate();
 
+  // Check for existing session on component mount
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      
+      if (data.session) {
+        // User is already signed in, redirect to home or onboarding
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.session.user.id)
+          .maybeSingle();
+          
+        navigate(profileData ? "/home" : "/onboarding");
+      }
+    };
+    
+    checkSession();
+  }, [navigate]);
+
   const onSubmit = async data => {
     try {
       setLoading(true);
+      
+      console.log("Attempting sign in with:", data.email);
 
       // Sign in with Supabase
-      const {
-        data: authData,
-        error
-      } = await supabase.auth.signInWithPassword({
+      const { data: signInData, error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password
       });
       
       if (error) {
+        console.error("Sign in error:", error);
+        
         if (error.message.includes('not confirmed')) {
+          // If email not confirmed, offer to send a magic link
           toast.error("Email not confirmed. Try using the magic link option below.");
           return;
         }
-        toast.error(error.message);
+        
+        if (error.message.includes('Invalid login')) {
+          toast.error("Invalid email or password. Please check your credentials.");
+          return;
+        }
+        
+        toast.error(error.message || "Failed to sign in. Please try again.");
         return;
       }
       
-      if (authData) {
+      if (signInData?.user) {
         toast.success("Signed in successfully!");
+        console.log("Sign in successful:", signInData);
+        
         // Check if user has completed onboarding
         const { data: profileData } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', authData.user.id)
-          .single();
+          .eq('id', signInData.user.id)
+          .maybeSingle();
           
         // Redirect to appropriate page based on onboarding status
         navigate(profileData ? "/home" : "/onboarding");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Sign in error:", error);
       toast.error("Failed to sign in. Please try again later.");
     } finally {
@@ -74,6 +105,12 @@ const SignIn: React.FC = () => {
     try {
       setSendingMagicLink(true);
       
+      // First check if the user exists
+      const { data: getUserData, error: getUserError } = await supabase.auth.admin
+        .getUserByEmail(email)
+        .catch(() => ({ data: null, error: null })); // Ignore any errors here
+      
+      // Attempt to send a magic link login
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -82,9 +119,13 @@ const SignIn: React.FC = () => {
       });
       
       if (error) {
-        toast.error(error.message);
+        if (error.status === 429) {
+          toast.error("Too many login attempts. Please try again later.");
+        } else {
+          toast.error(error.message || "Failed to send magic link");
+        }
       } else {
-        toast.success("Magic link sent! Check your email.");
+        toast.success("Magic link sent! Check your email inbox.");
       }
     } catch (error) {
       console.error("Magic link error:", error);
