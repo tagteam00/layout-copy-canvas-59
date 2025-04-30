@@ -1,7 +1,10 @@
+
 import React from "react";
 import { TagTeamCard } from "./TagTeamCard";
+import { EnhancedTagTeamCard } from "../tagteam/EnhancedTagTeamCard";
 import { AddTeamButton } from "./AddTeamButton";
 import { Button } from "../ui/button";
+
 interface TagTeam {
   id: string;
   name: string;
@@ -11,16 +14,30 @@ interface TagTeam {
   members: string;
   isLogged?: boolean;
   partnerLogged?: boolean;
+  // Additional fields for enhanced card
+  user1?: {
+    name: string;
+    status: "completed" | "pending";
+  };
+  user2?: {
+    name: string;
+    status: "completed" | "pending";
+  };
+  interest?: string;
 }
+
 interface TagTeamListProps {
   teams: TagTeam[];
   onAddTeam?: () => void;
   userName?: string;
+  useEnhancedCards?: boolean;
 }
+
 export const TagTeamList: React.FC<TagTeamListProps> = ({
   teams,
   onAddTeam,
-  userName = ""
+  userName = "",
+  useEnhancedCards = false
 }) => {
   return <section className="flex w-full flex-col text-black mt-5 px-4 my-0">
       <div className="flex items-center gap-[9px] text-xs text-black font-normal py-0 my-0">
@@ -37,7 +54,7 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
           <div style={{
         fontFamily: "Hanken Grotesk, sans-serif"
       }} className="text-base text-gray-700 text-center mt-2 mb-2 px-4 py-0 my-[4px]">
-            {userName ? `${userName} people are out-there to team up with you` : `People are out-there to team up with you`}
+            {userName ? `${userName}, people are out-there to team up with you` : `People are out-there to team up with you`}
           </div>
           <Button style={{
         marginLeft: 16,
@@ -48,7 +65,34 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
             Start your first tagteam
           </Button>
         </div> : <div className="space-y-4 mt-4">
-          {teams.map(team => <TagTeamCard key={team.id} name={team.name} category={team.category} timeLeft={team.timeLeft} frequency={team.frequency} members={team.members} isLogged={team.isLogged} partnerLogged={team.partnerLogged} />)}
+          {teams.map(team => {
+            if (useEnhancedCards && team.user1 && team.user2) {
+              return (
+                <EnhancedTagTeamCard
+                  key={team.id}
+                  name={team.name}
+                  user1={team.user1}
+                  user2={team.user2}
+                  timeLeft={team.timeLeft}
+                  interest={team.interest || team.category}
+                  frequency={team.frequency}
+                />
+              );
+            } else {
+              return (
+                <TagTeamCard 
+                  key={team.id} 
+                  name={team.name} 
+                  category={team.category} 
+                  timeLeft={team.timeLeft} 
+                  frequency={team.frequency} 
+                  members={team.members} 
+                  isLogged={team.isLogged} 
+                  partnerLogged={team.partnerLogged} 
+                />
+              );
+            }
+          })}
         </div>}
 
       {teams.length > 0 && <AddTeamButton onClick={onAddTeam} />}
