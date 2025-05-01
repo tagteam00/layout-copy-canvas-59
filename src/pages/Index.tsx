@@ -13,7 +13,8 @@ const Index: React.FC = () => {
   const [userProfile, setUserProfile] = useState({
     fullName: "",
     username: "",
-    interests: [] as string[]
+    interests: [] as string[],
+    id: ""
   });
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,18 +26,21 @@ const Index: React.FC = () => {
       setLoading(true);
       try {
         const userData = await getUserData();
+        const { data: authData } = await supabase.auth.getUser();
+        
         if (userData) {
           setUserProfile({
             fullName: userData.fullName,
             username: userData.username,
-            interests: userData.interests
+            interests: userData.interests,
+            id: authData.user?.id || ""
           });
         }
         const users = await getAllUsers();
         setAllUsers(users);
         
         // Fetch user's teams
-        await fetchUserTeams(userData);
+        await fetchUserTeams(userData, authData.user?.id || "");
       } catch (error) {
         console.error("Error loading data:", error);
         toast.error("Failed to load data");
@@ -47,17 +51,16 @@ const Index: React.FC = () => {
     loadData();
   }, []);
   
-  const fetchUserTeams = async (userData: any) => {
+  const fetchUserTeams = async (userData: any, userId: string) => {
     try {
       if (!userData) return;
       
-      const { data: authData } = await supabase.auth.getUser();
-      if (!authData.user) return;
+      if (!userId) return;
       
       const { data: teamsData, error } = await supabase
         .from('teams')
         .select('*')
-        .contains('members', [authData.user.id]);
+        .contains('members', [userId]);
         
       if (error) {
         throw error;
@@ -67,7 +70,7 @@ const Index: React.FC = () => {
       if (teamsData) {
         const transformedTeams = await Promise.all(teamsData.map(async (team) => {
           // Get the partner ID (the other member that is not the current user)
-          const partnerId = team.members.find(id => id !== authData.user!.id);
+          const partnerId = team.members.find((id: string) => id !== userId);
           
           // Fetch partner profile
           const { data: partnerData } = await supabase
@@ -81,11 +84,13 @@ const Index: React.FC = () => {
             name: team.name,
             firstUser: {
               name: userData.fullName,
-              status: "pending" as const // For now, hardcoded
+              status: "pending" as const, // For now, hardcoded
+              id: userId
             },
             secondUser: {
               name: partnerData?.full_name || "Partner",
-              status: "completed" as const // For now, hardcoded
+              status: "completed" as const, // For now, hardcoded
+              id: partnerId || ""
             },
             interest: team.category,
             frequency: team.frequency
