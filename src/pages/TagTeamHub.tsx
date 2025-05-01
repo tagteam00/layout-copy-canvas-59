@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { AddTeamButton } from "@/components/home/AddTeamButton";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
+import { TagTeamSheet } from "@/components/tagteam/TagTeamSheet";
 import { useUserData } from "@/hooks/useUserData";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { toast } from "sonner";
@@ -13,24 +15,30 @@ const TagTeamHub: React.FC = () => {
   const { getUserData } = useUserData();
   const [userProfile, setUserProfile] = useState({
     fullName: "",
-    interests: [] as string[]
+    interests: [] as string[],
+    id: ""
   });
   const [loading, setLoading] = useState(true);
   const [tagTeams, setTagTeams] = useState<any[]>([]);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isTagTeamSheetOpen, setIsTagTeamSheetOpen] = useState(false);
+  const [selectedTagTeam, setSelectedTagTeam] = useState<any>(null);
 
   useEffect(() => {
     const loadUserData = async () => {
       try {
         const userData = await getUserData();
         if (userData) {
+          const { data: authData } = await supabase.auth.getUser();
+          
           setUserProfile({
             fullName: userData.fullName,
-            interests: userData.interests
+            interests: userData.interests || [],
+            id: authData.user?.id || ""
           });
           
           // Fetch user's teams
-          await fetchUserTeams(userData);
+          await fetchUserTeams(userData, authData.user?.id || "");
         }
       } catch (error) {
         console.error("Error loading user data:", error);
@@ -42,15 +50,14 @@ const TagTeamHub: React.FC = () => {
     loadUserData();
   }, []);
   
-  const fetchUserTeams = async (userData: any) => {
+  const fetchUserTeams = async (userData: any, userId: string) => {
     try {
-      const { data: authData } = await supabase.auth.getUser();
-      if (!authData.user) return;
+      if (!userId) return;
       
       const { data: teamsData, error } = await supabase
         .from('teams')
         .select('*')
-        .contains('members', [authData.user.id]);
+        .contains('members', [userId]);
         
       if (error) {
         throw error;
@@ -60,7 +67,7 @@ const TagTeamHub: React.FC = () => {
       if (teamsData) {
         const transformedTeams = await Promise.all(teamsData.map(async (team) => {
           // Get the partner ID (the other member that is not the current user)
-          const partnerId = team.members.find(id => id !== authData.user!.id);
+          const partnerId = team.members.find((id: string) => id !== userId);
           
           // Fetch partner profile
           const { data: partnerData } = await supabase
@@ -73,15 +80,20 @@ const TagTeamHub: React.FC = () => {
             id: team.id,
             name: team.name,
             firstUser: {
+              id: userId,
               name: userData.fullName,
-              status: "pending" as const // For now, hardcoded
+              status: "pending" as const, // For now, hardcoded
+              goal: "Will do Push pull legs the entire week, and take as much protien as I can" // Example goal
             },
             secondUser: {
+              id: partnerId || "",
               name: partnerData?.full_name || "Partner",
-              status: "completed" as const // For now, hardcoded
+              status: "completed" as const, // For now, hardcoded
+              goal: "" // Empty goal for example
             },
             interest: team.category,
-            frequency: team.frequency
+            frequency: team.frequency,
+            resetTime: "00:30:00" // Example reset time
           };
         }));
         
@@ -94,8 +106,11 @@ const TagTeamHub: React.FC = () => {
   };
 
   const handleLogActivity = (teamId: string) => {
-    console.log("Log activity for team:", teamId);
-    // Implementation for activity logging to be added
+    const team = tagTeams.find(team => team.id === teamId);
+    if (team) {
+      setSelectedTagTeam(team);
+      setIsTagTeamSheetOpen(true);
+    }
   };
 
   const handleAddTeam = (newTeam: any) => {
@@ -154,6 +169,16 @@ const TagTeamHub: React.FC = () => {
         onCreateTeam={handleAddTeam} 
         categories={userProfile.interests} 
       />
+      
+      {selectedTagTeam && (
+        <TagTeamSheet 
+          isOpen={isTagTeamSheetOpen}
+          onClose={() => setIsTagTeamSheetOpen(false)}
+          tagTeam={selectedTagTeam}
+          currentUserId={userProfile.id}
+        />
+      )}
+      
       <BottomNavigation />
     </main>
   );
