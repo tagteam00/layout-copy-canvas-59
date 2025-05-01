@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -8,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface TeamRequest {
   id: string;
@@ -135,6 +135,29 @@ const NotificationsPage: React.FC = () => {
     }
   };
 
+  const NotificationSkeleton = () => (
+    <div className="animate-pulse space-y-4">
+      {[1, 2].map((i) => (
+        <Card key={i} className="border-[rgba(130,122,255,0.41)]">
+          <CardHeader className="pb-2">
+            <Skeleton className="h-6 w-3/4" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-4 w-full mb-2" />
+            <div className="flex gap-2 mt-2">
+              <Skeleton className="h-6 w-16 rounded-full" />
+              <Skeleton className="h-6 w-16 rounded-full" />
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-end gap-2">
+            <Skeleton className="h-9 w-20" />
+            <Skeleton className="h-9 w-20" />
+          </CardFooter>
+        </Card>
+      ))}
+    </div>
+  );
+
   return (
     <main className="bg-white max-w-[480px] w-full mx-auto pb-16">
       <AppHeader />
@@ -142,11 +165,7 @@ const NotificationsPage: React.FC = () => {
         <h1 className="text-2xl font-bold mb-4">Notifications</h1>
 
         {loading ? (
-          <div className="animate-pulse space-y-4">
-            {[1, 2].map((i) => (
-              <div key={i} className="h-32 bg-gray-100 rounded-xl"></div>
-            ))}
-          </div>
+          <NotificationSkeleton />
         ) : requests.length > 0 ? (
           <div className="space-y-4">
             {requests.map((request) => (

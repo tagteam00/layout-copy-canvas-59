@@ -9,7 +9,7 @@ interface LoadingScreenProps {
 
 export const LoadingScreen = ({
   className,
-  minDisplayTime = 1500, // Increased default minimum display time
+  minDisplayTime = 1500, // Default minimum display time
 }: LoadingScreenProps) => {
   const [progress, setProgress] = useState(0);
   const [visible, setVisible] = useState(true);
@@ -21,7 +21,7 @@ export const LoadingScreen = ({
         const next = prevProgress + 3; // Slower progress increase
         return next > 100 ? 100 : next;
       });
-    }, 60); // Slower interval
+    }, 60);
 
     // Ensure the animation completes at least one cycle
     const timer = setTimeout(() => {
