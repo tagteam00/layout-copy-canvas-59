@@ -13,7 +13,8 @@ const Index: React.FC = () => {
   const [userProfile, setUserProfile] = useState({
     fullName: "",
     username: "",
-    interests: [] as string[]
+    interests: [] as string[],
+    id: ""
   });
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,19 +25,23 @@ const Index: React.FC = () => {
     const loadData = async () => {
       setLoading(true);
       try {
+        const { data: authData } = await supabase.auth.getUser();
         const userData = await getUserData();
+        
         if (userData) {
           setUserProfile({
             fullName: userData.fullName,
             username: userData.username,
-            interests: userData.interests
+            interests: userData.interests,
+            id: authData.user?.id || ""
           });
         }
+        
         const users = await getAllUsers();
         setAllUsers(users);
         
         // Fetch user's teams
-        await fetchUserTeams(userData);
+        await fetchUserTeams(userData, authData.user?.id || "");
       } catch (error) {
         console.error("Error loading data:", error);
         toast.error("Failed to load data");
@@ -47,17 +52,14 @@ const Index: React.FC = () => {
     loadData();
   }, []);
   
-  const fetchUserTeams = async (userData: any) => {
+  const fetchUserTeams = async (userData: any, userId: string) => {
     try {
-      if (!userData) return;
-      
-      const { data: authData } = await supabase.auth.getUser();
-      if (!authData.user) return;
+      if (!userData || !userId) return;
       
       const { data: teamsData, error } = await supabase
         .from('teams')
         .select('*')
-        .contains('members', [authData.user.id]);
+        .contains('members', [userId]);
         
       if (error) {
         throw error;
@@ -67,7 +69,7 @@ const Index: React.FC = () => {
       if (teamsData) {
         const transformedTeams = await Promise.all(teamsData.map(async (team) => {
           // Get the partner ID (the other member that is not the current user)
-          const partnerId = team.members.find(id => id !== authData.user!.id);
+          const partnerId = team.members.find((id: string) => id !== userId);
           
           // Fetch partner profile
           const { data: partnerData } = await supabase
@@ -80,12 +82,16 @@ const Index: React.FC = () => {
             id: team.id,
             name: team.name,
             firstUser: {
+              id: userId,
               name: userData.fullName,
-              status: "pending" as const // For now, hardcoded
+              status: "pending" as const, // For now, hardcoded
+              goal: "Will do Push pull legs the entire week, and take as much protien as I can" // Example goal
             },
             secondUser: {
+              id: partnerId || "",
               name: partnerData?.full_name || "Partner",
-              status: "completed" as const // For now, hardcoded
+              status: "completed" as const, // For now, hardcoded
+              goal: "" // Empty goal for example
             },
             interest: team.category,
             frequency: team.frequency
@@ -98,8 +104,6 @@ const Index: React.FC = () => {
       console.error("Error fetching teams:", error);
     }
   };
-
-  const categories = userProfile.interests;
 
   const handleAddTeam = (newTeam: any) => {
     setTagTeams([...tagTeams, newTeam]);
@@ -123,7 +127,7 @@ const Index: React.FC = () => {
         isOpen={isSheetOpen} 
         onClose={() => setIsSheetOpen(false)} 
         onCreateTeam={handleAddTeam} 
-        categories={categories} 
+        categories={userProfile.interests} 
       />
       <BottomNavigation />
     </main>
