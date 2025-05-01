@@ -107,7 +107,7 @@ const Index: React.FC = () => {
   };
 
   return (
-    <main className="flex flex-col min-h-screen bg-white w-full mx-auto relative pb-20">
+    <main className="flex flex-col min-h-screen bg-white w-full mx-auto relative pb-16">
       <AppHeader />
       <div className="max-w-[480px] w-full mx-auto px-4">
         <HomeContent 
@@ -118,7 +118,6 @@ const Index: React.FC = () => {
           allUsers={allUsers}
         />
       </div>
-      <BottomNavigation />
       
       <CreateTeamSheet 
         isOpen={isSheetOpen} 
@@ -126,6 +125,7 @@ const Index: React.FC = () => {
         onCreateTeam={handleAddTeam} 
         categories={categories} 
       />
+      <BottomNavigation />
     </main>
   );
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -105,7 +104,7 @@ const TagTeamHub: React.FC = () => {
   };
 
   return (
-    <main className="flex flex-col min-h-screen bg-white w-full mx-auto relative pb-20">
+    <main className="flex flex-col min-h-screen bg-white w-full mx-auto relative pb-16">
       <AppHeader />
       <div className="max-w-[480px] w-full mx-auto px-4">
         <h1 className="mb-6 font-extrabold text-lg pt-4">Tagteam Hub</h1>
@@ -147,16 +146,15 @@ const TagTeamHub: React.FC = () => {
         )}
       </div>
 
-      <BottomNavigation />
-      
       <AddTeamButton onClick={() => setIsSheetOpen(true)} />
-
+      
       <CreateTeamSheet 
         isOpen={isSheetOpen} 
         onClose={() => setIsSheetOpen(false)} 
         onCreateTeam={handleAddTeam} 
         categories={userProfile.interests} 
       />
+      <BottomNavigation />
     </main>
   );
 };
