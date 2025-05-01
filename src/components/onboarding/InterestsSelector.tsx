@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useInterests } from "@/hooks/useInterests";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -25,6 +26,7 @@ export const InterestsSelector: React.FC<InterestsSelectorProps> = ({
 }) => {
   const { interests, loading, error } = useInterests();
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const MAX_INTERESTS = 3;
 
   // Get unique categories from interests
   const categories = useMemo(() => {
@@ -38,6 +40,16 @@ export const InterestsSelector: React.FC<InterestsSelectorProps> = ({
     return interests.filter(interest => interest.category === selectedCategory);
   }, [interests, selectedCategory]);
 
+  const handleInterestSelection = (interest: string) => {
+    if (selectedInterests.includes(interest)) {
+      onToggleInterest(interest);
+    } else if (selectedInterests.length < MAX_INTERESTS) {
+      onToggleInterest(interest);
+    } else {
+      toast.error("You can select only 3 interests");
+    }
+  };
+
   if (loading) {
     return <div>Loading interests...</div>;
   }
@@ -49,7 +61,7 @@ export const InterestsSelector: React.FC<InterestsSelectorProps> = ({
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold">Select Your Interest</h2>
-      <p className="text-gray-600 text-sm">Choose an activity you want to be accountable for</p>
+      <p className="text-gray-600 text-sm">Choose an activity you want to be accountable for (max 3)</p>
       
       <div className="space-y-4">
         {/* Category Selection */}
@@ -77,9 +89,7 @@ export const InterestsSelector: React.FC<InterestsSelectorProps> = ({
           <label className="text-sm font-medium">Interest</label>
           <Select
             value={selectedInterests[0] || ""}
-            onValueChange={(value) => {
-              onToggleInterest(value);
-            }}
+            onValueChange={handleInterestSelection}
             disabled={!selectedCategory}
           >
             <SelectTrigger>
@@ -93,6 +103,11 @@ export const InterestsSelector: React.FC<InterestsSelectorProps> = ({
               ))}
             </SelectContent>
           </Select>
+          {selectedInterests.length >= MAX_INTERESTS && (
+            <p className="text-xs text-amber-500 mt-1">
+              Maximum of 3 interests allowed
+            </p>
+          )}
         </div>
       </div>
       

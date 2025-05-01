@@ -2,6 +2,7 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -23,6 +24,16 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
   onAddInterest,
   onRemoveInterest,
 }) => {
+  const MAX_INTERESTS = 3;
+  
+  const handleAddInterest = (interest: string) => {
+    if (interests.length >= MAX_INTERESTS) {
+      toast.error("You can select only 3 interests");
+      return;
+    }
+    onAddInterest(interest);
+  };
+
   const groupedInterests = availableInterests.reduce((acc, interest) => {
     if (!acc[interest.category]) {
       acc[interest.category] = [];
@@ -46,7 +57,7 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
           </Badge>
         ))}
       </div>
-      <Select onValueChange={onAddInterest}>
+      <Select onValueChange={handleAddInterest}>
         <SelectTrigger>
           <SelectValue placeholder="Add an interest" />
         </SelectTrigger>
@@ -69,6 +80,11 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
           ))}
         </SelectContent>
       </Select>
+      {interests.length >= MAX_INTERESTS && (
+        <p className="text-xs text-amber-500 mt-1">
+          Maximum of 3 interests allowed. Remove an interest to add a new one.
+        </p>
+      )}
     </div>
   );
 };
