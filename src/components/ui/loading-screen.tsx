@@ -52,7 +52,6 @@ export const LoadingScreen = ({
           className="w-20 h-20 rounded-full bg-[#827AFF]/20 animate-pulse"
           style={{
             animation: "pulse 2.5s ease-in-out infinite",
-            transform: "scale(1)",
           }}
         >
           <div 
@@ -65,18 +64,20 @@ export const LoadingScreen = ({
       </div>
       <p className="text-gray-600 text-sm font-medium mt-8">Hang on a little</p>
 
-      {/* Custom CSS for the breathing animation */}
-      <style jsx>{`
-        @keyframes breathe {
-          0%, 100% { transform: scale(0.9); opacity: 0.8; }
-          50% { transform: scale(1.1); opacity: 1; }
-        }
-        
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.15); }
-        }
-      `}</style>
+      {/* Custom CSS for the breathing animation using standard style tag */}
+      <style>
+        {`
+          @keyframes breathe {
+            0%, 100% { transform: scale(0.9); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+          }
+          
+          @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+          }
+        `}
+      </style>
     </div>
   );
 };
