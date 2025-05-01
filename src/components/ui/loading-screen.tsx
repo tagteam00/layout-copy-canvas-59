@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Progress } from "@/components/ui/progress";
 
 interface LoadingScreenProps {
   className?: string;
@@ -10,7 +9,7 @@ interface LoadingScreenProps {
 
 export const LoadingScreen = ({
   className,
-  minDisplayTime = 1000, // Default minimum display time: 1 second
+  minDisplayTime = 1500, // Increased default minimum display time
 }: LoadingScreenProps) => {
   const [progress, setProgress] = useState(0);
   const [visible, setVisible] = useState(true);
@@ -19,10 +18,10 @@ export const LoadingScreen = ({
     // Simulate loading progress
     const interval = setInterval(() => {
       setProgress((prevProgress) => {
-        const next = prevProgress + 5;
+        const next = prevProgress + 3; // Slower progress increase
         return next > 100 ? 100 : next;
       });
-    }, 50);
+    }, 60); // Slower interval
 
     // Ensure the animation completes at least one cycle
     const timer = setTimeout(() => {
@@ -47,20 +46,37 @@ export const LoadingScreen = ({
         className
       )}
     >
-      <div className="w-24 h-24 mb-8 relative">
-        <div className="absolute inset-0 rounded-full border-4 border-[#827AFF]/20"></div>
-        <div
-          className="absolute inset-0 rounded-full border-4 border-t-[#827AFF] animate-spin"
-          style={{ animationDuration: "1.5s" }}
-        ></div>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-12 h-12 bg-[#8CFF6E] rounded-full opacity-60 animate-pulse"></div>
+      <div className="relative flex items-center justify-center">
+        {/* Circle that grows and shrinks with easing */}
+        <div 
+          className="w-20 h-20 rounded-full bg-[#827AFF]/20 animate-pulse"
+          style={{
+            animation: "pulse 2.5s ease-in-out infinite",
+            transform: "scale(1)",
+          }}
+        >
+          <div 
+            className="absolute inset-0 w-20 h-20 rounded-full border-4 border-[#827AFF]/40"
+            style={{
+              animation: "breathe 2.5s ease-in-out infinite"
+            }}
+          />
         </div>
       </div>
-      <div className="w-64 mb-4">
-        <Progress value={progress} className="h-1 bg-gray-100" />
-      </div>
-      <p className="text-gray-600 text-sm font-medium">Loading your experience...</p>
+      <p className="text-gray-600 text-sm font-medium mt-8">Hang on a little</p>
+
+      {/* Custom CSS for the breathing animation */}
+      <style jsx>{`
+        @keyframes breathe {
+          0%, 100% { transform: scale(0.9); opacity: 0.8; }
+          50% { transform: scale(1.1); opacity: 1; }
+        }
+        
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.15); }
+        }
+      `}</style>
     </div>
   );
 };

@@ -19,7 +19,7 @@ const PageTransition: React.FC<PageTransitionProps> = ({
     // Use a timer to ensure the loading animation completes at least one cycle
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1200); // Slightly longer than the minimum display time in LoadingScreen
+    }, 1800); // Slightly longer than the minimum display time in LoadingScreen
     
     return () => clearTimeout(timer);
   }, []);
@@ -29,22 +29,17 @@ const PageTransition: React.FC<PageTransitionProps> = ({
       {isLoading && <LoadingScreen />}
       <motion.div 
         initial={{
-          opacity: 0,
-          x: 20
+          opacity: 0
         }} 
         animate={{
-          opacity: 1,
-          x: 0
+          opacity: 1
         }} 
         exit={{
-          opacity: 0,
-          x: -20
+          opacity: 0
         }} 
         transition={{
-          type: "spring",
-          stiffness: 260,
-          damping: 20,
-          duration: 0.3
+          ease: "easeInOut",
+          duration: 0.6 // Slower fade in for smoother transition
         }}
         className="bg-white"
         style={{ display: isLoading ? 'none' : 'block' }}
