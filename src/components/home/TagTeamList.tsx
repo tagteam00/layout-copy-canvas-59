@@ -36,7 +36,7 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
   userName = "",
   loading = false,
   currentUserId = ""
-}) {
+}) => {
   const [isTagTeamSheetOpen, setIsTagTeamSheetOpen] = useState(false);
   const [selectedTagTeam, setSelectedTagTeam] = useState<TagTeam | null>(null);
 
