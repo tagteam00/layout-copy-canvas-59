@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Welcome } from "./Welcome";
 import { TagTeamList } from "./TagTeamList";
 import { UsersList } from "./UsersList";
@@ -34,7 +34,7 @@ export const HomeContent: React.FC<HomeContentProps> = ({
         onAddTeam={onAddTeam} 
         userName={userProfile.fullName} 
         loading={loading}
-        currentUserId={userProfile.id || ""}
+        currentUserId={userProfile.id}
       />
       <div>
         <UsersList users={allUsers} loading={loading} />
