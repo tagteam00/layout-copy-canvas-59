@@ -28,7 +28,13 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
   resetDay,
   onClick
 }) => {
-  const [timeDisplay, setTimeDisplay] = useState({ timeString: "00:00:00", urgency: 'normal' as const });
+  const [timeDisplay, setTimeDisplay] = useState<{ 
+    timeString: string; 
+    urgency: 'normal' | 'warning' | 'urgent'
+  }>({ 
+    timeString: "00:00:00", 
+    urgency: 'normal' 
+  });
 
   // Function to get first name
   const getFirstName = (fullName: string): string => {

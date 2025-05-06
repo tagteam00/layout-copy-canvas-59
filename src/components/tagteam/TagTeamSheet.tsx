@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { X, Pencil } from "lucide-react";
 import { Drawer, DrawerContent, DrawerClose, DrawerOverlay } from "@/components/ui/drawer";
@@ -47,7 +48,13 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   const [newGoal, setNewGoal] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [sheetHeight, setSheetHeight] = useState<string>("75%");
-  const [timeDisplay, setTimeDisplay] = useState({ timeString: "00:00:00", urgency: 'normal' as const });
+  const [timeDisplay, setTimeDisplay] = useState<{ 
+    timeString: string; 
+    urgency: 'normal' | 'warning' | 'urgent';
+  }>({ 
+    timeString: "00:00:00", 
+    urgency: 'normal' 
+  });
   const startY = useRef<number | null>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
 
