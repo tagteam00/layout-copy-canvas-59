@@ -30,32 +30,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     // Set up the auth state listener first to avoid missing auth events
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
+      async (event, currentSession) => {
         console.log("Auth state changed:", event, !!currentSession);
         
         // Update session and user synchronously
         setSession(currentSession);
         setUser(currentSession?.user || null);
         
-        // Defer profile check to prevent auth deadlocks
+        // Check if profile exists to determine onboarding status
         if (currentSession?.user) {
-          setTimeout(async () => {
-            try {
-              const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', currentSession.user.id)
-                .maybeSingle();
-              
-              if (error) {
-                console.error("Error checking profile:", error);
-              }
-              
-              setHasCompletedOnboarding(!!data);
-            } catch (err) {
-              console.error("Error in profile check:", err);
+          try {
+            const { data, error } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', currentSession.user.id)
+              .maybeSingle();
+            
+            if (error) {
+              console.error("Error checking profile:", error);
             }
-          }, 0);
+            
+            // Set onboarding status based on profile existence
+            setHasCompletedOnboarding(!!data);
+            console.log("Onboarding status:", !!data);
+          } catch (err) {
+            console.error("Error in profile check:", err);
+          }
         } else {
           setHasCompletedOnboarding(false);
         }
@@ -89,7 +89,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               console.error("Error fetching profile:", profileError);
             }
             
-            setHasCompletedOnboarding(!!profileData);
+            // Update onboarding status based on profile existence
+            const onboardingComplete = !!profileData;
+            setHasCompletedOnboarding(onboardingComplete);
+            console.log("Initial onboarding status:", onboardingComplete);
           } catch (err) {
             console.error("Error in profile fetch:", err);
           }

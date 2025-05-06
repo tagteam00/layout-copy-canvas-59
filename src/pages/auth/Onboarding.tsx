@@ -12,6 +12,7 @@ import { useUserData } from "@/hooks/useUserData";
 import type { UserData } from "@/hooks/useUserData";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
 
 const commitmentLevels = [
   { value: "casual", label: "Casual", description: "Relaxed approach with flexible schedules" },
@@ -25,7 +26,14 @@ const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const { saveUserData } = useUserData();
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const { user, hasCompletedOnboarding } = useAuth();
+  
+  // Add an effect to check if onboarding is already completed
+  useEffect(() => {
+    if (hasCompletedOnboarding) {
+      navigate('/home', { replace: true });
+    }
+  }, [hasCompletedOnboarding, navigate]);
   
   const [formData, setFormData] = useState<UserData>({
     fullName: "",
@@ -81,7 +89,8 @@ const Onboarding: React.FC = () => {
       
       if (success) {
         toast.success("Profile saved successfully!");
-        navigate("/home");
+        // Force redirect to home page and replace history to prevent going back
+        navigate("/home", { replace: true });
       } else {
         toast.error("Failed to save profile. Please try again.");
       }
