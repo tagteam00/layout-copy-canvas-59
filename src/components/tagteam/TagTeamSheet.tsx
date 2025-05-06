@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { X, Pencil } from "lucide-react";
 import { Drawer, DrawerContent, DrawerClose, DrawerOverlay } from "@/components/ui/drawer";
@@ -8,6 +9,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "../ui/scroll-area";
+
 interface TagTeamSheetProps {
   isOpen: boolean;
   onClose: () => void;
@@ -32,6 +34,7 @@ interface TagTeamSheetProps {
   };
   currentUserId: string;
 }
+
 export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   isOpen,
   onClose,
@@ -43,6 +46,7 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   const [newGoal, setNewGoal] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [sheetHeight, setSheetHeight] = useState<string>("75%");
+  const [timeUntilMidnight, setTimeUntilMidnight] = useState<string>("00:00:00");
   const startY = useRef<number | null>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
 
@@ -55,10 +59,36 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   const daysOfWeek = ["Su", "Mo", "Tu", "W", "Th", "F", "Sa"];
   const today = new Date().getDay();
 
+  // Calculate time until midnight
+  useEffect(() => {
+    const calculateTimeUntilMidnight = () => {
+      const now = new Date();
+      const midnight = new Date();
+      midnight.setHours(24, 0, 0, 0);
+      const diff = midnight.getTime() - now.getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor(diff % (1000 * 60 * 60) / (1000 * 60));
+      const seconds = Math.floor(diff % (1000 * 60) / 1000);
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+    
+    const updateTimeUntilMidnight = () => {
+      setTimeUntilMidnight(calculateTimeUntilMidnight());
+    };
+
+    // Update immediately and then every second
+    updateTimeUntilMidnight();
+    const timerId = setInterval(updateTimeUntilMidnight, 1000);
+    return () => {
+      clearInterval(timerId);
+    };
+  }, []);
+
   // Get the first name only for display
   const getFirstName = (fullName: string) => {
     return fullName.split(' ')[0];
   };
+
   const handleSetGoal = async () => {
     if (!newGoal.trim()) {
       toast.error("Goal cannot be empty");
@@ -83,6 +113,7 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
       setIsSubmitting(false);
     }
   };
+
   const handleStatusUpdate = async (status: "completed" | "pending") => {
     try {
       // In a real implementation, you would update the partner's status in the database
@@ -97,34 +128,45 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
     }
   };
 
-  // Touch event handlers for custom drag behavior
+  // Optimized touch event handlers with better animation performance
   const handleTouchStart = (e: React.TouchEvent) => {
     startY.current = e.touches[0].clientY;
   };
+
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!startY.current || !drawerRef.current) return;
+    
     const currentY = e.touches[0].clientY;
     const deltaY = currentY - startY.current;
     const windowHeight = window.innerHeight;
     const threshold = windowHeight * 0.25; // 25% threshold
-
-    // Dragging down
+    
+    // Apply transform instead of changing height for better performance
     if (deltaY > 0) {
+      // Dragging down - use transform for smoother animation
+      const transformPercent = Math.min(100, (deltaY / threshold) * 30);
+      drawerRef.current.style.transform = `translateY(${transformPercent}px)`;
+      
       // If dragged more than threshold, prepare to close
       if (deltaY > threshold) {
-        setSheetHeight("50%");
-      } else {
-        // Otherwise keep at 75%
-        setSheetHeight("75%");
+        drawerRef.current.style.opacity = `${1 - ((deltaY - threshold) / threshold)}`;
       }
-    }
-    // Dragging up - expand to full screen
-    else if (deltaY < -50) {
-      setSheetHeight("90%");
+    } 
+    // Dragging up - expand to full screen with transform
+    else if (deltaY < -20) {
+      const upThreshold = 50;
+      const expandPercent = Math.min(15, (Math.abs(deltaY) / upThreshold) * 15);
+      drawerRef.current.style.transform = `translateY(-${expandPercent}px)`;
     }
   };
+
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!startY.current) return;
+    if (!startY.current || !drawerRef.current) return;
+    
+    // Reset transform for clean animation
+    drawerRef.current.style.transform = '';
+    drawerRef.current.style.opacity = '1';
+    
     const currentY = e.changedTouches[0].clientY;
     const deltaY = currentY - startY.current;
     const windowHeight = window.innerHeight;
@@ -137,21 +179,33 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
       // If dragged significantly upward, expand to full
       setSheetHeight("90%");
     } else {
-      // Reset to default height
+      // Reset to default height with animated transition
       setSheetHeight("75%");
     }
+    
     startY.current = null;
   };
+
   return <>
       <Drawer open={isOpen} onOpenChange={open => !open && onClose()}>
         <DrawerOverlay />
-        <DrawerContent ref={drawerRef} className="bg-white rounded-t-[20px] p-0 transition-all duration-300 ease-in-out" style={{
-        height: sheetHeight
-      }}>
+        <DrawerContent 
+          ref={drawerRef} 
+          className="bg-white rounded-t-[20px] p-0 transition-all duration-300 ease-out will-change-transform" 
+          style={{
+            height: sheetHeight,
+            transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)"
+          }}
+        >
           {/* Drag handle indicator */}
           <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto my-2" />
           
-          <div className="flex flex-col w-full h-full" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+          <div 
+            className="flex flex-col w-full h-full" 
+            onTouchStart={handleTouchStart} 
+            onTouchMove={handleTouchMove} 
+            onTouchEnd={handleTouchEnd}
+          >
             {/* Header */}
             <div className="relative flex items-center justify-center px-4 py-3 border-b border-gray-100">
               <h2 className="text-[20px] font-bold text-black">{tagTeam.name}</h2>
@@ -181,7 +235,7 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
                       Resets in:
                     </span>
                     <span className="text-[16px] font-medium text-blue-500">
-                      {tagTeam.resetTime || "00:30:00"}
+                      {timeUntilMidnight}
                     </span>
                   </div>
 
@@ -220,13 +274,26 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
                   </ToggleGroup>
                 </div>
                 
-                {/* Goal Content */}
-                <div className="min-h-[80px] p-4 rounded-md bg-white mb-4">
-                  {activeGoal === "your" ? currentUser.goal ? <p className="text-gray-700">{currentUser.goal}</p> : <div className="flex justify-center">
+                {/* Goal Content - Updated to remove the bento box styling */}
+                <div className="min-h-[80px] px-1 py-2">
+                  {activeGoal === "your" ? (
+                    currentUser.goal ? (
+                      <p className="text-gray-700">{currentUser.goal}</p>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2">
+                        <p className="text-gray-500 italic text-center mb-2">You haven't set a goal yet</p>
                         <Button variant="default" className="bg-black text-white" onClick={() => setIsSettingGoal(true)}>
                           Set a new goal
                         </Button>
-                      </div> : partnerUser.goal ? <p className="text-gray-700">{partnerUser.goal}</p> : <p className="text-gray-500 italic text-center">No goal set yet</p>}
+                      </div>
+                    )
+                  ) : (
+                    partnerUser.goal ? (
+                      <p className="text-gray-700">{partnerUser.goal}</p>
+                    ) : (
+                      <p className="text-gray-500 italic text-center">No goal set yet</p>
+                    )
+                  )}
                 </div>
               </div>
               
@@ -238,9 +305,16 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
                 </div>
                 
                 <div className="flex justify-between items-center px-0 mx-[4px]">
-                  {daysOfWeek.map((day, index) => <div key={day} className={`w-[36px] h-[36px] flex items-center justify-center rounded-full ${index === today ? "bg-[#E5DEFF] font-bold" : "bg-[#F0F0F0] text-gray-500"}`}>
+                  {daysOfWeek.map((day, index) => (
+                    <div 
+                      key={day} 
+                      className={`w-[36px] h-[36px] flex items-center justify-center rounded-full ${
+                        index === today ? "bg-[#E5DEFF] font-bold" : "bg-[#F0F0F0] text-gray-500"
+                      }`}
+                    >
                       {day}
-                    </div>)}
+                    </div>
+                  ))}
                 </div>
               </div>
               
@@ -251,10 +325,16 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
                 </p>
                 
                 <div className="flex justify-between gap-4">
-                  <Button className="flex-1 bg-[#FFDFDF] text-red-700 hover:bg-[#FFCFCF]" onClick={() => handleStatusUpdate("pending")}>
+                  <Button 
+                    className="flex-1 bg-[#FFDFDF] text-red-700 hover:bg-[#FFCFCF]" 
+                    onClick={() => handleStatusUpdate("pending")}
+                  >
                     Mark Pending
                   </Button>
-                  <Button className="flex-1 bg-[#DCFFDC] text-green-700 hover:bg-[#CCFFCC]" onClick={() => handleStatusUpdate("completed")}>
+                  <Button 
+                    className="flex-1 bg-[#DCFFDC] text-green-700 hover:bg-[#CCFFCC]" 
+                    onClick={() => handleStatusUpdate("completed")}
+                  >
                     Completed
                   </Button>
                 </div>
@@ -262,14 +342,20 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
             </ScrollArea>
             
             {/* Edit goal button positioned at bottom right */}
-            {currentUser.goal && activeGoal === "your" && <div className="absolute bottom-10 right-5">
-                <Button size="icon" className="h-10 w-10 rounded-full bg-gray-200 hover:bg-gray-300" onClick={() => {
-              setNewGoal(currentUser.goal || "");
-              setIsSettingGoal(true);
-            }}>
+            {currentUser.goal && activeGoal === "your" && (
+              <div className="absolute bottom-10 right-5">
+                <Button 
+                  size="icon" 
+                  className="h-10 w-10 rounded-full bg-gray-200 hover:bg-gray-300" 
+                  onClick={() => {
+                    setNewGoal(currentUser.goal || "");
+                    setIsSettingGoal(true);
+                  }}
+                >
                   <Pencil className="h-5 w-5" />
                 </Button>
-              </div>}
+              </div>
+            )}
           </div>
         </DrawerContent>
       </Drawer>
@@ -281,13 +367,28 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
             <DialogTitle>Set Your Goal</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <Textarea placeholder="Describe your goal here..." value={newGoal} onChange={e => setNewGoal(e.target.value)} className="min-h-[100px]" />
+            <Textarea 
+              placeholder="Describe your goal here..." 
+              value={newGoal} 
+              onChange={e => setNewGoal(e.target.value)} 
+              className="min-h-[100px]" 
+            />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsSettingGoal(false)} disabled={isSubmitting}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setIsSettingGoal(false)} 
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button type="button" onClick={handleSetGoal} disabled={isSubmitting} className="bg-black text-white">
+            <Button 
+              type="button" 
+              onClick={handleSetGoal} 
+              disabled={isSubmitting} 
+              className="bg-black text-white"
+            >
               {isSubmitting ? "Saving..." : "Save Goal"}
             </Button>
           </DialogFooter>
