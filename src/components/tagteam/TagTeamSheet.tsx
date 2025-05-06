@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { X, Pencil } from "lucide-react";
 import { Drawer, DrawerContent, DrawerClose, DrawerOverlay } from "@/components/ui/drawer";
@@ -9,6 +8,8 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "../ui/scroll-area";
+import { calculateTimeRemaining, getUrgencyColorClass } from "@/utils/timeUtils";
+import { Clock } from "lucide-react";
 
 interface TagTeamSheetProps {
   isOpen: boolean;
@@ -30,7 +31,7 @@ interface TagTeamSheetProps {
     };
     interest: string;
     frequency: string;
-    resetTime?: string;
+    resetDay?: number;
   };
   currentUserId: string;
 }
@@ -46,7 +47,7 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   const [newGoal, setNewGoal] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [sheetHeight, setSheetHeight] = useState<string>("75%");
-  const [timeUntilMidnight, setTimeUntilMidnight] = useState<string>("00:00:00");
+  const [timeDisplay, setTimeDisplay] = useState({ timeString: "00:00:00", urgency: 'normal' as const });
   const startY = useRef<number | null>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
 
@@ -59,30 +60,24 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   const daysOfWeek = ["Su", "Mo", "Tu", "W", "Th", "F", "Sa"];
   const today = new Date().getDay();
 
-  // Calculate time until midnight
+  // Update time remaining based on frequency
   useEffect(() => {
-    const calculateTimeUntilMidnight = () => {
-      const now = new Date();
-      const midnight = new Date();
-      midnight.setHours(24, 0, 0, 0);
-      const diff = midnight.getTime() - now.getTime();
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor(diff % (1000 * 60 * 60) / (1000 * 60));
-      const seconds = Math.floor(diff % (1000 * 60) / 1000);
-      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    };
-    
-    const updateTimeUntilMidnight = () => {
-      setTimeUntilMidnight(calculateTimeUntilMidnight());
+    const updateTimeRemaining = () => {
+      setTimeDisplay(calculateTimeRemaining(tagTeam.frequency, tagTeam.resetDay));
     };
 
-    // Update immediately and then every second
-    updateTimeUntilMidnight();
-    const timerId = setInterval(updateTimeUntilMidnight, 1000);
+    // Update immediately and then based on frequency
+    updateTimeRemaining();
+    
+    // For daily timers, update every second
+    // For weekly or longer, update every minute is sufficient
+    const interval = tagTeam.frequency.toLowerCase() === 'daily' ? 1000 : 60000;
+    const timerId = setInterval(updateTimeRemaining, interval);
+    
     return () => {
       clearInterval(timerId);
     };
-  }, []);
+  }, [tagTeam.frequency, tagTeam.resetDay]);
 
   // Get the first name only for display
   const getFirstName = (fullName: string) => {
@@ -231,11 +226,11 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
 
                   {/* Reset Timer */}
                   <div className="flex flex-col items-center space-y-2">
-                    <span className="text-[14px] text-gray-600">
-                      Resets in:
+                    <span className="text-[14px] text-gray-600 flex items-center gap-1">
+                      <Clock className="h-4 w-4" /> Resets in:
                     </span>
-                    <span className="text-[16px] font-medium text-blue-500">
-                      {timeUntilMidnight}
+                    <span className={`text-[16px] font-medium ${getUrgencyColorClass(timeDisplay.urgency)}`}>
+                      {timeDisplay.timeString}
                     </span>
                   </div>
 

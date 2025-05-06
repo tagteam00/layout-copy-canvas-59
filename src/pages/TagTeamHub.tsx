@@ -76,24 +76,30 @@ const TagTeamHub: React.FC = () => {
             .eq('id', partnerId)
             .single();
             
+          // Calculate reset day based on frequency
+          // For demo purposes, we'll generate a random day for weekly frequencies
+          const resetDay = team.frequency.toLowerCase() === 'weekly' ? 
+            Math.floor(Math.random() * 7) : // 0-6 for Sunday-Saturday
+            undefined;
+            
           return {
             id: team.id,
             name: team.name,
             firstUser: {
               id: userId,
               name: userData.fullName,
-              status: "pending" as const, // For now, hardcoded
+              status: "pending" as const,
               goal: "Will do Push pull legs the entire week, and take as much protien as I can" // Example goal
             },
             secondUser: {
               id: partnerId || "",
               name: partnerData?.full_name || "Partner",
-              status: "completed" as const, // For now, hardcoded
+              status: "completed" as const,
               goal: "" // Empty goal for example
             },
             interest: team.category,
             frequency: team.frequency,
-            resetTime: "00:30:00" // Example reset time
+            resetDay: resetDay
           };
         }));
         
@@ -138,6 +144,7 @@ const TagTeamHub: React.FC = () => {
                   secondUser={team.secondUser}
                   interest={team.interest}
                   frequency={team.frequency}
+                  resetDay={team.resetDay}
                 />
               </div>
             ))}
