@@ -34,7 +34,7 @@ export const HomeContent: React.FC<HomeContentProps> = ({
         onAddTeam={onAddTeam} 
         userName={userProfile.fullName} 
         loading={loading}
-        currentUserId={userProfile.id}
+        currentUserId={userProfile.id || ""}
       />
       <div>
         <UsersList users={allUsers} loading={loading} />

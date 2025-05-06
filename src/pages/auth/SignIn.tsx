@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -258,6 +257,7 @@ const SignIn: React.FC = () => {
           <CardFooter className="flex justify-center">
             <p className="text-sm text-center">
               Don't have an account?{" "}
+              {/* Fix: Using correct router Link instead of regular anchor tag */}
               <Link to="/signup" className="text-[rgba(130,122,255,1)] font-medium hover:underline">
                 Sign Up
               </Link>

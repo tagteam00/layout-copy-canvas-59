@@ -29,7 +29,7 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedPartner, setSelectedPartner] = useState("");
   const [partnerId, setPartnerId] = useState("");
-  const [frequency, setFrequency] = useState<{ type: 'daily' | 'weekly'; day?: string | number }>({
+  const [frequency, setFrequency] = useState<{ type: 'daily' | 'weekly'; day?: string }>({
     type: 'daily'
   });
   const userInterests = categories || [];

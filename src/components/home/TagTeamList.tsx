@@ -19,7 +19,6 @@ interface TagTeam {
   };
   interest: string;
   frequency: string;
-  resetDay?: number;
 }
 
 interface TagTeamListProps {
@@ -109,7 +108,6 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
                 secondUser={team.secondUser}
                 interest={team.interest}
                 frequency={team.frequency}
-                resetDay={team.resetDay}
               />
             </div>
           ))}

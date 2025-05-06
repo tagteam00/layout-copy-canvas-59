@@ -1,7 +1,4 @@
-
 import React, { useState, useEffect } from "react";
-import { calculateTimeRemaining, getUrgencyColorClass } from "@/utils/timeUtils";
-
 interface TagTeamCardProps {
   name: string;
   firstUser: {
@@ -15,51 +12,46 @@ interface TagTeamCardProps {
   resetTime?: string;
   interest: string;
   frequency: string;
-  resetDay?: number;
   onClick?: () => void;
 }
-
 export const TagTeamCard: React.FC<TagTeamCardProps> = ({
   name,
   firstUser,
   secondUser,
   interest,
   frequency,
-  resetDay,
   onClick
 }) => {
-  const [timeDisplay, setTimeDisplay] = useState<{ 
-    timeString: string; 
-    urgency: 'normal' | 'warning' | 'urgent'
-  }>({ 
-    timeString: "00:00:00", 
-    urgency: 'normal' 
-  });
+  const [timeUntilMidnight, setTimeUntilMidnight] = useState<string>("00:00:00");
 
   // Function to get first name
   const getFirstName = (fullName: string): string => {
     return fullName.split(' ')[0];
   };
 
-  // Update time remaining
+  // Calculate time until midnight
   useEffect(() => {
-    const updateTimeRemaining = () => {
-      setTimeDisplay(calculateTimeRemaining(frequency, resetDay));
+    const calculateTimeUntilMidnight = () => {
+      const now = new Date();
+      const midnight = new Date();
+      midnight.setHours(24, 0, 0, 0);
+      const diff = midnight.getTime() - now.getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor(diff % (1000 * 60 * 60) / (1000 * 60));
+      const seconds = Math.floor(diff % (1000 * 60) / 1000);
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+    const updateTimeUntilMidnight = () => {
+      setTimeUntilMidnight(calculateTimeUntilMidnight());
     };
 
-    // Update immediately and then based on frequency
-    updateTimeRemaining();
-    
-    // For daily timers, update every second
-    // For weekly or longer, update every minute is sufficient
-    const interval = frequency.toLowerCase() === 'daily' ? 1000 : 60000;
-    const timerId = setInterval(updateTimeRemaining, interval);
-    
+    // Update immediately and then every second
+    updateTimeUntilMidnight();
+    const timerId = setInterval(updateTimeUntilMidnight, 1000);
     return () => {
       clearInterval(timerId);
     };
-  }, [frequency, resetDay]);
-
+  }, []);
   return <div onClick={onClick} className="w-full rounded-2xl border border-[#E5DEFF] p-4 cursor-pointer hover:shadow-md transition-shadow bg-slate-50">
       {/* Header Section */}
       <h3 className="text-center text-[20px] text-[#827AFF] mb-4 truncate font-extrabold">
@@ -83,8 +75,8 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
           <span className="text-[14px] text-gray-600">
             Resets in:
           </span>
-          <span className={`text-[16px] font-medium ${getUrgencyColorClass(timeDisplay.urgency)}`}>
-            {timeDisplay.timeString}
+          <span className="text-[16px] font-medium text-gray-800">
+            {timeUntilMidnight}
           </span>
         </div>
 

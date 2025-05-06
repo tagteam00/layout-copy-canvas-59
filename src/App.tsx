@@ -25,6 +25,8 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false, // Improve performance by preventing unnecessary refetches
       retry: 1, // Limit retries to improve performance
+      // Force fresh data to always be loaded, not cached versions
+      staleTime: 0, 
     }
   }
 });
@@ -55,7 +57,7 @@ const ProtectedRoute = ({ children }) => {
 
 // Onboarding route - accessible only to authenticated users who haven't completed onboarding
 const OnboardingRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, hasCompletedOnboarding } = useAuth();
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">
@@ -67,6 +69,11 @@ const OnboardingRoute = ({ children }) => {
 
   if (!user) {
     return <Navigate to="/signin" replace />;
+  }
+  
+  // Fix: Prevent onboarding loop by redirecting to home if onboarding is already completed
+  if (hasCompletedOnboarding) {
+    return <Navigate to="/home" replace />;
   }
 
   return children;
