@@ -1,21 +1,22 @@
-
-import React, { useState, useEffect, useRef } from "react";
-import { X, Pencil, Clock } from "lucide-react";
+import React, { useState, useRef } from "react";
+import { X, Pencil } from "lucide-react";
 import { 
   Drawer, 
   DrawerContent, 
   DrawerClose, 
   DrawerOverlay 
 } from "@/components/ui/drawer";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "../ui/scroll-area";
-import { calculateAdaptiveTimer, getUrgencyColor, TimerUrgency } from "@/utils/timerUtils";
 import { TagTeam } from "@/types/tagteam";
+import { useTagTeamTimer } from "@/hooks/useTagTeamTimer";
+import { UserStatusSection } from "./sheet-components/UserStatusSection";
+import { TeamInfoSection } from "./sheet-components/TeamInfoSection";
+import { GoalSection } from "./sheet-components/GoalSection";
+import { CalendarSection } from "./sheet-components/CalendarSection";
+import { PartnerVerificationSection } from "./sheet-components/PartnerVerificationSection";
+import { GoalDialog } from "./sheet-components/GoalDialog";
 
 interface TagTeamSheetProps {
   isOpen: boolean;
@@ -37,10 +38,9 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   const [sheetHeight, setSheetHeight] = useState<string>("75%");
   const startY = useRef<number | null>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
-  const [timer, setTimer] = useState<{timeString: string; urgency: TimerUrgency}>({
-    timeString: "00:00:00",
-    urgency: "normal"
-  });
+  
+  // Use the timer hook
+  const { timer, timerColorClass } = useTagTeamTimer(tagTeam.frequency, tagTeam.resetDay);
   
   // Determine if current user is first or second user
   const isFirstUser = tagTeam.firstUser.id === currentUserId;
@@ -50,32 +50,6 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   // Days of the week for the calendar section
   const daysOfWeek = ["Su", "Mo", "Tu", "W", "Th", "F", "Sa"];
   const today = new Date().getDay();
-  
-  // Get the first name only for display
-  const getFirstName = (fullName: string) => {
-    return fullName.split(' ')[0];
-  };
-
-  // Update timer based on frequency
-  useEffect(() => {
-    if (!isOpen) return;
-    
-    const updateTimer = () => {
-      const timerDisplay = calculateAdaptiveTimer(tagTeam.frequency, tagTeam.resetDay);
-      setTimer(timerDisplay);
-    };
-    
-    // Initial update
-    updateTimer();
-    
-    // Set interval based on frequency type
-    const intervalMs = tagTeam.frequency.toLowerCase().includes("daily") ? 1000 : 60000;
-    const interval = setInterval(updateTimer, intervalMs);
-    
-    return () => clearInterval(interval);
-  }, [isOpen, tagTeam.frequency, tagTeam.resetDay]);
-  
-  const timerColorClass = getUrgencyColor(timer.urgency);
   
   const handleSetGoal = async () => {
     if (!newGoal.trim()) {
@@ -87,16 +61,9 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
     
     try {
       // In a real implementation, you would update the goal in the database
-      // and trigger real-time updates for the partner
-      
-      // For now, we'll just close the dialog and show a success message
       toast.success("Goal set successfully!");
       setIsSettingGoal(false);
       setNewGoal("");
-      
-      // Here you would typically update the local state as well
-      // This is a placeholder for where the actual database update would happen
-      
     } catch (error) {
       console.error("Error setting goal:", error);
       toast.error("Failed to set goal");
@@ -107,13 +74,7 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   
   const handleStatusUpdate = async (status: "completed" | "pending") => {
     try {
-      // In a real implementation, you would update the partner's status in the database
-      // and trigger real-time updates
-      
       toast.success(`Partner marked as ${status}`);
-      
-      // This is a placeholder for where the actual database update would happen
-      
     } catch (error) {
       console.error("Error updating status:", error);
       toast.error("Failed to update status");
@@ -202,134 +163,36 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
             <ScrollArea className="flex-1 px-4 pb-8">
               {/* User Status Section */}
               <div className="bg-[#F8F7FC] rounded-xl p-4 mb-4 mt-4">
-                <div className="flex justify-between items-start mb-4">
-                  {/* First User */}
-                  <div className="flex flex-col items-center space-y-2">
-                    <span className="text-[16px] font-medium text-gray-800 text-center">
-                      {getFirstName(tagTeam.firstUser.name)}
-                    </span>
-                    <span className={`py-1 px-3 rounded-full text-sm font-medium ${
-                      tagTeam.firstUser.status === "completed" 
-                        ? "bg-[#DCFFDC] text-green-700" 
-                        : "bg-[#FFE8CC] text-amber-700"
-                    }`}>
-                      {tagTeam.firstUser.status === "completed" ? "Completed" : "Pending"}
-                    </span>
-                  </div>
-
-                  {/* Reset Timer */}
-                  <div className="flex flex-col items-center space-y-2">
-                    <span className="text-[14px] text-gray-600 flex items-center gap-1">
-                      <Clock className="h-4 w-4" /> Resets in:
-                    </span>
-                    <span className={`text-[16px] font-medium ${timerColorClass}`}>
-                      {timer.timeString}
-                    </span>
-                  </div>
-
-                  {/* Second User */}
-                  <div className="flex flex-col items-center space-y-2">
-                    <span className="text-[16px] font-medium text-gray-800 text-center">
-                      {getFirstName(tagTeam.secondUser.name)}
-                    </span>
-                    <span className={`py-1 px-3 rounded-full text-sm font-medium ${
-                      tagTeam.secondUser.status === "completed" 
-                        ? "bg-[#DCFFDC] text-green-700" 
-                        : "bg-[#FFE8CC] text-amber-700"
-                    }`}>
-                      {tagTeam.secondUser.status === "completed" ? "Completed" : "Pending"}
-                    </span>
-                  </div>
-                </div>
+                <UserStatusSection 
+                  firstUser={tagTeam.firstUser}
+                  secondUser={tagTeam.secondUser}
+                  timer={timer}
+                  timerColorClass={timerColorClass}
+                />
                 
-                {/* Team Info */}
-                <div className="flex flex-wrap justify-between items-center border-t border-[#E0E0E0] pt-4 mb-4">
-                  <div className="mb-2 sm:mb-0">
-                    <span className="text-[14px] text-gray-600">Tagteam's Interest: </span>
-                    <span className="text-[14px] font-medium text-gray-800">{tagTeam.interest}</span>
-                  </div>
-                  <div>
-                    <span className="text-[14px] text-gray-600">Frequency: </span>
-                    <span className="text-[14px] font-medium text-gray-800">{tagTeam.frequency}</span>
-                  </div>
-                </div>
+                <TeamInfoSection 
+                  interest={tagTeam.interest}
+                  frequency={tagTeam.frequency}
+                />
                 
-                {/* Goal Toggle */}
-                <div className="flex justify-center mb-4">
-                  <ToggleGroup type="single" value={activeGoal} onValueChange={(value) => value && setActiveGoal(value)}>
-                    <ToggleGroupItem value="your" className={`w-[100px] rounded-full ${activeGoal === "your" ? "bg-[#E5DEFF] text-black" : "bg-white text-gray-500"}`}>
-                      Your Goal
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="partner" className={`w-[100px] rounded-full ${activeGoal === "partner" ? "bg-[#E5DEFF] text-black" : "bg-white text-gray-500"}`}>
-                      {getFirstName(partnerUser.name)}'s Goal
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-                
-                {/* Goal Content */}
-                <div className="min-h-[80px] p-4 rounded-md bg-white mb-4">
-                  {activeGoal === "your" ? (
-                    currentUser.goal ? (
-                      <p className="text-gray-700">{currentUser.goal}</p>
-                    ) : (
-                      <div className="flex justify-center">
-                        <Button variant="default" className="bg-black text-white" onClick={() => setIsSettingGoal(true)}>
-                          Set a new goal
-                        </Button>
-                      </div>
-                    )
-                  ) : (
-                    partnerUser.goal ? (
-                      <p className="text-gray-700">{partnerUser.goal}</p>
-                    ) : (
-                      <p className="text-gray-500 italic text-center">No goal set yet</p>
-                    )
-                  )}
-                </div>
+                <GoalSection 
+                  activeGoal={activeGoal}
+                  setActiveGoal={setActiveGoal}
+                  currentUser={currentUser}
+                  partnerUser={partnerUser}
+                  onSetGoal={() => setIsSettingGoal(true)}
+                />
               </div>
               
-              {/* Calendar Section */}
-              <div className="bg-[#F8F7FC] rounded-xl p-4 mb-6">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-[16px] font-bold">Upcoming:</span>
-                  <span className="text-[14px] text-gray-600">Tomorrow, Mon</span>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  {daysOfWeek.map((day, index) => (
-                    <div 
-                      key={day} 
-                      className={`w-[36px] h-[36px] flex items-center justify-center rounded-full ${
-                        index === today ? "bg-[#E5DEFF] font-bold" : "bg-[#F0F0F0] text-gray-500"
-                      }`}
-                    >
-                      {day}
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <CalendarSection 
+                daysOfWeek={daysOfWeek}
+                today={today}
+              />
               
-              {/* Partner Verification Section */}
-              <div className="mt-auto mb-6">
-                <p className="text-center text-[16px] font-medium mb-4">
-                  Has {getFirstName(partnerUser.name)} completed his Daily goal?
-                </p>
-                
-                <div className="flex justify-between gap-4">
-                  <Button 
-                    className="flex-1 bg-[#FFDFDF] text-red-700 hover:bg-[#FFCFCF]"
-                    onClick={() => handleStatusUpdate("pending")}
-                  >
-                    Mark Pending
-                  </Button>
-                  <Button 
-                    className="flex-1 bg-[#DCFFDC] text-green-700 hover:bg-[#CCFFCC]"
-                    onClick={() => handleStatusUpdate("completed")}
-                  >
-                    Completed
-                  </Button>
-                </div>
-              </div>
+              <PartnerVerificationSection 
+                partnerName={partnerUser.name}
+                onStatusUpdate={handleStatusUpdate}
+              />
             </ScrollArea>
             
             {/* Edit goal button positioned at bottom right */}
@@ -352,39 +215,14 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
       </Drawer>
       
       {/* Goal Setting Dialog */}
-      <Dialog open={isSettingGoal} onOpenChange={setIsSettingGoal}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Set Your Goal</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <Textarea
-              placeholder="Describe your goal here..."
-              value={newGoal}
-              onChange={(e) => setNewGoal(e.target.value)}
-              className="min-h-[100px]"
-            />
-          </div>
-          <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setIsSettingGoal(false)}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="button" 
-              onClick={handleSetGoal}
-              disabled={isSubmitting}
-              className="bg-black text-white"
-            >
-              {isSubmitting ? "Saving..." : "Save Goal"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <GoalDialog 
+        isOpen={isSettingGoal}
+        onOpenChange={setIsSettingGoal}
+        newGoal={newGoal}
+        setNewGoal={setNewGoal}
+        onSave={handleSetGoal}
+        isSubmitting={isSubmitting}
+      />
     </>
   );
 };
