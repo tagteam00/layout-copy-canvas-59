@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -71,15 +72,21 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
         return;
       }
 
+      // Format the frequency string to include the reset day for weekly frequency
+      const formattedFrequency = frequency.type === 'daily' 
+        ? 'Daily' 
+        : `Weekly (${frequency.day})`;
+
       const { error } = await supabase
         .from('team_requests')
         .insert({
           name: teamName,
           category: selectedCategory,
-          frequency: frequency.type === 'weekly' ? `Weekly (${frequency.day})` : 'Daily',
+          frequency: formattedFrequency,
           sender_id: authData.user.id,
           receiver_id: partnerId,
-          status: 'pending'
+          status: 'pending',
+          reset_day: frequency.type === 'weekly' ? frequency.day : undefined
         });
 
       if (error) throw error;

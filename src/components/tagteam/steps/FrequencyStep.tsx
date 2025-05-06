@@ -13,7 +13,7 @@ export const FrequencyStep: React.FC<FrequencyStepProps> = ({
   frequency,
   setFrequency,
 }) => {
-  const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   return (
     <div className="space-y-6">
@@ -22,7 +22,7 @@ export const FrequencyStep: React.FC<FrequencyStepProps> = ({
         <RadioGroup
           value={frequency.type}
           onValueChange={(value: 'daily' | 'weekly') =>
-            setFrequency({ type: value, day: value === 'weekly' ? frequency.day : undefined })
+            setFrequency({ type: value, day: value === 'weekly' ? frequency.day || 'Monday' : undefined })
           }
           className="flex flex-col space-y-2"
         >
@@ -39,9 +39,9 @@ export const FrequencyStep: React.FC<FrequencyStepProps> = ({
 
       {frequency.type === 'weekly' && (
         <div className="space-y-2">
-          <label className="block text-sm font-medium">Select Day</label>
+          <label className="block text-sm font-medium">Select Reset Day</label>
           <Select
-            value={frequency.day}
+            value={frequency.day || 'Monday'}
             onValueChange={(day) => setFrequency({ ...frequency, day })}
           >
             <SelectTrigger>
@@ -49,7 +49,7 @@ export const FrequencyStep: React.FC<FrequencyStepProps> = ({
             </SelectTrigger>
             <SelectContent>
               {weekDays.map((day) => (
-                <SelectItem key={day} value={day.toLowerCase()}>
+                <SelectItem key={day} value={day}>
                   {day}
                 </SelectItem>
               ))}

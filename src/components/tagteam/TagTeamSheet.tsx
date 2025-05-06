@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useRef } from "react";
-import { X, Pencil } from "lucide-react";
+import { X, Pencil, Clock } from "lucide-react";
 import { 
   Drawer, 
   DrawerContent, 
@@ -13,29 +14,13 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "../ui/scroll-area";
+import { calculateAdaptiveTimer, getUrgencyColor, TimerUrgency } from "@/utils/timerUtils";
+import { TagTeam } from "@/types/tagteam";
 
 interface TagTeamSheetProps {
   isOpen: boolean;
   onClose: () => void;
-  tagTeam: {
-    id: string;
-    name: string;
-    firstUser: {
-      name: string;
-      status: "completed" | "pending";
-      goal?: string;
-      id: string;
-    };
-    secondUser: {
-      name: string;
-      status: "completed" | "pending";
-      goal?: string;
-      id: string;
-    };
-    interest: string;
-    frequency: string;
-    resetTime?: string;
-  };
+  tagTeam: TagTeam;
   currentUserId: string;
 }
 
@@ -52,6 +37,10 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   const [sheetHeight, setSheetHeight] = useState<string>("75%");
   const startY = useRef<number | null>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
+  const [timer, setTimer] = useState<{timeString: string; urgency: TimerUrgency}>({
+    timeString: "00:00:00",
+    urgency: "normal"
+  });
   
   // Determine if current user is first or second user
   const isFirstUser = tagTeam.firstUser.id === currentUserId;
@@ -66,6 +55,27 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   const getFirstName = (fullName: string) => {
     return fullName.split(' ')[0];
   };
+
+  // Update timer based on frequency
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const updateTimer = () => {
+      const timerDisplay = calculateAdaptiveTimer(tagTeam.frequency, tagTeam.resetDay);
+      setTimer(timerDisplay);
+    };
+    
+    // Initial update
+    updateTimer();
+    
+    // Set interval based on frequency type
+    const intervalMs = tagTeam.frequency.toLowerCase().includes("daily") ? 1000 : 60000;
+    const interval = setInterval(updateTimer, intervalMs);
+    
+    return () => clearInterval(interval);
+  }, [isOpen, tagTeam.frequency, tagTeam.resetDay]);
+  
+  const timerColorClass = getUrgencyColor(timer.urgency);
   
   const handleSetGoal = async () => {
     if (!newGoal.trim()) {
@@ -209,11 +219,11 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
 
                   {/* Reset Timer */}
                   <div className="flex flex-col items-center space-y-2">
-                    <span className="text-[14px] text-gray-600">
-                      Resets in:
+                    <span className="text-[14px] text-gray-600 flex items-center gap-1">
+                      <Clock className="h-4 w-4" /> Resets in:
                     </span>
-                    <span className="text-[16px] font-medium text-blue-500">
-                      {tagTeam.resetTime || "00:30:00"}
+                    <span className={`text-[16px] font-medium ${timerColorClass}`}>
+                      {timer.timeString}
                     </span>
                   </div>
 

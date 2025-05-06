@@ -3,23 +3,7 @@ import React, { useState } from "react";
 import { Button } from "../ui/button";
 import { TagTeamCard } from "../tagteam/TagTeamCard";
 import { TagTeamSheet } from "../tagteam/TagTeamSheet";
-
-interface TagTeam {
-  id: string;
-  name: string;
-  firstUser: {
-    name: string;
-    status: "completed" | "pending";
-    id: string;
-  };
-  secondUser: {
-    name: string;
-    status: "completed" | "pending";
-    id: string;
-  };
-  interest: string;
-  frequency: string;
-}
+import { TagTeam } from "@/types/tagteam";
 
 interface TagTeamListProps {
   teams: TagTeam[];
@@ -108,6 +92,7 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
                 secondUser={team.secondUser}
                 interest={team.interest}
                 frequency={team.frequency}
+                resetDay={team.resetDay}
               />
             </div>
           ))}

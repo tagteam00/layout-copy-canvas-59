@@ -75,6 +75,13 @@ const TagTeamHub: React.FC = () => {
             .select('full_name')
             .eq('id', partnerId)
             .single();
+          
+          // Extract reset day from frequency if it's weekly
+          let resetDay;
+          if (team.frequency.toLowerCase().includes('weekly')) {
+            const match = team.frequency.match(/\((.*?)\)/);
+            resetDay = match ? match[1] : undefined;
+          }
             
           return {
             id: team.id,
@@ -93,6 +100,7 @@ const TagTeamHub: React.FC = () => {
             },
             interest: team.category,
             frequency: team.frequency,
+            resetDay: resetDay,
             resetTime: "00:30:00" // Example reset time
           };
         }));
@@ -138,6 +146,7 @@ const TagTeamHub: React.FC = () => {
                   secondUser={team.secondUser}
                   interest={team.interest}
                   frequency={team.frequency}
+                  resetDay={team.resetDay}
                 />
               </div>
             ))}
