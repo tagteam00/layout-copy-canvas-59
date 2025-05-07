@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -5,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Check, X } from "lucide-react";
+import { Check, X, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -21,17 +22,27 @@ interface TeamRequest {
   sender_name?: string;
 }
 
+interface Notification {
+  id: string;
+  user_id: string;
+  message: string;
+  related_to: string;
+  related_id: string;
+  read: boolean;
+  created_at: string;
+}
+
 const NotificationsPage: React.FC = () => {
   const [requests, setRequests] = useState<TeamRequest[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("notifications");
 
   useEffect(() => {
-    fetchTeamRequests();
+    fetchNotifications();
     // eslint-disable-next-line
   }, []);
 
-  const fetchTeamRequests = async () => {
+  const fetchNotifications = async () => {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
@@ -42,43 +53,56 @@ const NotificationsPage: React.FC = () => {
         return;
       }
 
-      // Get all requests where the current user is the receiver and status is pending
-      const { data: requestsData, error } = await supabase
-        .from('team_requests')
-        .select('*')
-        .eq('receiver_id', user.id)
-        .eq('status', 'pending');
+      // Fetch team requests
+      await fetchTeamRequests(user.id);
 
-      if (error) throw error;
-
-      // Get sender names for each request
-      const requestsWithSenderNames = await Promise.all(
-        (requestsData || []).map(async (request) => {
-          // Get the sender name from profiles table
-          const { data: senderProfile, error: senderError } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', request.sender_id)
-            .maybeSingle();
-
-          if (senderError) {
-            console.error('Error fetching sender name:', senderError);
-          }
-
-          return {
-            ...request,
-            sender_name: senderProfile?.full_name || 'Unknown User',
-          };
-        })
-      );
-
-      setRequests(requestsWithSenderNames);
+      // Set all notifications as read when visiting the page
+      markNotificationsAsRead(user.id);
     } catch (error) {
-      console.error('Error fetching team requests:', error);
+      console.error('Error fetching notifications:', error);
       toast.error("Failed to load notifications");
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchTeamRequests = async (userId: string) => {
+    // Get all requests where the current user is the receiver and status is pending
+    const { data: requestsData, error } = await supabase
+      .from('team_requests')
+      .select('*')
+      .eq('receiver_id', userId)
+      .eq('status', 'pending');
+
+    if (error) throw error;
+
+    // Get sender names for each request
+    const requestsWithSenderNames = await Promise.all(
+      (requestsData || []).map(async (request) => {
+        // Get the sender name from profiles table
+        const { data: senderProfile, error: senderError } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', request.sender_id)
+          .maybeSingle();
+
+        if (senderError) {
+          console.error('Error fetching sender name:', senderError);
+        }
+
+        return {
+          ...request,
+          sender_name: senderProfile?.full_name || 'Unknown User',
+        };
+      })
+    );
+
+    setRequests(requestsWithSenderNames);
+  };
+
+  const markNotificationsAsRead = async (userId: string) => {
+    // Future implementation if we add a notifications table
+    // For now, we're just using team_requests table for notifications
   };
 
   const handleAccept = async (requestId: string, teamName: string) => {
@@ -95,16 +119,30 @@ const NotificationsPage: React.FC = () => {
       const requestToAccept = requests.find(r => r.id === requestId);
 
       if (requestToAccept) {
-        const { error: teamError } = await supabase
+        const { error: teamError, data: newTeam } = await supabase
           .from('teams')
           .insert({
             name: requestToAccept.name,
             category: requestToAccept.category,
             frequency: requestToAccept.frequency,
             members: [requestToAccept.sender_id, requestToAccept.receiver_id],
-          });
+          })
+          .select()
+          .single();
 
         if (teamError) throw teamError;
+        
+        // Create a notification for the sender
+        await supabase
+          .from('notifications')
+          .insert({
+            user_id: requestToAccept.sender_id,
+            message: `${requestToAccept.sender_name} has accepted your TagTeam request for ${teamName}`,
+            related_to: 'team_request_accepted',
+            related_id: requestId,
+            read: false
+          })
+          .select();
       }
 
       // Remove the accepted request from the UI
@@ -158,6 +196,18 @@ const NotificationsPage: React.FC = () => {
     </div>
   );
 
+  const EmptyNotifications = () => (
+    <div className="flex flex-col items-center justify-center py-12">
+      <div className="bg-gray-100 p-6 rounded-full mb-4">
+        <Bell className="h-10 w-10 text-gray-400" />
+      </div>
+      <h3 className="text-lg font-medium mb-2">No notifications</h3>
+      <p className="text-sm text-gray-500 text-center max-w-xs">
+        You're all caught up! We'll notify you when there's activity or requests from other users.
+      </p>
+    </div>
+  );
+
   return (
     <main className="bg-white max-w-[480px] w-full mx-auto pb-16">
       <AppHeader />
@@ -203,9 +253,7 @@ const NotificationsPage: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-8">
-            <p className="text-gray-500">No pending requests</p>
-          </div>
+          <EmptyNotifications />
         )}
       </div>
       <BottomNavigation />

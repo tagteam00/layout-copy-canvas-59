@@ -53,3 +53,69 @@ export const updateTeamGoal = async (goalId: string, goal: string) => {
     throw error;
   }
 };
+
+// Notification related functions
+export const fetchUnreadNotificationsCount = async (userId: string) => {
+  try {
+    // Get pending team requests count
+    const { count: requestsCount, error: requestsError } = await supabase
+      .from('team_requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('receiver_id', userId)
+      .eq('status', 'pending');
+
+    if (requestsError) throw requestsError;
+    
+    // Get unread notifications count
+    const { count: notificationsCount, error: notificationsError } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('read', false);
+      
+    if (notificationsError) throw notificationsError;
+    
+    // Combine both counts
+    return (requestsCount || 0) + (notificationsCount || 0);
+  } catch (error) {
+    console.error('Error fetching unread notifications count:', error);
+    throw error;
+  }
+};
+
+export const markNotificationsAsRead = async (userId: string) => {
+  try {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('user_id', userId)
+      .eq('read', false);
+      
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error marking notifications as read:', error);
+    throw error;
+  }
+};
+
+export const createNotification = async (userId: string, message: string, relatedTo: string, relatedId?: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert([{
+        user_id: userId,
+        message,
+        related_to: relatedTo,
+        related_id: relatedId,
+        read: false
+      }])
+      .select();
+      
+    if (error) throw error;
+    return data?.[0];
+  } catch (error) {
+    console.error('Error creating notification:', error);
+    throw error;
+  }
+};
