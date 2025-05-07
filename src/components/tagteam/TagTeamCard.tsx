@@ -1,8 +1,6 @@
-
 import React from "react";
 import { Clock } from "lucide-react";
 import { useTagTeamTimer } from "@/hooks/useTagTeamTimer";
-
 interface TagTeamCardProps {
   name: string;
   firstUser: {
@@ -19,7 +17,6 @@ interface TagTeamCardProps {
   resetDay?: string;
   onClick?: () => void;
 }
-
 export const TagTeamCard: React.FC<TagTeamCardProps> = ({
   name,
   firstUser,
@@ -35,9 +32,11 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
   };
 
   // Use the timer hook instead of internal state
-  const { timer, timerColorClass } = useTagTeamTimer(frequency, resetDay);
-
-  return <div onClick={onClick} className="w-full rounded-2xl border border-[#E5DEFF] p-4 cursor-pointer hover:shadow-md transition-shadow bg-slate-50">
+  const {
+    timer,
+    timerColorClass
+  } = useTagTeamTimer(frequency, resetDay);
+  return <div onClick={onClick} className="w-full rounded-2xl border border-[#E5DEFF] p-4 cursor-pointer hover:shadow-md transition-shadow bg-[#f6f6ff]">
       {/* Header Section */}
       <h3 className="text-center text-[20px] text-[#827AFF] mb-4 truncate font-extrabold">
         {name}
