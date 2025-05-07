@@ -41,16 +41,21 @@ export const GoalSection: React.FC<GoalSectionProps> = ({
           type="single" 
           value={activeGoal} 
           onValueChange={(value) => value && setActiveGoal(value)}
+          className="gap-2"
         >
           <ToggleGroupItem 
             value="your" 
-            className={`w-[100px] rounded-full ${activeGoal === "your" ? "bg-[#E5DEFF] text-black" : "bg-white text-gray-500"}`}
+            className={`min-w-[120px] rounded-full px-5 py-2 border ${activeGoal === "your" 
+              ? "bg-[#827AFF] text-black border-[#827AFF]" 
+              : "bg-white text-black border-[#827AFF]"}`}
           >
             Your Goal
           </ToggleGroupItem>
           <ToggleGroupItem 
             value="partner" 
-            className={`w-[100px] rounded-full ${activeGoal === "partner" ? "bg-[#E5DEFF] text-black" : "bg-white text-gray-500"}`}
+            className={`min-w-[120px] rounded-full px-5 py-2 border ${activeGoal === "partner" 
+              ? "bg-[#827AFF] text-black border-[#827AFF]" 
+              : "bg-white text-black border-[#827AFF]"}`}
           >
             {getFirstName(partnerUser.name)}'s Goal
           </ToggleGroupItem>
