@@ -25,7 +25,7 @@ const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const { saveUserData } = useUserData();
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const { user, updateOnboardingStatus } = useAuth();
   const [profileImage, setProfileImage] = useState<File | null>(null);
   
   const [formData, setFormData] = useState<UserData>({
@@ -87,7 +87,14 @@ const Onboarding: React.FC = () => {
       
       if (success) {
         toast.success("Profile saved successfully!");
-        navigate("/home");
+        
+        // Update onboarding status in the auth context
+        if (updateOnboardingStatus) {
+          await updateOnboardingStatus(true);
+        }
+        
+        // Navigate to the home page
+        navigate("/home", { replace: true });
       } else {
         toast.error("Failed to save profile. Please try again.");
       }
