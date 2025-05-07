@@ -66,7 +66,7 @@ export const fetchUnreadNotificationsCount = async (userId: string) => {
 
     if (requestsError) throw requestsError;
     
-    // Get unread notifications count
+    // Get unread notifications count from notifications table
     const { count: notificationsCount, error: notificationsError } = await supabase
       .from('notifications')
       .select('*', { count: 'exact', head: true })
@@ -79,7 +79,7 @@ export const fetchUnreadNotificationsCount = async (userId: string) => {
     return (requestsCount || 0) + (notificationsCount || 0);
   } catch (error) {
     console.error('Error fetching unread notifications count:', error);
-    throw error;
+    return 0; // Return 0 on error to ensure UI doesn't break
   }
 };
 
@@ -95,7 +95,7 @@ export const markNotificationsAsRead = async (userId: string) => {
     return true;
   } catch (error) {
     console.error('Error marking notifications as read:', error);
-    throw error;
+    return false;
   }
 };
 

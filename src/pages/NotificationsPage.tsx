@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Check, X, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { markNotificationsAsRead, createNotification } from "@/services/goalService";
 
 interface TeamRequest {
   id: string;
@@ -27,7 +28,7 @@ interface Notification {
   user_id: string;
   message: string;
   related_to: string;
-  related_id: string;
+  related_id: string | null;
   read: boolean;
   created_at: string;
 }
@@ -55,9 +56,20 @@ const NotificationsPage: React.FC = () => {
 
       // Fetch team requests
       await fetchTeamRequests(user.id);
+      
+      // Fetch notifications from notifications table
+      const { data: notificationsData, error: notificationsError } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+        
+      if (notificationsError) throw notificationsError;
+      
+      setNotifications(notificationsData || []);
 
       // Set all notifications as read when visiting the page
-      markNotificationsAsRead(user.id);
+      await markNotificationsAsRead(user.id);
     } catch (error) {
       console.error('Error fetching notifications:', error);
       toast.error("Failed to load notifications");
@@ -100,11 +112,6 @@ const NotificationsPage: React.FC = () => {
     setRequests(requestsWithSenderNames);
   };
 
-  const markNotificationsAsRead = async (userId: string) => {
-    // Future implementation if we add a notifications table
-    // For now, we're just using team_requests table for notifications
-  };
-
   const handleAccept = async (requestId: string, teamName: string) => {
     try {
       // Update the request status to accepted
@@ -133,16 +140,12 @@ const NotificationsPage: React.FC = () => {
         if (teamError) throw teamError;
         
         // Create a notification for the sender
-        await supabase
-          .from('notifications')
-          .insert({
-            user_id: requestToAccept.sender_id,
-            message: `${requestToAccept.sender_name} has accepted your TagTeam request for ${teamName}`,
-            related_to: 'team_request_accepted',
-            related_id: requestId,
-            read: false
-          })
-          .select();
+        await createNotification(
+          requestToAccept.sender_id,
+          `Your TagTeam request for ${teamName} has been accepted!`,
+          'team_request_accepted',
+          requestId
+        );
       }
 
       // Remove the accepted request from the UI
@@ -208,6 +211,8 @@ const NotificationsPage: React.FC = () => {
     </div>
   );
 
+  const hasNotifications = requests.length > 0 || notifications.length > 0;
+
   return (
     <main className="bg-white max-w-[480px] w-full mx-auto pb-16">
       <AppHeader />
@@ -216,8 +221,9 @@ const NotificationsPage: React.FC = () => {
 
         {loading ? (
           <NotificationSkeleton />
-        ) : requests.length > 0 ? (
+        ) : hasNotifications ? (
           <div className="space-y-4">
+            {/* Team Requests */}
             {requests.map((request) => (
               <Card key={request.id} className="border-[rgba(130,122,255,0.41)]">
                 <CardHeader className="pb-2">
@@ -249,6 +255,21 @@ const NotificationsPage: React.FC = () => {
                     Accept
                   </Button>
                 </CardFooter>
+              </Card>
+            ))}
+
+            {/* System Notifications */}
+            {notifications.map((notification) => (
+              <Card key={notification.id} className="border-[rgba(130,122,255,0.41)]">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Notification</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm">{notification.message}</p>
+                  <p className="text-xs text-gray-400 mt-2">
+                    {new Date(notification.created_at).toLocaleString()}
+                  </p>
+                </CardContent>
               </Card>
             ))}
           </div>

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchUnreadNotificationsCount } from "@/services/goalService";
 
 export const AppHeader = () => {
   const navigate = useNavigate();
@@ -10,11 +11,36 @@ export const AppHeader = () => {
 
   // Fetch notification count when component mounts
   useEffect(() => {
-    fetchUnreadNotifications();
+    const fetchNotifications = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) return;
+        
+        const count = await fetchUnreadNotificationsCount(user.id);
+        setUnreadCount(count);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      }
+    };
+    
+    fetchNotifications();
     
     // Set up real-time subscription for notifications
     const channel = supabase
       .channel('notification-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${supabase.auth.getUser().then(({ data }) => data?.user?.id)}`
+        },
+        () => {
+          fetchNotifications();
+        }
+      )
       .on(
         'postgres_changes',
         {
@@ -24,7 +50,7 @@ export const AppHeader = () => {
           filter: `receiver_id=eq.${supabase.auth.getUser().then(({ data }) => data?.user?.id)}`
         },
         () => {
-          fetchUnreadNotifications();
+          fetchNotifications();
         }
       )
       .subscribe();
@@ -33,27 +59,6 @@ export const AppHeader = () => {
       supabase.removeChannel(channel);
     };
   }, []);
-
-  const fetchUnreadNotifications = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) return;
-      
-      // Get count of pending team requests
-      const { data, error } = await supabase
-        .from('team_requests')
-        .select('id', { count: 'exact' })
-        .eq('receiver_id', user.id)
-        .eq('status', 'pending');
-        
-      if (error) throw error;
-      
-      setUnreadCount(data?.length || 0);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    }
-  };
 
   return (
     <div className="pt-[20px] pb-[11px] px-[15px] border-b py-[21px]">
