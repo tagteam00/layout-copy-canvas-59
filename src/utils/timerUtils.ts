@@ -1,12 +1,6 @@
 
-import { format, differenceInSeconds, addDays } from "date-fns";
-
-export type TimerUrgency = "normal" | "warning" | "urgent";
-
-export interface TimerDisplay {
-  timeString: string;
-  urgency: TimerUrgency;
-}
+import { differenceInSeconds } from "date-fns";
+import { TimerDisplay, TimerUrgency } from "@/types/tagteam";
 
 export const getWeekdayName = (dayIndex: number): string => {
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -18,6 +12,11 @@ export const getShortWeekdayName = (dayIndex: number): string => {
   return days[dayIndex];
 };
 
+/**
+ * Calculates the remaining time based on frequency type
+ * For daily frequency - shows HH:MM:SS format
+ * For weekly frequency - shows days remaining until reset day
+ */
 export const calculateAdaptiveTimer = (frequency: string, resetDay?: string): TimerDisplay => {
   const now = new Date();
   let timeString = "";
@@ -70,7 +69,7 @@ export const calculateAdaptiveTimer = (frequency: string, resetDay?: string): Ti
       
       // Set urgency based on days remaining
       if (daysRemaining === 1) {
-        urgency = "warning";
+        urgency = "urgent";
       } else if (daysRemaining <= 2) {
         urgency = "warning";
       }

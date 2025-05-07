@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from "react";
-import { calculateAdaptiveTimer, getUrgencyColor, TimerUrgency } from "@/utils/timerUtils";
+import React from "react";
 import { Clock } from "lucide-react";
+import { useTagTeamTimer } from "@/hooks/useTagTeamTimer";
 
 interface TagTeamCardProps {
   name: string;
@@ -29,34 +29,13 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
   resetDay,
   onClick
 }) => {
-  const [timer, setTimer] = useState<{timeString: string; urgency: TimerUrgency}>({
-    timeString: "00:00:00",
-    urgency: "normal"
-  });
-
   // Function to get first name
   const getFirstName = (fullName: string): string => {
     return fullName.split(' ')[0];
   };
 
-  // Update timer based on frequency
-  useEffect(() => {
-    const updateTimer = () => {
-      const timerDisplay = calculateAdaptiveTimer(frequency, resetDay);
-      setTimer(timerDisplay);
-    };
-    
-    // Initial update
-    updateTimer();
-    
-    // Set interval based on frequency type
-    const intervalMs = frequency.toLowerCase().includes("daily") ? 1000 : 60000;
-    const interval = setInterval(updateTimer, intervalMs);
-    
-    return () => clearInterval(interval);
-  }, [frequency, resetDay]);
-
-  const timerColorClass = getUrgencyColor(timer.urgency);
+  // Use the timer hook instead of internal state
+  const { timer, timerColorClass } = useTagTeamTimer(frequency, resetDay);
 
   return <div onClick={onClick} className="w-full rounded-2xl border border-[#E5DEFF] p-4 cursor-pointer hover:shadow-md transition-shadow bg-slate-50">
       {/* Header Section */}

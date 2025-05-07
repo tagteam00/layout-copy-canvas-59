@@ -3,10 +3,11 @@ import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Frequency } from "@/types/tagteam";
 
 interface FrequencyStepProps {
-  frequency: { type: 'daily' | 'weekly'; day?: string };
-  setFrequency: (frequency: { type: 'daily' | 'weekly'; day?: string }) => void;
+  frequency: Frequency;
+  setFrequency: (frequency: Frequency) => void;
 }
 
 export const FrequencyStep: React.FC<FrequencyStepProps> = ({
@@ -15,15 +16,24 @@ export const FrequencyStep: React.FC<FrequencyStepProps> = ({
 }) => {
   const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
+  const handleFrequencyTypeChange = (value: 'daily' | 'weekly') => {
+    setFrequency({ 
+      type: value, 
+      day: value === 'weekly' ? frequency.day || 'Monday' : undefined 
+    });
+  };
+
+  const handleResetDayChange = (day: string) => {
+    setFrequency({ ...frequency, day });
+  };
+
   return (
     <div className="space-y-6">
       <div>
         <label className="block text-sm font-medium mb-2">Frequency Type</label>
         <RadioGroup
           value={frequency.type}
-          onValueChange={(value: 'daily' | 'weekly') =>
-            setFrequency({ type: value, day: value === 'weekly' ? frequency.day || 'Monday' : undefined })
-          }
+          onValueChange={handleFrequencyTypeChange}
           className="flex flex-col space-y-2"
         >
           <div className="flex items-center space-x-2">
@@ -42,7 +52,7 @@ export const FrequencyStep: React.FC<FrequencyStepProps> = ({
           <label className="block text-sm font-medium">Select Reset Day</label>
           <Select
             value={frequency.day || 'Monday'}
-            onValueChange={(day) => setFrequency({ ...frequency, day })}
+            onValueChange={handleResetDayChange}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select day of the week" />

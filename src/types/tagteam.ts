@@ -8,6 +8,11 @@ export type CreateTeamStep = 'interest' | 'partner' | 'frequency' | 'name';
 
 export type TimerUrgency = 'normal' | 'warning' | 'urgent';
 
+export interface TimerDisplay {
+  timeString: string;
+  urgency: TimerUrgency;
+}
+
 export interface TagTeam {
   id: string;
   name: string;
