@@ -1,21 +1,39 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { ProfileImageUploader } from "@/components/profile/ProfileImageUploader";
+import { Card } from "@/components/ui/card";
 
 interface BioStepProps {
-  onSubmit: (data: { bio: string }) => void;
+  onSubmit: (data: { bio: string, profileImage?: File | null }) => void;
   onBack: () => void;
   loading?: boolean;
 }
 
 export const BioStep: React.FC<BioStepProps> = ({ onSubmit, onBack, loading = false }) => {
   const { register, handleSubmit, formState: { errors } } = useForm();
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+
+  const handleFormSubmit = (data: any) => {
+    onSubmit({ ...data, profileImage });
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <h2 className="text-lg font-semibold mb-4">Tell us about yourself</h2>
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+      <h2 className="text-lg font-semibold mb-4">Complete your profile</h2>
+      
+      <Card className="p-6 flex flex-col items-center">
+        <h3 className="text-md font-medium mb-4">Profile picture</h3>
+        <ProfileImageUploader 
+          onImageChange={(file) => setProfileImage(file)}
+          size="xl"
+        />
+        <p className="text-xs text-gray-500 mt-2">
+          Upload a profile picture (will be compressed to &lt;100KB)
+        </p>
+      </Card>
       
       <div>
         <label htmlFor="bio" className="block text-sm font-medium mb-1">Bio</label>
