@@ -27,6 +27,7 @@ export const UserStatusSection: React.FC<UserStatusSectionProps> = ({
 }) => {
   // Get the first name only for display
   const getFirstName = (fullName: string) => {
+    if (!fullName) return "User";
     return fullName.split(' ')[0];
   };
 
@@ -34,7 +35,7 @@ export const UserStatusSection: React.FC<UserStatusSectionProps> = ({
     <div className="flex justify-between items-start mb-4">
       {/* First User */}
       <div className="flex flex-col items-center space-y-2">
-        <span className="text-[16px] font-medium text-gray-800 text-center">
+        <span className="text-[16px] font-medium text-gray-800 text-center truncate max-w-[100px]">
           {getFirstName(firstUser.name)}
         </span>
         <span className={`py-1 px-3 rounded-full text-sm font-medium ${
@@ -46,19 +47,16 @@ export const UserStatusSection: React.FC<UserStatusSectionProps> = ({
         </span>
       </div>
 
-      {/* Reset Timer */}
+      {/* Reset Timer - Simplified to remove "Resets in:" */}
       <div className="flex flex-col items-center space-y-2">
-        <span className="text-[14px] text-gray-600 flex items-center gap-1">
-          <Clock className="h-4 w-4" /> Resets in:
-        </span>
-        <span className={`text-[16px] font-medium ${timerColorClass}`}>
-          {timer.timeString}
+        <span className={`text-[16px] font-medium ${timerColorClass} flex items-center gap-1`}>
+          <Clock className="h-4 w-4" /> {timer.timeString}
         </span>
       </div>
 
       {/* Second User */}
       <div className="flex flex-col items-center space-y-2">
-        <span className="text-[16px] font-medium text-gray-800 text-center">
+        <span className="text-[16px] font-medium text-gray-800 text-center truncate max-w-[100px]">
           {getFirstName(secondUser.name)}
         </span>
         <span className={`py-1 px-3 rounded-full text-sm font-medium ${

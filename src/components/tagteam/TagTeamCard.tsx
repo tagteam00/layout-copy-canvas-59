@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Clock } from "lucide-react";
 import { useTagTeamTimer } from "@/hooks/useTagTeamTimer";
@@ -47,27 +48,24 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
         {/* First User */}
         <div className="flex flex-col items-center space-y-2">
           <span className="text-[16px] font-medium text-gray-800 text-center truncate max-w-[100px]">
-            {getFirstName(firstUser.name)}
+            {getFirstName(firstUser.name || '')}
           </span>
           <span className={`py-1 px-3 rounded-full text-sm font-medium ${firstUser.status === "completed" ? "bg-[#DCFFDC] text-green-700" : "bg-[#FFE8CC] text-amber-700"}`}>
             {firstUser.status === "completed" ? "Completed" : "Pending"}
           </span>
         </div>
 
-        {/* Reset Timer */}
+        {/* Reset Timer - Modified to remove "Resets in:" text */}
         <div className="flex flex-col items-center space-y-2">
-          <span className="text-[14px] text-gray-600 flex items-center gap-1">
-            <Clock className="w-4 h-4" /> Resets in:
-          </span>
-          <span className={`text-[16px] font-medium ${timerColorClass}`}>
-            {timer.timeString}
+          <span className={`text-[16px] font-medium ${timerColorClass} flex items-center gap-1`}>
+            <Clock className="w-4 h-4" /> {timer.timeString}
           </span>
         </div>
 
         {/* Second User */}
         <div className="flex flex-col items-center space-y-2">
           <span className="text-[16px] font-medium text-gray-800 text-center truncate max-w-[100px]">
-            {getFirstName(secondUser.name)}
+            {getFirstName(secondUser.name || '')}
           </span>
           <span className={`py-1 px-3 rounded-full text-sm font-medium ${secondUser.status === "completed" ? "bg-[#DCFFDC] text-green-700" : "bg-[#FFE8CC] text-amber-700"}`}>
             {secondUser.status === "completed" ? "Completed" : "Pending"}
@@ -76,11 +74,11 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
       </div>
 
       {/* Divider */}
-      <div className="h-px w-full bg-[#E0E0E0] my-4"></div>
+      <div className="h-px w-full bg-[#E0E0E0] my-3"></div>
 
-      {/* Information Section */}
-      <div className="flex flex-wrap justify-between items-center">
-        <div className="mb-2 sm:mb-0">
+      {/* Information Section - Improved spacing for mobile */}
+      <div className="flex flex-col space-y-2 sm:flex-row sm:justify-between sm:space-y-0">
+        <div>
           <span className="text-[14px] text-gray-600">Tagteam's Interest: </span>
           <span className="text-[14px] font-medium text-gray-800">{interest}</span>
         </div>
