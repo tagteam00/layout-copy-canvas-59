@@ -1,15 +1,24 @@
 
-import React from "react";
+import React, { useMemo } from "react";
+import { TagTeam } from "@/types/tagteam";
 
 interface CalendarSectionProps {
-  daysOfWeek: string[];
-  today: number;
+  isCurrentUserFirst: boolean;
+  tagTeam: TagTeam;
+  onClose: () => void;
 }
 
 export const CalendarSection: React.FC<CalendarSectionProps> = ({
-  daysOfWeek,
-  today
+  isCurrentUserFirst,
+  tagTeam,
+  onClose
 }) => {
+  // Days of the week array
+  const daysOfWeek = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+  
+  // Current day index (0-6, where 0 is Sunday)
+  const today = new Date().getDay();
+
   return (
     <div className="bg-[#F8F7FC] rounded-xl p-4 mb-6">
       <div className="flex justify-between items-center mb-4">
