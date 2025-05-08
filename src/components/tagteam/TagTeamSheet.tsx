@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { X, Pencil } from "lucide-react";
 import { 
@@ -55,6 +54,9 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   const currentUser = {...(isFirstUser ? tagTeam.firstUser : tagTeam.secondUser), goal: currentUserGoal};
   const partnerUser = {...(isFirstUser ? tagTeam.secondUser : tagTeam.firstUser), goal: partnerUserGoal};
   const partnerId = isFirstUser ? tagTeam.secondUser.id : tagTeam.firstUser.id;
+  
+  // Make sure partner name is always defined
+  const partnerName = partnerUser.name || "Partner";
   
   // Days of the week for the calendar section
   const daysOfWeek = ["Su", "Mo", "Tu", "W", "Th", "F", "Sa"];
@@ -253,7 +255,7 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
               />
               
               <PartnerVerificationSection 
-                partnerName={partnerUser.name}
+                partnerName={partnerName}
                 onStatusUpdate={handleStatusUpdate}
               />
             </ScrollArea>

@@ -1,22 +1,18 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface GoalSectionProps {
   activeGoal: string;
-  setActiveGoal: (value: string) => void;
+  setActiveGoal: (goal: string) => void;
   currentUser: {
     name: string;
-    status: "completed" | "pending";
     goal?: string;
-    id: string;
   };
   partnerUser: {
     name: string;
-    status: "completed" | "pending";
     goal?: string;
-    id: string;
   };
   onSetGoal: () => void;
 }
@@ -28,64 +24,56 @@ export const GoalSection: React.FC<GoalSectionProps> = ({
   partnerUser,
   onSetGoal
 }) => {
-  // Get the first name only for display
-  const getFirstName = (fullName: string) => {
-    return fullName.split(' ')[0];
+  // Add safety check for user names
+  const getUserFirstName = (user: { name?: string }) => {
+    if (!user || !user.name) return "User";
+    return user.name.split(" ")[0];
   };
 
+  const currentUserFirstName = getUserFirstName(currentUser);
+  const partnerUserFirstName = getUserFirstName(partnerUser);
+
   return (
-    <>
-      {/* Goal Toggle */}
-      <div className="flex justify-center mb-4">
-        <ToggleGroup 
-          type="single" 
-          value={activeGoal} 
-          onValueChange={(value) => value && setActiveGoal(value)}
-          className="gap-2"
-        >
-          <ToggleGroupItem 
-            value="your" 
-            className={`min-w-[120px] rounded-full px-5 py-2 border ${activeGoal === "your" 
-              ? "bg-[#827AFF] text-black border-[#827AFF]" 
-              : "bg-white text-black border-[#827AFF]"}`}
-          >
+    <div className="bg-white p-4 rounded-md mb-4">
+      <h2 className="text-[16px] font-bold mb-2">Goals</h2>
+      <Tabs defaultValue="your" value={activeGoal} onValueChange={setActiveGoal} className="mb-3">
+        <TabsList className="grid grid-cols-2 mb-3 bg-gray-100">
+          <TabsTrigger value="your" className={activeGoal === "your" ? "font-medium" : ""}>
             Your Goal
-          </ToggleGroupItem>
-          <ToggleGroupItem 
-            value="partner" 
-            className={`min-w-[120px] rounded-full px-5 py-2 border ${activeGoal === "partner" 
-              ? "bg-[#827AFF] text-black border-[#827AFF]" 
-              : "bg-white text-black border-[#827AFF]"}`}
-          >
-            {getFirstName(partnerUser.name)}'s Goal
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </div>
+          </TabsTrigger>
+          <TabsTrigger value="partner" className={activeGoal === "partner" ? "font-medium" : ""}>
+            {partnerUserFirstName}'s Goal
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
       
-      {/* Goal Content */}
-      <div className="min-h-[80px] p-4 rounded-md bg-white mb-4">
-        {activeGoal === "your" ? (
-          currentUser.goal ? (
-            <p className="text-gray-700">{currentUser.goal}</p>
-          ) : (
-            <div className="flex justify-center">
-              <Button 
-                variant="default" 
-                className="bg-black text-white" 
-                onClick={onSetGoal}
-              >
-                Set a new goal
-              </Button>
-            </div>
-          )
+      {activeGoal === "your" ? (
+        currentUser.goal ? (
+          <div className="text-[14px] text-gray-700 bg-slate-50 p-3 rounded-md">
+            {currentUser.goal}
+          </div>
         ) : (
-          partnerUser.goal ? (
-            <p className="text-gray-700">{partnerUser.goal}</p>
-          ) : (
-            <p className="text-gray-500 italic text-center">No goal set yet</p>
-          )
-        )}
-      </div>
-    </>
+          <div className="flex flex-col items-center justify-center py-3">
+            <p className="text-gray-400 mb-3">No goal set yet</p>
+            <Button 
+              onClick={onSetGoal}
+              className="bg-black hover:bg-gray-900 text-white px-4 py-1 rounded-md"
+            >
+              Set Goal
+            </Button>
+          </div>
+        )
+      ) : (
+        partnerUser.goal ? (
+          <div className="text-[14px] text-gray-700 bg-slate-50 p-3 rounded-md">
+            {partnerUser.goal}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-3">
+            <p className="text-gray-400">{partnerUserFirstName} hasn't set a goal yet</p>
+          </div>
+        )
+      )}
+    </div>
   );
 };

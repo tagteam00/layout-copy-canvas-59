@@ -11,8 +11,11 @@ export const PartnerVerificationSection: React.FC<PartnerVerificationSectionProp
   partnerName,
   onStatusUpdate
 }) => {
-  // Get the first name only for display
-  const getFirstName = (fullName: string) => {
+  // Get the first name only for display, with null/undefined check
+  const getFirstName = (fullName: string | undefined | null): string => {
+    if (!fullName) {
+      return "Partner"; // Default fallback name
+    }
     return fullName.split(' ')[0];
   };
 
