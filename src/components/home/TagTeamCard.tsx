@@ -1,7 +1,8 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Check, X } from "lucide-react";
+import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface TagTeamCardProps {
   name: string;
@@ -24,8 +25,12 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
   isLogged = false,
   partnerLogged = false,
 }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  
   return (
-    <div className="border w-full mt-4 p-4 rounded-xl border-[rgba(130,122,255,0.41)] border-solid flex flex-col gap-2" style={{boxShadow: '0 1px 5px rgba(130,122,255,0.05)'}}>
+    <div className="border w-full mt-4 p-4 rounded-xl border-[rgba(130,122,255,0.41)] border-solid flex flex-col gap-2" 
+      style={{boxShadow: '0 1px 5px rgba(130,122,255,0.05)'}}
+    >
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-2">
           <h3 className="text-xl font-bold truncate mr-2">{name}</h3>
@@ -33,26 +38,39 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
         </div>
         <div className="ml-2 text-base">{timeLeft}</div>
       </div>
-      <div className="text-gray-400 mb-2">{frequency}</div>
-      <div className="flex items-center justify-between">
-        <div className="text-md text-black font-semibold">{members}</div>
-        <div className="flex items-center gap-2">
-          <div className={`p-1 rounded-full border border-gray-300 ${isLogged ? 'bg-[#8CFF6E]' : 'bg-white'}`}>
-            {isLogged ? (
-              <Check className="w-5 h-5 text-white" />
-            ) : (
-              <Check className="w-5 h-5 text-gray-400" />
-            )}
+      
+      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="pt-1">
+        <CollapsibleTrigger className="w-full flex justify-center items-center pt-1">
+          {isOpen ? (
+            <ChevronUp className="h-5 w-5 text-gray-500" />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-gray-500" />
+          )}
+        </CollapsibleTrigger>
+        
+        <CollapsibleContent>
+          <div className="text-gray-400 mb-2">{frequency}</div>
+          <div className="flex items-center justify-between">
+            <div className="text-md text-black font-semibold">{members}</div>
+            <div className="flex items-center gap-2">
+              <div className={`p-1 rounded-full border border-gray-300 ${isLogged ? 'bg-[#8CFF6E]' : 'bg-white'}`}>
+                {isLogged ? (
+                  <Check className="w-5 h-5 text-white" />
+                ) : (
+                  <Check className="w-5 h-5 text-gray-400" />
+                )}
+              </div>
+              <div className={`p-1 rounded-full border border-gray-300 ${partnerLogged ? 'bg-[#8CFF6E]' : 'bg-white'}`}>
+                {partnerLogged ? (
+                  <Check className="w-5 h-5 text-white" />
+                ) : (
+                  <Check className="w-5 h-5 text-gray-400" />
+                )}
+              </div>
+            </div>
           </div>
-          <div className={`p-1 rounded-full border border-gray-300 ${partnerLogged ? 'bg-[#8CFF6E]' : 'bg-white'}`}>
-            {partnerLogged ? (
-              <Check className="w-5 h-5 text-white" />
-            ) : (
-              <Check className="w-5 h-5 text-gray-400" />
-            )}
-          </div>
-        </div>
-      </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 };

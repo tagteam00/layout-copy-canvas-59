@@ -1,6 +1,9 @@
-import React from "react";
-import { Clock } from "lucide-react";
+
+import React, { useState } from "react";
+import { Clock, ChevronDown, ChevronUp } from "lucide-react";
 import { useTagTeamTimer } from "@/hooks/useTagTeamTimer";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
 interface TagTeamCardProps {
   name: string;
   firstUser: {
@@ -17,6 +20,7 @@ interface TagTeamCardProps {
   resetDay?: string;
   onClick?: () => void;
 }
+
 export const TagTeamCard: React.FC<TagTeamCardProps> = ({
   name,
   firstUser,
@@ -31,12 +35,17 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
     return fullName.split(' ')[0];
   };
 
-  // Use the timer hook instead of internal state
+  // Use the timer hook
   const {
     timer,
-    timerColorClass
+    timerColorClass,
+    shortTimeDisplay
   } = useTagTeamTimer(frequency, resetDay);
-  return <div onClick={onClick} className="w-full rounded-2xl border border-[#E5DEFF] p-4 cursor-pointer hover:shadow-md transition-shadow bg-[#f6f6ff]">
+  
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div onClick={onClick} className="w-full rounded-2xl border border-[#E5DEFF] p-4 cursor-pointer hover:shadow-md transition-shadow bg-[#f6f6ff]">
       {/* Header Section */}
       <h3 className="text-center text-[20px] text-[#827AFF] mb-4 truncate font-extrabold">
         {name}
@@ -54,13 +63,10 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
           </span>
         </div>
 
-        {/* Reset Timer */}
+        {/* Reset Timer - Simplified */}
         <div className="flex flex-col items-center space-y-2">
-          <span className="text-[14px] text-gray-600 flex items-center gap-1">
-            <Clock className="w-4 h-4" /> Resets in:
-          </span>
-          <span className={`text-[16px] font-medium ${timerColorClass}`}>
-            {timer.timeString}
+          <span className={`text-[16px] font-medium ${timerColorClass} flex items-center gap-1`}>
+            <Clock className="w-4 h-4" /> {shortTimeDisplay}
           </span>
         </div>
 
@@ -75,19 +81,36 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
         </div>
       </div>
 
-      {/* Divider */}
-      <div className="h-px w-full bg-[#E0E0E0] my-4"></div>
-
-      {/* Information Section */}
-      <div className="flex flex-wrap justify-between items-center">
-        <div className="mb-2 sm:mb-0">
-          <span className="text-[14px] text-gray-600">Tagteam's Interest: </span>
-          <span className="text-[14px] font-medium text-gray-800">{interest}</span>
-        </div>
-        <div>
-          <span className="text-[14px] text-gray-600">Frequency: </span>
-          <span className="text-[14px] font-medium text-gray-800">{frequency}</span>
-        </div>
-      </div>
-    </div>;
+      {/* Collapsible section */}
+      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="pt-2">
+        <CollapsibleTrigger 
+          className="w-full flex justify-center items-center border-t border-[#E0E0E0] pt-3"
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent triggering card click
+            setIsOpen(!isOpen);
+          }}
+        >
+          {isOpen ? (
+            <ChevronUp className="h-5 w-5 text-gray-500" />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-gray-500" />
+          )}
+        </CollapsibleTrigger>
+        
+        <CollapsibleContent>
+          {/* Information Section */}
+          <div className="flex flex-wrap justify-between items-center pt-4">
+            <div className="mb-2 sm:mb-0">
+              <span className="text-[14px] text-gray-600">Tagteam's Interest: </span>
+              <span className="text-[14px] font-medium text-gray-800">{interest}</span>
+            </div>
+            <div>
+              <span className="text-[14px] text-gray-600">Frequency: </span>
+              <span className="text-[14px] font-medium text-gray-800">{frequency}</span>
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
+  );
 };
