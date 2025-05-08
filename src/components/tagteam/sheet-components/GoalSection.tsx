@@ -1,37 +1,36 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { TagTeam } from "@/types/tagteam";
 
 interface GoalSectionProps {
-  isCurrentUserFirst: boolean;
-  tagTeam: TagTeam;
-  showCalendar: boolean;
-  setShowCalendar: (show: boolean) => void;
+  activeGoal: string;
+  setActiveGoal: (value: string) => void;
+  currentUser: {
+    name: string;
+    status: "completed" | "pending";
+    goal?: string;
+    id: string;
+  };
+  partnerUser: {
+    name: string;
+    status: "completed" | "pending";
+    goal?: string;
+    id: string;
+  };
+  onSetGoal: () => void;
 }
 
 export const GoalSection: React.FC<GoalSectionProps> = ({
-  isCurrentUserFirst,
-  tagTeam,
-  showCalendar,
-  setShowCalendar
+  activeGoal,
+  setActiveGoal,
+  currentUser,
+  partnerUser,
+  onSetGoal
 }) => {
-  const [activeGoal, setActiveGoal] = useState<string>("your");
-  
-  // Determine current user and partner based on isCurrentUserFirst
-  const currentUser = isCurrentUserFirst ? tagTeam.firstUser : tagTeam.secondUser;
-  const partnerUser = isCurrentUserFirst ? tagTeam.secondUser : tagTeam.firstUser;
-  
   // Get the first name only for display
   const getFirstName = (fullName: string) => {
     return fullName.split(' ')[0];
-  };
-
-  // Handler for setting a new goal
-  const handleSetGoal = () => {
-    console.log("Setting a new goal");
-    // Implementation will be added later
   };
 
   return (
@@ -73,7 +72,7 @@ export const GoalSection: React.FC<GoalSectionProps> = ({
               <Button 
                 variant="default" 
                 className="bg-black text-white" 
-                onClick={handleSetGoal}
+                onClick={onSetGoal}
               >
                 Set a new goal
               </Button>
