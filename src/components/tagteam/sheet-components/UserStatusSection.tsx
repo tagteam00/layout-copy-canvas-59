@@ -17,15 +17,13 @@ interface UserStatusSectionProps {
     urgency: TimerUrgency;
   };
   timerColorClass: string;
-  shortTimeDisplay: string;
 }
 
 export const UserStatusSection: React.FC<UserStatusSectionProps> = ({
   firstUser,
   secondUser,
   timer,
-  timerColorClass,
-  shortTimeDisplay
+  timerColorClass
 }) => {
   // Get the first name only for display
   const getFirstName = (fullName: string) => {
@@ -48,10 +46,13 @@ export const UserStatusSection: React.FC<UserStatusSectionProps> = ({
         </span>
       </div>
 
-      {/* Reset Timer - Simplified */}
+      {/* Reset Timer */}
       <div className="flex flex-col items-center space-y-2">
-        <span className={`text-[16px] font-medium ${timerColorClass} flex items-center gap-1`}>
-          <Clock className="h-4 w-4" /> {shortTimeDisplay}
+        <span className="text-[14px] text-gray-600 flex items-center gap-1">
+          <Clock className="h-4 w-4" /> Resets in:
+        </span>
+        <span className={`text-[16px] font-medium ${timerColorClass}`}>
+          {timer.timeString}
         </span>
       </div>
 

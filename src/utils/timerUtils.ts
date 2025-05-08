@@ -16,38 +16,6 @@ export const getShortWeekdayName = (dayIndex: number): string => {
 };
 
 /**
- * Creates a simplified, user-friendly time display
- */
-export const createShortTimeDisplay = (timeString: string, frequency: string): string => {
-  if (frequency.toLowerCase().includes("daily")) {
-    // For daily frequency, convert HH:MM:SS to "X hrs left" or "X mins left"
-    const parts = timeString.split(':').map(Number);
-    const hours = parts[0];
-    const minutes = parts[1];
-    
-    if (hours > 0) {
-      return `${hours}${hours === 1 ? 'hr' : 'hrs'}`;
-    } else if (minutes > 0) {
-      return `${minutes}${minutes === 1 ? 'min' : 'mins'}`;
-    } else {
-      return 'moments';
-    }
-  } else if (frequency.toLowerCase().includes("weekly")) {
-    // For weekly, extract just the days part
-    if (timeString.includes("Tomorrow")) {
-      return "Tomorrow";
-    } else if (timeString.includes("Days")) {
-      const days = timeString.match(/\d+/);
-      return days ? `${days[0]} days` : timeString;
-    } else {
-      return timeString;
-    }
-  }
-  
-  return timeString;
-};
-
-/**
  * Calculates the remaining time based on frequency type
  * For daily frequency - shows HH:MM:SS format
  * For weekly frequency - shows days remaining until reset day

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { calculateAdaptiveTimer, getUrgencyColor, createShortTimeDisplay } from "@/utils/timerUtils";
+import { calculateAdaptiveTimer, getUrgencyColor } from "@/utils/timerUtils";
 import { TimerDisplay } from "@/types/tagteam";
 
 export const useTagTeamTimer = (frequency: string, resetDay?: string) => {
@@ -10,7 +10,6 @@ export const useTagTeamTimer = (frequency: string, resetDay?: string) => {
   });
   
   const [timerColorClass, setTimerColorClass] = useState<string>("text-blue-500");
-  const [shortTimeDisplay, setShortTimeDisplay] = useState<string>("--");
 
   // Update timer based on frequency
   useEffect(() => {
@@ -18,7 +17,6 @@ export const useTagTeamTimer = (frequency: string, resetDay?: string) => {
       const timerDisplay = calculateAdaptiveTimer(frequency, resetDay);
       setTimer(timerDisplay);
       setTimerColorClass(getUrgencyColor(timerDisplay.urgency));
-      setShortTimeDisplay(createShortTimeDisplay(timerDisplay.timeString, frequency));
     };
     
     // Initial update
@@ -31,5 +29,5 @@ export const useTagTeamTimer = (frequency: string, resetDay?: string) => {
     return () => clearInterval(interval);
   }, [frequency, resetDay]);
 
-  return { timer, timerColorClass, shortTimeDisplay };
+  return { timer, timerColorClass };
 };
