@@ -47,7 +47,7 @@ export const UserStatusSection: React.FC<UserStatusSectionProps> = ({
         </span>
       </div>
 
-      {/* Reset Timer - Simplified to remove "Resets in:" */}
+      {/* Timer - Simplified */}
       <div className="flex flex-col items-center space-y-2">
         <span className={`text-[16px] font-medium ${timerColorClass} flex items-center gap-1`}>
           <Clock className="h-4 w-4" /> {timer.timeString}

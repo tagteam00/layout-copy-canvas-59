@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { X, Pencil } from "lucide-react";
 import { 
@@ -18,6 +19,7 @@ import { CalendarSection } from "./sheet-components/CalendarSection";
 import { PartnerVerificationSection } from "./sheet-components/PartnerVerificationSection";
 import { GoalDialog } from "./sheet-components/GoalDialog";
 import { fetchTeamGoal, createTeamGoal, updateTeamGoal } from "@/services/goalService";
+import { getPartnerActivity } from "@/services/teamActivityService";
 
 interface TagTeamSheetProps {
   isOpen: boolean;
@@ -37,6 +39,11 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   const [newGoal, setNewGoal] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [sheetHeight, setSheetHeight] = useState<string>("75%");
+  const [showCalendar, setShowCalendar] = useState<boolean>(false);
+  const [loadingActivities, setLoadingActivities] = useState<boolean>(true);
+  const [userHasLoggedPartner, setUserHasLoggedPartner] = useState<boolean>(false);
+  const [partnerHasLoggedUser, setPartnerHasLoggedUser] = useState<boolean>(false);
+  
   const startY = useRef<number | null>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   
@@ -62,10 +69,11 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   const daysOfWeek = ["Su", "Mo", "Tu", "W", "Th", "F", "Sa"];
   const today = new Date().getDay();
   
-  // Fetch goals when the sheet opens
+  // Fetch goals and activities when the sheet opens
   useEffect(() => {
     if (isOpen && tagTeam.id) {
       loadGoals();
+      loadActivities();
     }
   }, [isOpen, tagTeam.id, currentUserId]);
   
@@ -91,6 +99,29 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
       toast.error("Failed to load goals");
     } finally {
       setLoadingGoals(false);
+    }
+  };
+
+  const loadActivities = async () => {
+    setLoadingActivities(true);
+    try {
+      const activities = await getPartnerActivity(tagTeam.id, currentUserId, partnerId);
+      setUserHasLoggedPartner(activities.userLoggedPartner);
+      setPartnerHasLoggedUser(activities.partnerLoggedUser);
+
+      // Update tagTeam object's status
+      if (isFirstUser) {
+        tagTeam.firstUser.status = partnerHasLoggedUser ? "completed" : "pending";
+        tagTeam.secondUser.status = userHasLoggedPartner ? "completed" : "pending";
+      } else {
+        tagTeam.secondUser.status = partnerHasLoggedUser ? "completed" : "pending";
+        tagTeam.firstUser.status = userHasLoggedPartner ? "completed" : "pending";
+      }
+
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+    } finally {
+      setLoadingActivities(false);
     }
   };
   
@@ -132,11 +163,18 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   };
   
   const handleStatusUpdate = async (status: "completed" | "pending") => {
-    try {
-      toast.success(`Partner marked as ${status}`);
-    } catch (error) {
-      console.error("Error updating status:", error);
-      toast.error("Failed to update status");
+    // The actual logging is now done in PartnerVerificationSection
+    if (status === "completed") {
+      setUserHasLoggedPartner(true);
+    } else {
+      setUserHasLoggedPartner(false);
+    }
+    
+    // Update the tagTeam object to reflect the new status
+    if (isFirstUser) {
+      tagTeam.secondUser.status = status;
+    } else {
+      tagTeam.firstUser.status = status;
     }
   };
   
@@ -223,8 +261,14 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
               {/* User Status Section */}
               <div className="bg-[#F8F7FC] rounded-xl p-4 mb-4 mt-4">
                 <UserStatusSection 
-                  firstUser={tagTeam.firstUser}
-                  secondUser={tagTeam.secondUser}
+                  firstUser={{
+                    name: tagTeam.firstUser.name,
+                    status: tagTeam.firstUser.status
+                  }}
+                  secondUser={{
+                    name: tagTeam.secondUser.name,
+                    status: tagTeam.secondUser.status
+                  }}
                   timer={timer}
                   timerColorClass={timerColorClass}
                 />
@@ -245,23 +289,35 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
                     currentUser={currentUser}
                     partnerUser={partnerUser}
                     onSetGoal={openGoalDialog}
+                    showCalendar={showCalendar}
+                    setShowCalendar={setShowCalendar}
                   />
                 )}
               </div>
               
-              <CalendarSection 
-                daysOfWeek={daysOfWeek}
-                today={today}
-              />
+              {showCalendar && (
+                <CalendarSection 
+                  daysOfWeek={daysOfWeek}
+                  today={today}
+                  onClose={() => setShowCalendar(false)}
+                />
+              )}
               
-              <PartnerVerificationSection 
-                partnerName={partnerName}
-                onStatusUpdate={handleStatusUpdate}
-              />
+              {!showCalendar && (
+                <PartnerVerificationSection 
+                  partnerName={partnerName}
+                  partnerId={partnerId}
+                  teamId={tagTeam.id}
+                  userId={currentUserId}
+                  onStatusUpdate={handleStatusUpdate}
+                  isLoading={loadingActivities}
+                  userHasLoggedPartner={userHasLoggedPartner}
+                />
+              )}
             </ScrollArea>
             
             {/* Edit goal button positioned at bottom right */}
-            {currentUserGoal && activeGoal === "your" && (
+            {currentUserGoal && activeGoal === "your" && !showCalendar && (
               <div className="absolute bottom-10 right-5">
                 <Button 
                   size="icon" 
