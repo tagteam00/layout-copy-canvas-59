@@ -111,6 +111,44 @@ export type Database = {
         }
         Relationships: []
       }
+      team_activities: {
+        Row: {
+          cycle_end: string | null
+          cycle_start: string
+          id: string
+          status: string
+          team_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cycle_end?: string | null
+          cycle_start?: string
+          id?: string
+          status: string
+          team_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cycle_end?: string | null
+          cycle_start?: string
+          id?: string
+          status?: string
+          team_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_activities_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_goals: {
         Row: {
           created_at: string

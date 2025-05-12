@@ -33,3 +33,13 @@ export interface TagTeam {
   resetDay?: string;
   resetTime?: string;
 }
+
+export interface TeamActivity {
+  id: string;
+  team_id: string;
+  user_id: string;
+  status: "completed" | "pending";
+  cycle_start: string;
+  cycle_end?: string;
+  updated_at: string;
+}

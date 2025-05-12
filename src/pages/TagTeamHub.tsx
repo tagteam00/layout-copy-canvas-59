@@ -10,6 +10,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { toast } from "sonner";
 import { TagTeamCard } from "@/components/tagteam/TagTeamCard";
 import { supabase } from "@/integrations/supabase/client";
+import { getTeamActivities } from "@/services/teamActivityService";
 
 const TagTeamHub: React.FC = () => {
   const { getUserData } = useUserData();
@@ -23,6 +24,7 @@ const TagTeamHub: React.FC = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isTagTeamSheetOpen, setIsTagTeamSheetOpen] = useState(false);
   const [selectedTagTeam, setSelectedTagTeam] = useState<any>(null);
+  const [activities, setActivities] = useState<{[teamId: string]: {[userId: string]: any}}>({});
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -82,6 +84,20 @@ const TagTeamHub: React.FC = () => {
             const match = team.frequency.match(/\((.*?)\)/);
             resetDay = match ? match[1] : undefined;
           }
+          
+          // Fetch team activities
+          const teamActivities = await getTeamActivities(team.id);
+          const activityMap: {[userId: string]: any} = {};
+          
+          teamActivities.forEach(activity => {
+            activityMap[activity.user_id] = activity;
+          });
+          
+          // Store activities for this team
+          setActivities(prev => ({
+            ...prev,
+            [team.id]: activityMap
+          }));
             
           return {
             id: team.id,
@@ -89,14 +105,12 @@ const TagTeamHub: React.FC = () => {
             firstUser: {
               id: userId,
               name: userData.fullName,
-              status: "pending" as const, // For now, hardcoded
-              goal: "Will do Push pull legs the entire week, and take as much protien as I can" // Example goal
+              status: activityMap[userId]?.status || "pending"
             },
             secondUser: {
               id: partnerId || "",
               name: partnerData?.full_name || "Partner",
-              status: "completed" as const, // For now, hardcoded
-              goal: "" // Empty goal for example
+              status: activityMap[partnerId]?.status || "pending"
             },
             interest: team.category,
             frequency: team.frequency,
@@ -106,6 +120,27 @@ const TagTeamHub: React.FC = () => {
         }));
         
         setTagTeams(transformedTeams);
+        
+        // Set up realtime subscription for team activities
+        const subscription = supabase
+          .channel('team-activities-changes')
+          .on('postgres_changes', 
+            {
+              event: '*',
+              schema: 'public',
+              table: 'team_activities',
+            }, 
+            async (payload) => {
+              // Refresh teams data when an activity is updated
+              await fetchUserTeams(userData, userId);
+            }
+          )
+          .subscribe();
+          
+        // Clean up subscription on unmount
+        return () => {
+          subscription.unsubscribe();
+        };
       }
     } catch (error) {
       console.error("Error fetching teams:", error);
