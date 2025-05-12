@@ -50,7 +50,9 @@ export const updateActivityStatus = async (
         .single();
       
       if (error) throw error;
-      return data;
+      
+      // Use type assertion to ensure the right type is returned
+      return data as TeamActivity;
     } else {
       // Create a new activity
       const { data, error } = await supabase
@@ -66,7 +68,9 @@ export const updateActivityStatus = async (
         .single();
       
       if (error) throw error;
-      return data;
+      
+      // Use type assertion to ensure the right type is returned
+      return data as TeamActivity;
     }
   } catch (error) {
     console.error("Error updating activity status:", error);
@@ -85,7 +89,9 @@ export const getTeamActivities = async (teamId: string): Promise<TeamActivity[]>
       .order("updated_at", { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    
+    // Use type assertion to ensure the right types are returned
+    return (data || []) as TeamActivity[];
   } catch (error) {
     console.error("Error fetching team activities:", error);
     toast.error("Failed to load activity statuses");
@@ -109,7 +115,9 @@ export const getMemberLatestActivity = async (
       .maybeSingle();
     
     if (error) throw error;
-    return data;
+    
+    // Use type assertion to ensure the right type is returned
+    return data as TeamActivity | null;
   } catch (error) {
     console.error("Error fetching member activity:", error);
     return null;
@@ -132,6 +140,7 @@ export const subscribeToTeamActivities = (
         filter: `team_id=eq.${teamId}`,
       },
       (payload) => {
+        // Use type assertion to ensure the right type is passed to the callback
         callback(payload.new as TeamActivity);
       }
     )
