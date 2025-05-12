@@ -89,13 +89,13 @@ const TagTeamHub: React.FC = () => {
             firstUser: {
               id: userId,
               name: userData.fullName,
-              status: "pending" as const, // Will be updated based on activity data
+              status: "pending" as const, // For now, hardcoded
               goal: "Will do Push pull legs the entire week, and take as much protien as I can" // Example goal
             },
             secondUser: {
               id: partnerId || "",
               name: partnerData?.full_name || "Partner",
-              status: "completed" as const, // Will be updated based on activity data
+              status: "completed" as const, // For now, hardcoded
               goal: "" // Empty goal for example
             },
             interest: team.category,

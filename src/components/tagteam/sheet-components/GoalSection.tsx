@@ -2,16 +2,27 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GoalSectionProps } from "@/types/tagteam";
+
+interface GoalSectionProps {
+  activeGoal: string;
+  setActiveGoal: (goal: string) => void;
+  currentUser: {
+    name: string;
+    goal?: string;
+  };
+  partnerUser: {
+    name: string;
+    goal?: string;
+  };
+  onSetGoal: () => void;
+}
 
 export const GoalSection: React.FC<GoalSectionProps> = ({
   activeGoal,
   setActiveGoal,
   currentUser,
   partnerUser,
-  onSetGoal,
-  showCalendar,
-  setShowCalendar
+  onSetGoal
 }) => {
   // Add safety check for user names
   const getUserFirstName = (user: { name?: string }) => {

@@ -29,7 +29,6 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
 }) => {
   // Function to get first name
   const getFirstName = (fullName: string): string => {
-    if (!fullName) return "User";
     return fullName.split(' ')[0];
   };
 
