@@ -97,7 +97,7 @@ export const getTeamActivities = async (teamId: string): Promise<Map<string, "pe
   try {
     // Use a custom query to get only the latest activity for each user
     const { data, error } = await supabase
-      .rpc('get_latest_team_activities', { team_id_param: teamId });
+      .rpc('get_latest_team_activities', { team_id_param: teamId as any });
     
     if (error) {
       // Fallback if RPC doesn't exist
