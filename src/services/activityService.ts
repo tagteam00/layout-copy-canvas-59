@@ -13,7 +13,7 @@ export interface TeamActivity {
 }
 
 // Get the latest activity status for a specific user in a team
-export const getLatestActivityStatus = async (teamId: string, userId: string): Promise<string> => {
+export const getLatestActivityStatus = async (teamId: string, userId: string): Promise<"pending" | "completed"> => {
   try {
     const { data, error } = await supabase
       .from('team_activities')
@@ -24,7 +24,7 @@ export const getLatestActivityStatus = async (teamId: string, userId: string): P
       .limit(1);
       
     if (error) throw error;
-    return data?.length > 0 ? data[0].status : "pending";
+    return data?.length > 0 ? data[0].status as "pending" | "completed" : "pending";
   } catch (error) {
     console.error('Error fetching activity status:', error);
     return "pending";
@@ -87,7 +87,7 @@ export const logActivityStatus = async (
 };
 
 // Get all latest activity statuses for a team
-export const getTeamActivities = async (teamId: string): Promise<Map<string, string>> => {
+export const getTeamActivities = async (teamId: string): Promise<Map<string, "pending" | "completed">> => {
   try {
     // Use a custom query to get only the latest activity for each user
     const { data, error } = await supabase
@@ -104,26 +104,35 @@ export const getTeamActivities = async (teamId: string): Promise<Map<string, str
       if (fallbackError) throw fallbackError;
       
       // Process fallback data to get latest status for each user
-      const statusMap = new Map<string, string>();
-      fallbackData.forEach((activity: any) => {
-        if (!statusMap.has(activity.user_id) || 
-            new Date(activity.updated_at) > new Date(statusMap.get(activity.user_id)?.updated_at || 0)) {
-          statusMap.set(activity.user_id, activity.status);
-        }
-      });
+      const statusMap = new Map<string, "pending" | "completed">();
+      
+      if (fallbackData) {
+        const processedUsers = new Set<string>();
+        
+        fallbackData.forEach((activity: TeamActivity) => {
+          // Only add the first (most recent) status for each user
+          if (!processedUsers.has(activity.user_id)) {
+            statusMap.set(activity.user_id, activity.status);
+            processedUsers.add(activity.user_id);
+          }
+        });
+      }
       
       return statusMap;
     }
     
     // Process the RPC data
-    const statusMap = new Map<string, string>();
-    data.forEach((activity: any) => {
-      statusMap.set(activity.user_id, activity.status);
-    });
+    const statusMap = new Map<string, "pending" | "completed">();
+    
+    if (data) {
+      data.forEach((activity: { user_id: string, status: "pending" | "completed" }) => {
+        statusMap.set(activity.user_id, activity.status);
+      });
+    }
     
     return statusMap;
   } catch (error) {
     console.error('Error fetching team activities:', error);
-    return new Map<string, string>();
+    return new Map<string, "pending" | "completed">();
   }
 };
