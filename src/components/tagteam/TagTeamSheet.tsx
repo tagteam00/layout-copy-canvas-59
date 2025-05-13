@@ -1,5 +1,6 @@
+
 import React, { useState, useRef, useEffect } from "react";
-import { X, Pencil } from "lucide-react";
+import { X, Pencil, Loader2 } from "lucide-react";
 import { 
   Drawer, 
   DrawerContent, 
@@ -18,6 +19,7 @@ import { CalendarSection } from "./sheet-components/CalendarSection";
 import { PartnerVerificationSection } from "./sheet-components/PartnerVerificationSection";
 import { GoalDialog } from "./sheet-components/GoalDialog";
 import { fetchTeamGoal, createTeamGoal, updateTeamGoal } from "@/services/goalService";
+import { useTeamActivity } from "@/hooks/useTeamActivity";
 
 interface TagTeamSheetProps {
   isOpen: boolean;
@@ -37,6 +39,7 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   const [newGoal, setNewGoal] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [sheetHeight, setSheetHeight] = useState<string>("75%");
+  const [updatingStatus, setUpdatingStatus] = useState<boolean>(false);
   const startY = useRef<number | null>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   
@@ -46,11 +49,27 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   const [goalId, setGoalId] = useState<string | null>(null);
   const [loadingGoals, setLoadingGoals] = useState<boolean>(true);
   
+  // Use the team activity hook
+  const { updatePartnerStatus, firstUserStatus, secondUserStatus, loading: loadingActivities } = 
+    useTeamActivity(tagTeam.id, currentUserId);
+  
   // Use the timer hook
   const { timer, timerColorClass } = useTagTeamTimer(tagTeam.frequency, tagTeam.resetDay);
   
   // Determine if current user is first or second user
   const isFirstUser = tagTeam.firstUser.id === currentUserId;
+  
+  useEffect(() => {
+    // Update the tagTeam object with the latest status information
+    if (isFirstUser) {
+      tagTeam.firstUser.status = firstUserStatus;
+      tagTeam.secondUser.status = secondUserStatus;
+    } else {
+      tagTeam.firstUser.status = firstUserStatus;
+      tagTeam.secondUser.status = secondUserStatus;
+    }
+  }, [firstUserStatus, secondUserStatus, isFirstUser, tagTeam]);
+  
   const currentUser = {...(isFirstUser ? tagTeam.firstUser : tagTeam.secondUser), goal: currentUserGoal};
   const partnerUser = {...(isFirstUser ? tagTeam.secondUser : tagTeam.firstUser), goal: partnerUserGoal};
   const partnerId = isFirstUser ? tagTeam.secondUser.id : tagTeam.firstUser.id;
@@ -132,11 +151,17 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   };
   
   const handleStatusUpdate = async (status: "completed" | "pending") => {
+    setUpdatingStatus(true);
     try {
-      toast.success(`Partner marked as ${status}`);
+      const success = await updatePartnerStatus(partnerId, status);
+      if (success) {
+        toast.success(`Partner marked as ${status}`);
+      }
     } catch (error) {
       console.error("Error updating status:", error);
       toast.error("Failed to update status");
+    } finally {
+      setUpdatingStatus(false);
     }
   };
   
@@ -257,6 +282,7 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
               <PartnerVerificationSection 
                 partnerName={partnerName}
                 onStatusUpdate={handleStatusUpdate}
+                isSubmitting={updatingStatus}
               />
             </ScrollArea>
             
