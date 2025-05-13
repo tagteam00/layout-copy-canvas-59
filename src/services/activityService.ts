@@ -86,6 +86,12 @@ export const logActivityStatus = async (
   }
 };
 
+// Define the type for the RPC result
+interface TeamActivityStatus {
+  user_id: string;
+  status: "pending" | "completed";
+}
+
 // Get all latest activity statuses for a team
 export const getTeamActivities = async (teamId: string): Promise<Map<string, "pending" | "completed">> => {
   try {
@@ -125,7 +131,9 @@ export const getTeamActivities = async (teamId: string): Promise<Map<string, "pe
     const statusMap = new Map<string, "pending" | "completed">();
     
     if (data) {
-      data.forEach((activity: { user_id: string, status: "pending" | "completed" }) => {
+      // Add type assertion to ensure TypeScript knows data is an array of TeamActivityStatus
+      const typedData = data as TeamActivityStatus[];
+      typedData.forEach((activity) => {
         statusMap.set(activity.user_id, activity.status);
       });
     }
