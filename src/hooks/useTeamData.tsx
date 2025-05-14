@@ -20,7 +20,7 @@ export const useTeamData = (userId: string, userFullName: string) => {
         .from('teams')
         .select('*')
         .contains('members', [userId])
-        .is('ended_at', null);
+        .is('ended_at', null);  // This ensures we only get teams that are not ended
         
       if (error) {
         throw error;

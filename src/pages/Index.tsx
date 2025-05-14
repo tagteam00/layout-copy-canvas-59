@@ -7,6 +7,7 @@ import { useUserData } from "@/hooks/useUserData";
 import { HomeContent } from "@/components/home/HomeContent";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTeamData } from "@/hooks/useTeamData";
 
 const Index: React.FC = () => {
   const { getUserData, getAllUsers } = useUserData();
@@ -18,8 +19,13 @@ const Index: React.FC = () => {
   });
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [tagTeams, setTagTeams] = useState([]);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  // Use the same team data hook that's used in TagTeamHub
+  const { tagTeams, fetchUserTeams, refreshTeams } = useTeamData(
+    userProfile.id, 
+    userProfile.fullName
+  );
 
   useEffect(() => {
     const loadData = async () => {
@@ -39,9 +45,6 @@ const Index: React.FC = () => {
         
         const users = await getAllUsers();
         setAllUsers(users);
-        
-        // Fetch user's teams
-        await fetchUserTeams(userData, authData.user?.id || "");
       } catch (error) {
         console.error("Error loading data:", error);
         toast.error("Failed to load data");
@@ -52,62 +55,18 @@ const Index: React.FC = () => {
     loadData();
   }, []);
   
-  const fetchUserTeams = async (userData: any, userId: string) => {
-    try {
-      if (!userData || !userId) return;
-      
-      const { data: teamsData, error } = await supabase
-        .from('teams')
-        .select('*')
-        .contains('members', [userId]);
-        
-      if (error) {
-        throw error;
-      }
-      
-      // Transform team data for display
-      if (teamsData) {
-        const transformedTeams = await Promise.all(teamsData.map(async (team) => {
-          // Get the partner ID (the other member that is not the current user)
-          const partnerId = team.members.find((id: string) => id !== userId);
-          
-          // Fetch partner profile
-          const { data: partnerData } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', partnerId)
-            .single();
-            
-          return {
-            id: team.id,
-            name: team.name,
-            firstUser: {
-              id: userId,
-              name: userData.fullName,
-              status: "pending" as const, // For now, hardcoded
-              goal: "Will do Push pull legs the entire week, and take as much protien as I can" // Example goal
-            },
-            secondUser: {
-              id: partnerId || "",
-              name: partnerData?.full_name || "Partner",
-              status: "completed" as const, // For now, hardcoded
-              goal: "" // Empty goal for example
-            },
-            interest: team.category,
-            frequency: team.frequency
-          };
-        }));
-        
-        setTagTeams(transformedTeams);
-      }
-    } catch (error) {
-      console.error("Error fetching teams:", error);
+  // When user profile ID is available, fetch the teams
+  useEffect(() => {
+    if (userProfile.id) {
+      fetchUserTeams();
     }
-  };
+  }, [userProfile.id]);
 
-  const handleAddTeam = (newTeam: any) => {
-    setTagTeams([...tagTeams, newTeam]);
+  const handleAddTeam = async () => {
     setIsSheetOpen(false);
+    if (userProfile.id) {
+      await refreshTeams();
+    }
   };
 
   return (
