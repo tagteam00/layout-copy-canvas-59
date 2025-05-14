@@ -6,7 +6,8 @@ export const fetchTeams = async (userId: string) => {
     const { data, error } = await supabase
       .from('teams')
       .select('*')
-      .contains('members', [userId]);
+      .contains('members', [userId])
+      .eq('status', 'active');
       
     if (error) throw error;
     return data || [];
@@ -27,6 +28,23 @@ export const createTeam = async (teamData: any) => {
     return data?.[0];
   } catch (error) {
     console.error('Error creating team:', error);
+    throw error;
+  }
+};
+
+export const leaveTeam = async (teamId: string) => {
+  try {
+    // We'll update the team status to 'ended' rather than deleting it
+    // This preserves the team history
+    const { error } = await supabase
+      .from('teams')
+      .update({ status: 'ended' })
+      .eq('id', teamId);
+      
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error leaving team:', error);
     throw error;
   }
 };

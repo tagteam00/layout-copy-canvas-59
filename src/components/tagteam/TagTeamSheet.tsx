@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from "react";
 import { X, Pencil } from "lucide-react";
 import { 
@@ -17,25 +18,30 @@ import { GoalSection } from "./sheet-components/GoalSection";
 import { CalendarSection } from "./sheet-components/CalendarSection";
 import { PartnerVerificationSection } from "./sheet-components/PartnerVerificationSection";
 import { GoalDialog } from "./sheet-components/GoalDialog";
+import { LeaveTeamSection } from "./sheet-components/LeaveTeamSection";
+import { leaveTeam } from "@/services/teamService";
 
 interface TagTeamSheetProps {
   isOpen: boolean;
   onClose: () => void;
   tagTeam: TagTeam;
   currentUserId: string;
+  onTeamLeft?: () => void;
 }
 
 export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({ 
   isOpen, 
   onClose, 
   tagTeam,
-  currentUserId
+  currentUserId,
+  onTeamLeft
 }) => {
   const [activeGoal, setActiveGoal] = useState<string>("your");
   const [isSettingGoal, setIsSettingGoal] = useState<boolean>(false);
   const [newGoal, setNewGoal] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [sheetHeight, setSheetHeight] = useState<string>("75%");
+  const [isLeaving, setIsLeaving] = useState<boolean>(false);
   const startY = useRef<number | null>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   
@@ -78,6 +84,23 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
     } catch (error) {
       console.error("Error updating status:", error);
       toast.error("Failed to update status");
+    }
+  };
+
+  const handleLeaveTeam = async () => {
+    if (isLeaving) return;
+    
+    setIsLeaving(true);
+    try {
+      await leaveTeam(tagTeam.id);
+      toast.success("You've successfully left the TagTeam");
+      onClose();
+      if (onTeamLeft) onTeamLeft();
+    } catch (error) {
+      console.error("Error leaving team:", error);
+      toast.error("Failed to leave TagTeam. Please try again.");
+    } finally {
+      setIsLeaving(false);
     }
   };
   
@@ -193,6 +216,9 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
                 partnerName={partnerUser.name}
                 onStatusUpdate={handleStatusUpdate}
               />
+              
+              {/* Add the Leave Team Section */}
+              <LeaveTeamSection onLeaveTeam={handleLeaveTeam} />
             </ScrollArea>
             
             {/* Edit goal button positioned at bottom right */}

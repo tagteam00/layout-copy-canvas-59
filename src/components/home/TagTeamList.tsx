@@ -11,6 +11,7 @@ interface TagTeamListProps {
   userName?: string;
   loading?: boolean;
   currentUserId?: string;
+  onTeamLeft?: () => void;
 }
 
 export const TagTeamList: React.FC<TagTeamListProps> = ({
@@ -18,7 +19,8 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
   onAddTeam,
   userName = "",
   loading = false,
-  currentUserId = ""
+  currentUserId = "",
+  onTeamLeft
 }) => {
   const [isTagTeamSheetOpen, setIsTagTeamSheetOpen] = useState(false);
   const [selectedTagTeam, setSelectedTagTeam] = useState<TagTeam | null>(null);
@@ -105,6 +107,7 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
           onClose={() => setIsTagTeamSheetOpen(false)}
           tagTeam={selectedTagTeam}
           currentUserId={currentUserId || ""}
+          onTeamLeft={onTeamLeft}
         />
       )}
     </section>

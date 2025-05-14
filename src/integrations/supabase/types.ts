@@ -30,8 +30,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          related_id: string | null
+          related_to: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          related_id?: string | null
+          related_to: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          related_id?: string | null
+          related_to?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          avatar_url: string | null
           bio: string | null
           city: string | null
           commitment_level: string | null
@@ -47,6 +78,7 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          avatar_url?: string | null
           bio?: string | null
           city?: string | null
           commitment_level?: string | null
@@ -62,6 +94,7 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          avatar_url?: string | null
           bio?: string | null
           city?: string | null
           commitment_level?: string | null
@@ -77,6 +110,82 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      team_activities: {
+        Row: {
+          created_at: string
+          id: string
+          logged_by_user_id: string
+          status: string
+          team_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logged_by_user_id: string
+          status: string
+          team_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logged_by_user_id?: string
+          status?: string
+          team_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_activities_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_goals: {
+        Row: {
+          created_at: string
+          cycle_end: string | null
+          cycle_start: string
+          goal: string
+          id: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          cycle_end?: string | null
+          cycle_start?: string
+          goal: string
+          id?: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          cycle_end?: string | null
+          cycle_start?: string
+          goal?: string
+          id?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_goals_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       team_requests: {
         Row: {
