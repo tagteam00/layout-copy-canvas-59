@@ -186,6 +186,8 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          ended_at: string | null
+          ended_by: string | null
           frequency: string
           id: string
           members: string[]
@@ -194,6 +196,8 @@ export type Database = {
         Insert: {
           category: string
           created_at?: string
+          ended_at?: string | null
+          ended_by?: string | null
           frequency: string
           id?: string
           members: string[]
@@ -202,6 +206,8 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
+          ended_at?: string | null
+          ended_by?: string | null
           frequency?: string
           id?: string
           members?: string[]
