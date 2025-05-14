@@ -4,51 +4,28 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { AddTeamButton } from "@/components/home/AddTeamButton";
 import { CreateTeamSheet } from "@/components/tagteam/CreateTeamSheet";
-import { TagTeamSheet } from "@/components/tagteam/TagTeamSheet";
-import { useUserData } from "@/hooks/useUserData";
+import { HubContainer } from "@/components/tagteam/hub/HubContainer";
+import { TagTeamHeader } from "@/components/tagteam/hub/TagTeamHeader";
+import { LoadingState } from "@/components/tagteam/hub/LoadingState";
 import { EmptyTeamState } from "@/components/tagteam/hub/EmptyTeamState";
 import { TeamList } from "@/components/tagteam/hub/TeamList";
+import { TagTeamSheetWrapper } from "@/components/tagteam/hub/TagTeamSheetWrapper";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { useTeamData } from "@/hooks/useTeamData";
 import { TransformedTeam } from "@/types/tagteam";
-import { supabase } from "@/integrations/supabase/client";
 
 const TagTeamHub: React.FC = () => {
-  const { getUserData } = useUserData();
-  const [userProfile, setUserProfile] = useState({
-    fullName: "",
-    interests: [] as string[],
-    id: ""
-  });
+  const { userProfile } = useUserProfile();
   
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isTagTeamSheetOpen, setIsTagTeamSheetOpen] = useState(false);
   const [selectedTagTeam, setSelectedTagTeam] = useState<TransformedTeam | null>(null);
   
-  // Initialize the team data hook with empty values until user profile is loaded
+  // Initialize team data hook with user profile info
   const { tagTeams, loading, fetchUserTeams, refreshTeams } = useTeamData(
     userProfile.id, 
     userProfile.fullName
   );
-
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        const userData = await getUserData();
-        if (userData) {
-          const { data: authData } = await supabase.auth.getUser();
-          
-          setUserProfile({
-            fullName: userData.fullName,
-            interests: userData.interests || [],
-            id: authData.user?.id || ""
-          });
-        }
-      } catch (error) {
-        console.error("Error loading user data:", error);
-      }
-    };
-    loadUserData();
-  }, []);
 
   // Once we have the user profile, fetch the teams
   useEffect(() => {
@@ -65,12 +42,11 @@ const TagTeamHub: React.FC = () => {
     }
   };
 
-  const handleAddTeam = (newTeam: any) => {
+  const handleAddTeam = () => {
     refreshTeams();
     setIsSheetOpen(false);
   };
 
-  // Handler for when a team is left to refresh the list immediately
   const handleTagTeamClosed = async () => {
     setIsTagTeamSheetOpen(false);
     if (userProfile.id) {
@@ -81,19 +57,17 @@ const TagTeamHub: React.FC = () => {
   return (
     <main className="flex flex-col min-h-screen bg-white w-full mx-auto relative pb-16">
       <AppHeader />
-      <div className="max-w-[480px] w-full mx-auto px-4">
-        <h1 className="mb-6 font-extrabold text-lg pt-4">Tagteam Hub</h1>
+      <HubContainer>
+        <TagTeamHeader title="Tagteam Hub" />
         
         {loading ? (
-          <div className="flex justify-center p-8">
-            <div className="animate-pulse">Loading your tagteams...</div>
-          </div>
+          <LoadingState />
         ) : tagTeams.length > 0 ? (
           <TeamList teams={tagTeams} onTeamClick={handleLogActivity} />
         ) : (
           <EmptyTeamState />
         )}
-      </div>
+      </HubContainer>
 
       <AddTeamButton onClick={() => setIsSheetOpen(true)} />
       
@@ -104,14 +78,12 @@ const TagTeamHub: React.FC = () => {
         categories={userProfile.interests} 
       />
       
-      {selectedTagTeam && (
-        <TagTeamSheet 
-          isOpen={isTagTeamSheetOpen}
-          onClose={handleTagTeamClosed}
-          tagTeam={selectedTagTeam}
-          currentUserId={userProfile.id}
-        />
-      )}
+      <TagTeamSheetWrapper 
+        isOpen={isTagTeamSheetOpen}
+        onClose={handleTagTeamClosed}
+        selectedTagTeam={selectedTagTeam}
+        currentUserId={userProfile.id}
+      />
       
       <BottomNavigation />
     </main>
