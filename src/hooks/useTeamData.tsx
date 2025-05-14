@@ -68,9 +68,8 @@ export const useTeamData = (userId: string, userFullName: string) => {
           };
         }));
         
-        // Filter out any teams that have ended
-        const activeTeams = transformedTeams.filter(team => !team.ended_at);
-        setTagTeams(activeTeams);
+        // Only set active teams (ones without ended_at)
+        setTagTeams(transformedTeams);
       }
     } catch (error) {
       console.error("Error fetching teams:", error);
