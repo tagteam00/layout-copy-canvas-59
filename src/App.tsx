@@ -1,4 +1,4 @@
-
+import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,7 +20,7 @@ import WelcomeScreen from "./components/onboarding/WelcomeScreen";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { lazy, Suspense } from "react";
 import { toast } from "sonner";
-import React from "react";
+import AuthCallback from "./pages/auth/Callback";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -120,7 +120,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return children;
 };
 
-// Onboarding route - accessible only to authenticated users who haven't completed onboarding
+// Onboarding route with improved handling
 const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, hasCompletedOnboarding, authError } = useAuth();
   const [attemptCount, setAttemptCount] = useState(0);
@@ -155,7 +155,7 @@ const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
   return children;
 };
 
-// Public route - redirects to home if already authenticated
+// Public route with auth route handling
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, hasCompletedOnboarding, authError } = useAuth();
   const [transitionTime, setTransitionTime] = useState(Date.now());
@@ -194,6 +194,11 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 
   // Special case for the welcome screen - don't redirect to home
   if (location.pathname === '/') {
+    return children;
+  }
+  
+  // Special case for auth routes - don't redirect from auth pages
+  if (['/signin', '/signup', '/auth/callback'].includes(location.pathname)) {
     return children;
   }
 
@@ -235,6 +240,15 @@ const AnimatedRoutes = () => {
           <PublicRoute>
             <PageTransition>
               <SignUp />
+            </PageTransition>
+          </PublicRoute>
+        } />
+        
+        {/* Auth callback route */}
+        <Route path="/auth/callback" element={
+          <PublicRoute>
+            <PageTransition>
+              <AuthCallback />
             </PageTransition>
           </PublicRoute>
         } />

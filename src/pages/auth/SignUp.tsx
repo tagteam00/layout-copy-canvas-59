@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,25 +21,7 @@ const SignUp: React.FC = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Check for existing session on component mount
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      
-      if (data.session) {
-        // User is already signed in, redirect to home or onboarding
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.session.user.id)
-          .maybeSingle();
-          
-        navigate(profileData ? "/home" : "/onboarding");
-      }
-    };
-    
-    checkSession();
-  }, [navigate]);
+  // Removed automatic session check on mount - we don't want to redirect automatically
 
   // Watch password to use in validation
   const watchPassword = watch("password", "");
@@ -58,7 +39,7 @@ const SignUp: React.FC = () => {
           data: {
             email: data.email,
           },
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         }
       });
       
@@ -75,53 +56,44 @@ const SignUp: React.FC = () => {
       
       console.log("Sign up response:", authData);
       
-      // Immediately try to sign in after signup
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password
-      });
-      
-      if (signInError) {
-        console.error("Sign in error after signup:", signInError);
-        
-        // If there's an error with direct sign-in, try a passwordless link
-        if (signInError.message.includes('not confirmed')) {
-          try {
-            const { error: otpError } = await supabase.auth.signInWithOtp({
-              email: data.email,
-              options: {
-                emailRedirectTo: window.location.origin,
-              }
-            });
-            
-            if (otpError) {
-              if (otpError.status === 429) {
-                toast.info("Too many requests. Please wait a moment and try signing in later.");
-              } else {
-                toast.error(otpError.message || "Failed to send login link");
-              }
-            } else {
-              toast.success("Account created! Please check your email to verify and log in.");
-            }
-          } catch (e) {
-            console.error("OTP error:", e);
-            toast.error("Could not send verification email. Please try signing in later.");
-          }
-        } else {
-          toast.error(signInError.message || "Account created but couldn't sign in automatically. Please try signing in manually.");
-        }
-        
-        // Redirect to sign in page after a successful signup but failed sign in
-        setTimeout(() => {
-          navigate("/signin");
-        }, 2000);
-        
+      // Let user know to verify their email if needed
+      if (authData?.user?.identities?.length === 0) {
+        toast.info("This email is already registered. Please sign in instead.");
+        setTimeout(() => navigate("/signin"), 2000);
         return;
       }
       
-      if (signInData?.user) {
-        toast.success("Signed up and logged in successfully!");
-        navigate("/onboarding");
+      if (authData?.user && !authData.session) {
+        toast.success("Account created! Please check your email to verify and log in.");
+        setTimeout(() => navigate("/signin"), 2000);
+        return;
+      }
+      
+      // If we have a session, user is already logged in
+      if (authData?.session) {
+        toast.success("Signed up successfully!");
+        // Redirect to onboarding after a short delay
+        setTimeout(() => navigate("/onboarding"), 500);
+      } else {
+        // Attempt to sign in after signup
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: data.password
+        });
+        
+        if (signInError) {
+          console.error("Sign in error after signup:", signInError);
+          
+          // Redirect to sign in page after a successful signup but failed sign in
+          toast.info("Account created! Please sign in with your credentials.");
+          setTimeout(() => navigate("/signin"), 2000);
+          return;
+        }
+        
+        if (signInData?.user) {
+          toast.success("Signed up and logged in successfully!");
+          setTimeout(() => navigate("/onboarding"), 500);
+        }
       }
     } catch (error) {
       console.error("Signup/signin process error:", error);

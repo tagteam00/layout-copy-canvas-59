@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,26 +22,6 @@ const SignIn: React.FC = () => {
   const [sendingMagicLink, setSendingMagicLink] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
-
-  // Check for existing session on component mount
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      
-      if (data.session) {
-        // User is already signed in, redirect to home or onboarding
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.session.user.id)
-          .maybeSingle();
-          
-        navigate(profileData ? "/home" : "/onboarding");
-      }
-    };
-    
-    checkSession();
-  }, [navigate]);
 
   const onSubmit = async data => {
     try {
@@ -85,8 +64,14 @@ const SignIn: React.FC = () => {
           .eq('id', signInData.user.id)
           .maybeSingle();
           
-        // Redirect to appropriate page based on onboarding status
-        navigate(profileData ? "/home" : "/onboarding");
+        // Navigate based on profile status, not redirecting automatically
+        setTimeout(() => {
+          if (profileData) {
+            navigate("/home");
+          } else {
+            navigate("/onboarding");
+          }
+        }, 500);
       }
     } catch (error: any) {
       console.error("Sign in error:", error);
@@ -138,11 +123,11 @@ const SignIn: React.FC = () => {
     try {
       setSendingMagicLink(true);
       
-      // Attempt to send a magic link login
+      // Attempt to send a magic link login with correct redirect
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         }
       });
       
