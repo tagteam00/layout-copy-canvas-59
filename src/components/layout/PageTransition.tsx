@@ -1,6 +1,6 @@
 
 import { motion } from 'framer-motion';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import { useLocation } from 'react-router-dom';
 
@@ -12,9 +12,23 @@ const PageTransition: React.FC<PageTransitionProps> = ({
   children
 }) => {
   const [isLoading, setIsLoading] = useState(true);
+  const [isTransitionComplete, setIsTransitionComplete] = useState(false);
   const location = useLocation();
+  const mountTimeRef = useRef(Date.now());
+  const loadingTimeoutRef = useRef<number | null>(null);
+  const maxLoadingTimeRef = useRef(10000); // 10 seconds max loading time
   
   useEffect(() => {
+    // Reset state when location changes
+    setIsLoading(true);
+    setIsTransitionComplete(false);
+    mountTimeRef.current = Date.now();
+    
+    // Clear any existing timeout
+    if (loadingTimeoutRef.current) {
+      clearTimeout(loadingTimeoutRef.current);
+    }
+    
     // Check if this is an initial load, auth route, or requires full loading screen
     const requiresFullLoadingScreen = () => {
       // Initial load or auth-related routes that typically take longer
@@ -36,29 +50,42 @@ const PageTransition: React.FC<PageTransitionProps> = ({
     // Determine if we should show full loading screen or use skeleton loading
     const showFullLoadingScreen = requiresFullLoadingScreen();
     
-    // Set loading initially
-    setIsLoading(true);
+    // Create loading timeout based on whether it's full loading or regular
+    const loadingDuration = showFullLoadingScreen ? 1800 : 600;
     
-    let timer;
-    if (showFullLoadingScreen) {
-      // For initial/auth routes, use the full loading screen with animation cycle
-      timer = setTimeout(() => {
-        setIsLoading(false);
-      }, 1800); // Full loading screen time
-    } else {
-      // For regular navigation, shorter loading or no loading
-      timer = setTimeout(() => {
-        setIsLoading(false);
-      }, 300); // Much shorter time for regular navigation
-    }
+    // Set loading timeout - this will ensure loading doesn't get stuck forever
+    loadingTimeoutRef.current = window.setTimeout(() => {
+      setIsLoading(false);
+    }, loadingDuration);
     
-    return () => clearTimeout(timer);
+    // Safety timeout - ensures loading screen never gets stuck
+    const safetyTimeout = window.setTimeout(() => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+      console.log("Safety timeout triggered - forcing loading to complete");
+      setIsLoading(false);
+    }, maxLoadingTimeRef.current);
+    
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
+      clearTimeout(safetyTimeout);
+    };
   }, [location.pathname]);
 
+  // Handle transition complete
+  const handleAnimationComplete = () => {
+    setIsTransitionComplete(true);
+  };
+  
   return (
     <>
       {isLoading && <LoadingScreen />}
       <motion.div 
+        key={location.pathname}
         initial={{
           opacity: 0
         }} 
@@ -70,8 +97,9 @@ const PageTransition: React.FC<PageTransitionProps> = ({
         }} 
         transition={{
           ease: "easeInOut",
-          duration: 0.6 // Slower fade in for smoother transition
+          duration: 0.4
         }}
+        onAnimationComplete={handleAnimationComplete}
         className="bg-white"
         style={{ display: isLoading ? 'none' : 'block' }}
       >

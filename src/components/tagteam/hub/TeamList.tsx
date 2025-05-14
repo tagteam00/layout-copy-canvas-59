@@ -2,6 +2,7 @@
 import React from "react";
 import { TagTeamCard } from "@/components/tagteam/TagTeamCard";
 import { TransformedTeam } from "@/types/tagteam";
+import { Badge } from "@/components/ui/badge";
 
 interface TeamListProps {
   teams: TransformedTeam[];
