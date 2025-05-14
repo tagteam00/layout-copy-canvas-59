@@ -32,4 +32,6 @@ export interface TagTeam {
   frequency: string;
   resetDay?: string;
   resetTime?: string;
+  ended_at?: string | null;  // Added this property
+  ended_by?: string | null;  // Added this property
 }
