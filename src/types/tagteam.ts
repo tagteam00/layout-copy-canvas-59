@@ -57,3 +57,11 @@ export interface TransformedTeam {
   ended_at?: string | null;
   ended_by?: string | null;
 }
+
+export interface TagTeamSheetProps {
+  isOpen: boolean;
+  onClose: () => void;
+  tagTeam: TagTeam;
+  currentUserId: string;
+  onBeforeAcceptRequest?: () => Promise<boolean>;
+}
