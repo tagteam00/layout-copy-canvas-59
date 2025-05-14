@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +19,7 @@ import WelcomeScreen from "./components/onboarding/WelcomeScreen";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { lazy, Suspense } from "react";
 import { toast } from "sonner";
+import React from "react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,15 +30,24 @@ const queryClient = new QueryClient({
   }
 });
 
-// Error boundary component
-class ErrorBoundary extends React.Component {
-  state = { hasError: false, error: null };
+// Error boundary component with proper TypeScript interface
+interface ErrorBoundaryProps {
+  children: React.ReactNode; // Added proper children type
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  state: ErrorBoundaryState = { hasError: false, error: null };
   
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
   }
   
-  componentDidCatch(error, info) {
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error("Error caught by boundary:", error, info);
   }
   
@@ -70,7 +79,7 @@ class ErrorBoundary extends React.Component {
 }
 
 // Protected route component with improved error handling
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, hasCompletedOnboarding, authError } = useAuth();
   const [attemptCount, setAttemptCount] = useState(0);
   
@@ -111,7 +120,7 @@ const ProtectedRoute = ({ children }) => {
 };
 
 // Onboarding route - accessible only to authenticated users who haven't completed onboarding
-const OnboardingRoute = ({ children }) => {
+const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, hasCompletedOnboarding, authError } = useAuth();
   const [attemptCount, setAttemptCount] = useState(0);
 
@@ -146,7 +155,7 @@ const OnboardingRoute = ({ children }) => {
 };
 
 // Public route - redirects to home if already authenticated
-const PublicRoute = ({ children }) => {
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, hasCompletedOnboarding, authError } = useAuth();
   const [transitionTime, setTransitionTime] = useState(Date.now());
   const [redirectAttempts, setRedirectAttempts] = useState(0);
