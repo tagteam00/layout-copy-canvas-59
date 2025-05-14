@@ -59,17 +59,30 @@ export const leaveTeam = async (teamId: string, userId: string): Promise<Team> =
       
     if (getError) throw getError;
     
+    console.log('Updating team with ID:', teamId);
+    console.log('User ending team:', userId);
+    
+    // Explicitly prepare the update data
+    const updateData = {
+      ended_at: new Date().toISOString(),
+      ended_by: userId
+    };
+    
+    console.log('Update data:', updateData);
+    
     // Now update with all the end-related fields
     const { data, error } = await supabase
       .from('teams')
-      .update({
-        ended_at: new Date().toISOString(),
-        ended_by: userId
-      })
+      .update(updateData)
       .eq('id', teamId)
       .select();
       
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating team:', error);
+      throw error;
+    }
+    
+    console.log('Update response:', data);
     
     if (data && data.length > 0) {
       // Send notification to other team members

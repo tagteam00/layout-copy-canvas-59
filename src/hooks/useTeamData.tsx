@@ -14,6 +14,8 @@ export const useTeamData = (userId: string, userFullName: string) => {
     try {
       if (!userId) return;
       
+      console.log('Fetching teams for user:', userId);
+      
       const { data: teamsData, error } = await supabase
         .from('teams')
         .select('*')
@@ -23,6 +25,8 @@ export const useTeamData = (userId: string, userFullName: string) => {
       if (error) {
         throw error;
       }
+      
+      console.log('Teams fetched:', teamsData);
       
       // Transform team data for display
       if (teamsData) {
@@ -68,7 +72,6 @@ export const useTeamData = (userId: string, userFullName: string) => {
           };
         }));
         
-        // Only set active teams (ones without ended_at)
         setTagTeams(transformedTeams);
       }
     } catch (error) {

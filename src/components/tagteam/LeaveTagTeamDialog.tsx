@@ -45,7 +45,11 @@ export const LeaveTagTeamDialog: React.FC<LeaveTagTeamDialogProps> = ({
     
     setIsLeaving(true);
     try {
-      await leaveTeam(tagTeamId, currentUserId);
+      console.log('Ending tag team:', tagTeamId, 'by user:', currentUserId);
+      
+      const updatedTeam = await leaveTeam(tagTeamId, currentUserId);
+      console.log('Team ended result:', updatedTeam);
+      
       toast.success("Tag Team ended successfully");
       
       // Close dialog
