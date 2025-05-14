@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -188,6 +189,11 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 
   // Safety check - if we're in a potential loop, just show the current component
   if (redirectAttempts > 3 && Date.now() - transitionTime < 3000) {
+    return children;
+  }
+
+  // Special case for the welcome screen - don't redirect to home
+  if (location.pathname === '/') {
     return children;
   }
 

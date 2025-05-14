@@ -1,18 +1,31 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 
 const WelcomeScreen: React.FC = () => {
   const navigate = useNavigate();
   const [isNavigating, setIsNavigating] = useState(false);
+  const { user, hasCompletedOnboarding } = useAuth();
 
   const handleGetStarted = () => {
     // Prevent multiple clicks
     if (isNavigating) return;
     
     setIsNavigating(true);
-    navigate('/signup');
+    
+    // If user is logged in and completed onboarding, go to home
+    if (user && hasCompletedOnboarding) {
+      navigate('/home');
+    } 
+    // If user is logged in but hasn't completed onboarding, go to onboarding
+    else if (user && !hasCompletedOnboarding) {
+      navigate('/onboarding');
+    } 
+    // Otherwise go to signup
+    else {
+      navigate('/signup');
+    }
   };
 
   return (
