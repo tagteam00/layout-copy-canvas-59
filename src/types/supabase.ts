@@ -12,6 +12,7 @@ export interface UserData {
   country?: string;
   occupation?: string;
   bio?: string;
+  avatar_url?: string;
 }
 
 // Define the Profile type based on the Supabase profiles table
@@ -32,6 +33,7 @@ export const userDataToProfile = (userData: UserData, userId: string): ProfileIn
     country: userData.country,
     occupation: userData.occupation,
     bio: userData.bio,
+    avatar_url: userData.avatar_url || null,
     created_at: new Date().toISOString(), // Add current timestamp
     updated_at: new Date().toISOString()  // Add current timestamp
   };
@@ -48,6 +50,7 @@ export const profileToUserData = (profile: Profile): UserData => {
     city: profile.city || '',
     country: profile.country || '',
     occupation: profile.occupation || '',
-    bio: profile.bio || ''
+    bio: profile.bio || '',
+    avatar_url: profile.avatar_url || ''
   };
 };

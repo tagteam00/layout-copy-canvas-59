@@ -38,7 +38,7 @@ export const leaveTeam = async (teamId: string) => {
     // This preserves the team history
     const { error } = await supabase
       .from('teams')
-      .update({ status: 'ended' })
+      .update({ status: 'ended' } as any)
       .eq('id', teamId);
       
     if (error) throw error;
