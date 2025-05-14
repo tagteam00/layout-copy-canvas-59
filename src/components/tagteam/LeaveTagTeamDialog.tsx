@@ -38,7 +38,10 @@ export const LeaveTagTeamDialog: React.FC<LeaveTagTeamDialogProps> = ({
   const [isLeaving, setIsLeaving] = React.useState(false);
 
   const handleLeave = async () => {
-    if (!currentUserId || !tagTeamId) return;
+    if (!currentUserId || !tagTeamId) {
+      toast.error("Missing user or team information");
+      return;
+    }
     
     setIsLeaving(true);
     try {

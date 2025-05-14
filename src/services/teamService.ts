@@ -9,10 +9,8 @@ export interface Team {
   category: string;
   frequency: string;
   created_at: string;
-  status?: 'active' | 'ended';
   ended_at?: string | null;
   ended_by?: string | null;
-  end_reason?: string | null;
 }
 
 export const fetchTeams = async (userId: string): Promise<Team[]> => {
@@ -66,8 +64,7 @@ export const leaveTeam = async (teamId: string, userId: string): Promise<Team> =
       .from('teams')
       .update({
         ended_at: new Date().toISOString(),
-        ended_by: userId,
-        end_reason: 'user_left'
+        ended_by: userId
       })
       .eq('id', teamId)
       .select();
