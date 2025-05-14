@@ -27,7 +27,13 @@ export const fetchTeams = async (userId: string) => {
   }
 };
 
-export const createTeam = async (teamData: any) => {
+export const createTeam = async (teamData: {
+  name: string;
+  members: string[];
+  category: string;
+  frequency: string;
+  status?: string;
+}) => {
   try {
     const { data, error } = await supabase
       .from('teams')
