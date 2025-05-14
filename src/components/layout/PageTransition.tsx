@@ -23,6 +23,7 @@ const PageTransition: React.FC<PageTransitionProps> = ({
     const requiresFullLoadingScreen = () => {
       // Initial load or auth-related routes that typically take longer
       const authRoutes = ['/signin', '/signup', '/onboarding'];
+      // Mark initial load complete in sessionStorage
       const isInitialLoad = sessionStorage.getItem('initialLoadComplete') !== 'true';
       
       // Check if it's an auth route or initial app load
@@ -53,16 +54,23 @@ const PageTransition: React.FC<PageTransitionProps> = ({
     setIsLoading(true);
     setHasError(false);
     
-    let timer;
+    let timer: NodeJS.Timeout;
     
     try {
-      if (showFullLoadingScreen) {
+      // For welcome screen, use a much shorter loading time
+      if (location.pathname === '/') {
+        console.log('PageTransition: Using shorter loading time for welcome page');
+        timer = setTimeout(() => {
+          setIsLoading(false);
+        }, 500); // Very short time for welcome screen
+      }
+      else if (showFullLoadingScreen) {
         console.log('PageTransition: Using full loading screen');
         // For initial/auth routes, use the full loading screen with animation cycle
         timer = setTimeout(() => {
           setIsLoading(false);
           console.log('PageTransition: Full loading screen complete');
-        }, 1800); // Full loading screen time
+        }, 1500); // Full loading screen time - reduced from 1800ms
       } else {
         console.log('PageTransition: Using quick transition');
         // For regular navigation, shorter loading or no loading
@@ -78,7 +86,7 @@ const PageTransition: React.FC<PageTransitionProps> = ({
           console.warn('PageTransition: Failsafe timer triggered to prevent infinite loading');
           setIsLoading(false);
         }
-      }, 6000); // 6 second maximum loading time
+      }, 3000); // Reduced maximum loading time from 6000ms to 3000ms
       
       return () => {
         clearTimeout(timer);
@@ -86,9 +94,11 @@ const PageTransition: React.FC<PageTransitionProps> = ({
       };
     } catch (error) {
       handleError(error);
-      return () => clearTimeout(timer);
+      return () => {
+        if (timer) clearTimeout(timer);
+      };
     }
-  }, [location.pathname]);
+  }, [location.pathname, isLoading]);
 
   if (hasError) {
     return (
@@ -108,7 +118,7 @@ const PageTransition: React.FC<PageTransitionProps> = ({
 
   return (
     <>
-      {isLoading && <LoadingScreen maxDisplayTime={5000} />}
+      {isLoading && <LoadingScreen maxDisplayTime={3000} />}
       <motion.div 
         initial={{
           opacity: 0
@@ -121,7 +131,7 @@ const PageTransition: React.FC<PageTransitionProps> = ({
         }} 
         transition={{
           ease: "easeInOut",
-          duration: 0.6 // Slower fade in for smoother transition
+          duration: 0.3 // Reduced fade in duration for faster transitions
         }}
         className="bg-white"
         style={{ display: isLoading ? 'none' : 'block' }}
