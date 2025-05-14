@@ -2,7 +2,7 @@
 import { differenceInSeconds } from "date-fns";
 import { TimerDisplay } from "@/types/tagteam";
 
-// Export the TimerUrgency type so it can be imported elsewhere
+// Export the TimerUrgency type so it can be imported in other files
 export type TimerUrgency = "normal" | "warning" | "urgent";
 
 export const getWeekdayName = (dayIndex: number): string => {

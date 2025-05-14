@@ -1,9 +1,11 @@
+
 import React from "react";
 import { ProfileHeader } from "./ProfileHeader";
 import { ProfileBio } from "./ProfileBio";
 import { ProfileCommitment } from "./ProfileCommitment";
 import { ProfileInterests } from "./ProfileInterests";
 import { LogoutButton } from "./LogoutButton";
+
 interface ProfileInfoProps {
   userProfile: {
     fullName: string;
@@ -16,9 +18,11 @@ interface ProfileInfoProps {
     country?: string;
     occupation?: string;
     bio?: string;
+    avatarUrl?: string | null;
   };
   onProfileUpdate: () => Promise<void>;
 }
+
 export const ProfileInfo: React.FC<ProfileInfoProps> = ({
   userProfile,
   onProfileUpdate

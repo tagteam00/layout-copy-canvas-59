@@ -13,6 +13,7 @@ import { useInterests } from "@/hooks/useInterests";
 import { PersonalInfoSection } from "./edit-form/PersonalInfoSection";
 import { BioSection } from "./edit-form/BioSection";
 import { InterestsSection } from "./edit-form/InterestsSection";
+import { PhotoSection } from "./edit-form/PhotoSection";
 import { toast } from "sonner";
 import { useUserData } from "@/hooks/useUserData";
 
@@ -28,6 +29,7 @@ interface EditProfileSheetProps {
     country: string;
     occupation: string;
     bio: string;
+    avatarUrl?: string | null;
   };
   onProfileUpdate: () => void;
 }
@@ -37,8 +39,10 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
   onProfileUpdate,
 }) => {
   const [formData, setFormData] = React.useState(currentProfile);
+  const [profileImage, setProfileImage] = React.useState<File | null>(null);
   const { interests: availableInterests, loading } = useInterests();
   const { saveUserData } = useUserData();
+  const [isSaving, setIsSaving] = React.useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -62,6 +66,7 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
 
   const handleSave = async () => {
     try {
+      setIsSaving(true);
       const success = await saveUserData({
         fullName: formData.fullName,
         username: formData.username,
@@ -72,8 +77,9 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
         city: formData.city,
         country: formData.country,
         occupation: formData.occupation,
-        bio: formData.bio
-      });
+        bio: formData.bio,
+        avatarUrl: formData.avatarUrl
+      }, profileImage);
       
       if (success) {
         toast.success("Profile updated successfully");
@@ -81,6 +87,8 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
       }
     } catch (error) {
       toast.error("Failed to update profile");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -99,7 +107,12 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
         <SheetHeader>
           <SheetTitle>Edit Profile</SheetTitle>
         </SheetHeader>
-        <div className="space-y-4 mt-4">
+        <div className="space-y-6 mt-4">
+          <PhotoSection 
+            avatarUrl={formData.avatarUrl}
+            username={formData.username}
+            onImageChange={setProfileImage}
+          />
           <PersonalInfoSection
             fullName={formData.fullName}
             username={formData.username}
@@ -118,8 +131,8 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
             onAddInterest={handleAddInterest}
             onRemoveInterest={handleRemoveInterest}
           />
-          <Button className="w-full" onClick={handleSave}>
-            Save Changes
+          <Button className="w-full" onClick={handleSave} disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </SheetContent>

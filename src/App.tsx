@@ -55,7 +55,7 @@ const ProtectedRoute = ({ children }) => {
 
 // Onboarding route - accessible only to authenticated users who haven't completed onboarding
 const OnboardingRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, hasCompletedOnboarding } = useAuth();
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">
@@ -67,6 +67,11 @@ const OnboardingRoute = ({ children }) => {
 
   if (!user) {
     return <Navigate to="/signin" replace />;
+  }
+  
+  // If the user has already completed onboarding, redirect to home
+  if (hasCompletedOnboarding) {
+    return <Navigate to="/home" replace />;
   }
 
   return children;

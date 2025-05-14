@@ -1,23 +1,12 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-// Define team interface explicitly to avoid circular type references
-type Team = {
-  id: string;
-  name: string;
-  members: string[];
-  category: string;
-  frequency: string;
-  status?: string;
-};
-
 export const fetchTeams = async (userId: string) => {
   try {
     const { data, error } = await supabase
       .from('teams')
       .select('*')
-      .contains('members', [userId])
-      .eq('status', 'active');
+      .contains('members', [userId]);
       
     if (error) throw error;
     return data || [];
@@ -27,13 +16,7 @@ export const fetchTeams = async (userId: string) => {
   }
 };
 
-export const createTeam = async (teamData: {
-  name: string;
-  members: string[];
-  category: string;
-  frequency: string;
-  status?: string;
-}) => {
+export const createTeam = async (teamData: any) => {
   try {
     const { data, error } = await supabase
       .from('teams')
@@ -44,23 +27,6 @@ export const createTeam = async (teamData: {
     return data?.[0];
   } catch (error) {
     console.error('Error creating team:', error);
-    throw error;
-  }
-};
-
-export const leaveTeam = async (teamId: string) => {
-  try {
-    // We'll update the team status to 'ended' rather than deleting it
-    // This preserves the team history
-    const { error } = await supabase
-      .from('teams')
-      .update({ status: 'ended' } as any)
-      .eq('id', teamId);
-      
-    if (error) throw error;
-    return true;
-  } catch (error) {
-    console.error('Error leaving team:', error);
     throw error;
   }
 };

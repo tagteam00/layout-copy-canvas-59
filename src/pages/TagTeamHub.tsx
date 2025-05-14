@@ -57,8 +57,7 @@ const TagTeamHub: React.FC = () => {
       const { data: teamsData, error } = await supabase
         .from('teams')
         .select('*')
-        .contains('members', [userId])
-        .eq('status', 'active');
+        .contains('members', [userId]);
         
       if (error) {
         throw error;
@@ -126,24 +125,6 @@ const TagTeamHub: React.FC = () => {
     setTagTeams([...tagTeams, newTeam]);
     setIsSheetOpen(false);
   };
-  
-  const handleTeamLeft = async () => {
-    // Refresh the team list after leaving a team
-    if (userProfile.id) {
-      try {
-        setLoading(true);
-        const userData = await getUserData();
-        if (userData) {
-          await fetchUserTeams(userData, userProfile.id);
-        }
-      } catch (error) {
-        console.error("Error refreshing teams:", error);
-        toast.error("Failed to refresh teams list");
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
 
   return (
     <main className="flex flex-col min-h-screen bg-white w-full mx-auto relative pb-16">
@@ -204,7 +185,6 @@ const TagTeamHub: React.FC = () => {
           onClose={() => setIsTagTeamSheetOpen(false)}
           tagTeam={selectedTagTeam}
           currentUserId={userProfile.id}
-          onTeamLeft={handleTeamLeft}
         />
       )}
       
