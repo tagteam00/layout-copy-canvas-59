@@ -1,167 +1,300 @@
-import React, { useState, useEffect } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import React, { useState, useRef, useEffect } from "react";
+import { X, Pencil } from "lucide-react";
+import { 
+  Drawer, 
+  DrawerContent, 
+  DrawerClose, 
+  DrawerOverlay 
+} from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { Team } from "@/services/teamService";
-import { useUserData } from "@/hooks/useUserData";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { supabase } from "@/integrations/supabase/client";
-import { TagTeamSheetProps } from "@/types/tagteam";
-import { checkTagTeamLimit } from "@/utils/teamLimitUtils";
+import { toast } from "sonner";
+import { ScrollArea } from "../ui/scroll-area";
+import { TagTeam } from "@/types/tagteam";
+import { useTagTeamTimer } from "@/hooks/useTagTeamTimer";
+import { UserStatusSection } from "./sheet-components/UserStatusSection";
+import { TeamInfoSection } from "./sheet-components/TeamInfoSection";
+import { GoalSection } from "./sheet-components/GoalSection";
+import { CalendarSection } from "./sheet-components/CalendarSection";
+import { PartnerVerificationSection } from "./sheet-components/PartnerVerificationSection";
+import { GoalDialog } from "./sheet-components/GoalDialog";
+import { fetchTeamGoal, createTeamGoal, updateTeamGoal } from "@/services/goalService";
+import { LeaveTagTeamButton } from "./sheet-components/LeaveTagTeamButton";
 
-export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
-  isOpen,
-  onClose,
+interface TagTeamSheetProps {
+  isOpen: boolean;
+  onClose: () => void;
+  tagTeam: TagTeam;
+  currentUserId: string;
+}
+
+export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({ 
+  isOpen, 
+  onClose, 
   tagTeam,
-  currentUserId,
-  onBeforeAcceptRequest
+  currentUserId
 }) => {
-  const { toast } = useToast();
-  const [isLeaving, setIsLeaving] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [isAccepting, setIsAccepting] = useState(false);
-  const [isLimitReached, setIsLimitReached] = useState(false);
-
-  const handleLeaveTeam = async () => {
-    setOpen(false);
-    setIsLeaving(true);
+  const [activeGoal, setActiveGoal] = useState<string>("your");
+  const [isSettingGoal, setIsSettingGoal] = useState<boolean>(false);
+  const [newGoal, setNewGoal] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [sheetHeight, setSheetHeight] = useState<string>("75%");
+  const startY = useRef<number | null>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  
+  // State for user's goal data
+  const [currentUserGoal, setCurrentUserGoal] = useState<string | undefined>(undefined);
+  const [partnerUserGoal, setPartnerUserGoal] = useState<string | undefined>(undefined);
+  const [goalId, setGoalId] = useState<string | null>(null);
+  const [loadingGoals, setLoadingGoals] = useState<boolean>(true);
+  
+  // Use the timer hook
+  const { timer, timerColorClass } = useTagTeamTimer(tagTeam.frequency, tagTeam.resetDay);
+  
+  // Determine if current user is first or second user
+  const isFirstUser = tagTeam.firstUser.id === currentUserId;
+  const currentUser = {...(isFirstUser ? tagTeam.firstUser : tagTeam.secondUser), goal: currentUserGoal};
+  const partnerUser = {...(isFirstUser ? tagTeam.secondUser : tagTeam.firstUser), goal: partnerUserGoal};
+  const partnerId = isFirstUser ? tagTeam.secondUser.id : tagTeam.firstUser.id;
+  
+  // Days of the week for the calendar section
+  const daysOfWeek = ["Su", "Mo", "Tu", "W", "Th", "F", "Sa"];
+  const today = new Date().getDay();
+  
+  // Fetch goals when the sheet opens
+  useEffect(() => {
+    if (isOpen && tagTeam.id) {
+      loadGoals();
+    }
+  }, [isOpen, tagTeam.id, currentUserId]);
+  
+  const loadGoals = async () => {
+    setLoadingGoals(true);
     try {
-      const { error } = await supabase.functions.invoke('leave-team', {
-        body: { teamId: tagTeam.id, userId: currentUserId },
-      });
-
-      if (error) {
-        throw error;
+      // Fetch current user's goal
+      const userGoal = await fetchTeamGoal(tagTeam.id, currentUserId);
+      if (userGoal) {
+        setCurrentUserGoal(userGoal.goal);
+        setGoalId(userGoal.id);
+      } else {
+        setCurrentUserGoal(undefined);
+        setGoalId(null);
       }
-
-      toast({
-        title: "TagTeam Ended",
-        description: "You have left the tagteam.",
-      });
-      onClose();
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: error.message,
-      });
+      
+      // Fetch partner's goal
+      const partnerGoal = await fetchTeamGoal(tagTeam.id, partnerId);
+      setPartnerUserGoal(partnerGoal?.goal || undefined);
+      
+    } catch (error) {
+      console.error("Error fetching goals:", error);
+      toast.error("Failed to load goals");
     } finally {
-      setIsLeaving(false);
+      setLoadingGoals(false);
     }
   };
-
-  const handleAcceptTeamRequest = async () => {
-    setIsAccepting(true);
+  
+  const handleSetGoal = async () => {
+    if (!newGoal.trim()) {
+      toast.error("Goal cannot be empty");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
     try {
-      // Check if the user is allowed to accept the request
-      if (onBeforeAcceptRequest) {
-        const canAccept = await onBeforeAcceptRequest();
-        if (!canAccept) {
-          setIsAccepting(false);
-          return;
+      if (goalId) {
+        // Update existing goal
+        await updateTeamGoal(goalId, newGoal);
+      } else {
+        // Create new goal
+        const result = await createTeamGoal(tagTeam.id, currentUserId, newGoal);
+        if (result) {
+          setGoalId(result.id);
         }
       }
       
-      // Optimistically update the UI
-      toast({
-        title: "Request Accepted",
-        description: "You have accepted the tagteam request.",
-      });
-      onClose();
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: error.message,
-      });
+      setCurrentUserGoal(newGoal);
+      toast.success("Goal set successfully!");
+      setIsSettingGoal(false);
+      setNewGoal("");
+    } catch (error) {
+      console.error("Error setting goal:", error);
+      toast.error("Failed to set goal");
     } finally {
-      setIsAccepting(false);
+      setIsSubmitting(false);
     }
   };
-
+  
+  const openGoalDialog = () => {
+    setNewGoal(currentUserGoal || "");
+    setIsSettingGoal(true);
+  };
+  
+  const handleStatusUpdate = async (status: "completed" | "pending") => {
+    try {
+      toast.success(`Partner marked as ${status}`);
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Failed to update status");
+    }
+  };
+  
+  // Touch event handlers for custom drag behavior
+  const handleTouchStart = (e: React.TouchEvent) => {
+    startY.current = e.touches[0].clientY;
+  };
+  
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!startY.current || !drawerRef.current) return;
+    
+    const currentY = e.touches[0].clientY;
+    const deltaY = currentY - startY.current;
+    
+    const windowHeight = window.innerHeight;
+    const threshold = windowHeight * 0.25; // 25% threshold
+    
+    // Dragging down
+    if (deltaY > 0) {
+      // If dragged more than threshold, prepare to close
+      if (deltaY > threshold) {
+        setSheetHeight("50%");
+      } else {
+        // Otherwise keep at 75%
+        setSheetHeight("75%");
+      }
+    } 
+    // Dragging up - expand to full screen
+    else if (deltaY < -50) {
+      setSheetHeight("90%");
+    }
+  };
+  
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!startY.current) return;
+    
+    const currentY = e.changedTouches[0].clientY;
+    const deltaY = currentY - startY.current;
+    const windowHeight = window.innerHeight;
+    const threshold = windowHeight * 0.25; // 25% threshold
+    
+    // If dragged more than threshold down, close the drawer
+    if (deltaY > threshold) {
+      onClose();
+    } else if (deltaY < -50) {
+      // If dragged significantly upward, expand to full
+      setSheetHeight("90%");
+    } else {
+      // Reset to default height
+      setSheetHeight("75%");
+    }
+    
+    startY.current = null;
+  };
+  
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="sm:max-w-md">
-        <SheetHeader>
-          <SheetTitle>{tagTeam.name}</SheetTitle>
-        </SheetHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="name" className="text-right text-sm font-medium">
-              First User
-            </label>
-            <input
-              type="text"
-              id="name"
-              value={tagTeam.firstUser.name}
-              className="col-span-3 flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:cursor-not-allowed disabled:opacity-50"
-              disabled
-            />
+    <>
+      <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DrawerOverlay />
+        <DrawerContent 
+          ref={drawerRef}
+          className="bg-white rounded-t-[20px] p-0 transition-all duration-300 ease-in-out"
+          style={{ height: sheetHeight }}
+        >
+          {/* Drag handle indicator */}
+          <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto my-2" />
+          
+          <div 
+            className="flex flex-col w-full h-full"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {/* Header */}
+            <div className="relative flex items-center justify-center px-4 py-3 border-b border-gray-100">
+              <h2 className="text-[20px] font-bold text-black">{tagTeam.name}</h2>
+              <DrawerClose className="absolute right-4 top-3">
+                <X className="h-6 w-6 text-gray-500" />
+              </DrawerClose>
+            </div>
+            
+            {/* Scrollable Content */}
+            <ScrollArea className="flex-1 px-4 pb-8">
+              {/* User Status Section */}
+              <div className="bg-[#F8F7FC] rounded-xl p-4 mb-4 mt-4">
+                <UserStatusSection 
+                  firstUser={tagTeam.firstUser}
+                  secondUser={tagTeam.secondUser}
+                  timer={timer}
+                  timerColorClass={timerColorClass}
+                />
+                
+                <TeamInfoSection 
+                  interest={tagTeam.interest}
+                  frequency={tagTeam.frequency}
+                />
+                
+                {loadingGoals ? (
+                  <div className="min-h-[80px] p-4 rounded-md bg-white mb-4 flex items-center justify-center">
+                    <p className="text-gray-400">Loading goals...</p>
+                  </div>
+                ) : (
+                  <GoalSection 
+                    activeGoal={activeGoal}
+                    setActiveGoal={setActiveGoal}
+                    currentUser={currentUser}
+                    partnerUser={partnerUser}
+                    onSetGoal={openGoalDialog}
+                  />
+                )}
+              </div>
+              
+              <CalendarSection 
+                daysOfWeek={daysOfWeek}
+                today={today}
+              />
+              
+              <PartnerVerificationSection 
+                partnerName={partnerUser.name}
+                onStatusUpdate={handleStatusUpdate}
+              />
+              
+              {/* Add a subtle divider before the leave button */}
+              <div className="mt-8 mb-4 border-t border-gray-100"></div>
+              
+              {/* Leave Tag Team Button */}
+              <LeaveTagTeamButton
+                tagTeamId={tagTeam.id}
+                tagTeamName={tagTeam.name}
+                partnerName={partnerUser.name}
+                currentUserId={currentUserId}
+                onLeaveComplete={onClose}
+              />
+            </ScrollArea>
+            
+            {/* Edit goal button positioned at bottom right */}
+            {currentUserGoal && activeGoal === "your" && (
+              <div className="absolute bottom-10 right-5">
+                <Button 
+                  size="icon" 
+                  className="h-10 w-10 rounded-full bg-gray-200 hover:bg-gray-300"
+                  onClick={openGoalDialog}
+                >
+                  <Pencil className="h-5 w-5" />
+                </Button>
+              </div>
+            )}
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="username" className="text-right text-sm font-medium">
-              Second User
-            </label>
-            <input
-              type="text"
-              id="username"
-              value={tagTeam.secondUser.name}
-              className="col-span-3 flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:cursor-not-allowed disabled:opacity-50"
-              disabled
-            />
-          </div>
-        </div>
-        <Button type="submit" disabled={isAccepting} onClick={handleAcceptTeamRequest}>
-          {isAccepting ? (
-            <>
-              Accepting <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-            </>
-          ) : (
-            "Accept TagTeam Request"
-          )}
-        </Button>
-        <Button variant="destructive" onClick={() => setOpen(true)} disabled={isLeaving}>
-          {isLeaving ? (
-            <>
-              Leaving <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-            </>
-          ) : (
-            "Leave TagTeam"
-          )}
-        </Button>
-      </SheetContent>
-      <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently remove you from the tagteam.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setOpen(false)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleLeaveTeam} disabled={isLeaving}>
-              {isLeaving ? (
-                <>
-                  Leaving <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                </>
-              ) : (
-                "Leave TagTeam"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </Sheet>
+        </DrawerContent>
+      </Drawer>
+      
+      {/* Goal Setting Dialog */}
+      <GoalDialog 
+        isOpen={isSettingGoal}
+        onOpenChange={setIsSettingGoal}
+        newGoal={newGoal}
+        setNewGoal={setNewGoal}
+        onSave={handleSetGoal}
+        isSubmitting={isSubmitting}
+      />
+    </>
   );
 };
