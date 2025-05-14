@@ -22,7 +22,7 @@ const TagTeamHub: React.FC = () => {
   const [selectedTagTeam, setSelectedTagTeam] = useState<TransformedTeam | null>(null);
   
   // Initialize team data hook with user profile info
-  const { tagTeams, loading, fetchUserTeams, refreshTeams, hasReachedTeamLimit } = useTeamData(
+  const { tagTeams, loading, fetchUserTeams, refreshTeams } = useTeamData(
     userProfile.id, 
     userProfile.fullName
   );
@@ -75,8 +75,7 @@ const TagTeamHub: React.FC = () => {
         isOpen={isSheetOpen} 
         onClose={() => setIsSheetOpen(false)} 
         onCreateTeam={handleAddTeam} 
-        categories={userProfile.interests}
-        hasReachedTeamLimit={hasReachedTeamLimit?.() || false}
+        categories={userProfile.interests} 
       />
       
       <TagTeamSheetWrapper 

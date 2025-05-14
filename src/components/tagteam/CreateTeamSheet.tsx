@@ -11,21 +11,12 @@ import { StepIndicator } from "@/components/onboarding/StepIndicator";
 import { useUserData } from "@/hooks/useUserData";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter
-} from "@/components/ui/dialog";
 
 interface CreateTeamSheetProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateTeam: (team: any) => void;
   categories: string[];
-  hasReachedTeamLimit: boolean;
 }
 
 export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
@@ -33,7 +24,6 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
   onClose,
   onCreateTeam,
   categories,
-  hasReachedTeamLimit
 }) => {
   const [currentStep, setCurrentStep] = useState<CreateTeamStep>("interest");
   const [teamName, setTeamName] = useState("");
@@ -43,7 +33,6 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
   const [frequency, setFrequency] = useState<{ type: 'daily' | 'weekly'; day?: string }>({
     type: 'daily'
   });
-  const [showLimitDialog, setShowLimitDialog] = useState(false);
   const userInterests = categories || [];
   const { getUserData } = useUserData();
   const [loading, setLoading] = useState(false);
@@ -51,24 +40,13 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
   useEffect(() => {
     if (isOpen && userInterests && userInterests.length > 0) {
       setSelectedCategory(userInterests[0]);
-      
-      // If user has reached their team limit, show the limit dialog
-      if (hasReachedTeamLimit) {
-        setShowLimitDialog(true);
-      }
     }
-  }, [isOpen, userInterests, hasReachedTeamLimit]);
+  }, [isOpen, userInterests]);
 
   const steps: CreateTeamStep[] = ["interest", "partner", "frequency", "name"];
   const currentStepIndex = steps.indexOf(currentStep);
 
   const handleNext = () => {
-    // If user has reached team limit, show dialog and don't proceed
-    if (hasReachedTeamLimit) {
-      setShowLimitDialog(true);
-      return;
-    }
-    
     const nextStep = steps[currentStepIndex + 1];
     if (nextStep) {
       setCurrentStep(nextStep);
@@ -85,12 +63,6 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
   };
 
   const handleSubmit = async () => {
-    // Final check before submission
-    if (hasReachedTeamLimit) {
-      setShowLimitDialog(true);
-      return;
-    }
-    
     try {
       setLoading(true);
       const { data: authData } = await supabase.auth.getUser();
@@ -137,7 +109,6 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
     setPartnerId("");
     setFrequency({ type: 'daily' });
     setCurrentStep("interest");
-    setShowLimitDialog(false);
   };
 
   const canProceed = () => {
@@ -182,68 +153,44 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
     }
   };
 
-  const handleCloseLimit = () => {
-    setShowLimitDialog(false);
-    onClose(); // Also close the team sheet
-  };
-
   return (
-    <>
-      <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent side="bottom" className="h-[85vh] rounded-t-xl">
-          <SheetHeader className="mb-6">
-            <SheetTitle>Create New TagTeam</SheetTitle>
-            <StepIndicator currentStep={currentStepIndex + 1} totalSteps={steps.length} />
-          </SheetHeader>
-          
-          {loading ? (
-            <div className="animate-pulse space-y-4">
-              <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-32 bg-gray-200 rounded"></div>
-            </div>
-          ) : (
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
-              {getCurrentStep()}
-              <div className="flex justify-between gap-2 mt-8">
-                {currentStepIndex > 0 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleBack}
-                  >
-                    Back
-                  </Button>
-                )}
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent side="bottom" className="h-[85vh] rounded-t-xl">
+        <SheetHeader className="mb-6">
+          <SheetTitle>Create New TagTeam</SheetTitle>
+          <StepIndicator currentStep={currentStepIndex + 1} totalSteps={steps.length} />
+        </SheetHeader>
+        
+        {loading ? (
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-32 bg-gray-200 rounded"></div>
+          </div>
+        ) : (
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
+            {getCurrentStep()}
+            <div className="flex justify-between gap-2 mt-8">
+              {currentStepIndex > 0 && (
                 <Button
                   type="button"
-                  className="bg-black text-white hover:bg-black/90 ml-auto"
-                  onClick={handleNext}
-                  disabled={!canProceed()}
+                  variant="outline"
+                  onClick={handleBack}
                 >
-                  {currentStepIndex === steps.length - 1 ? "Send Request" : "Next"}
+                  Back
                 </Button>
-              </div>
-            </form>
-          )}
-        </SheetContent>
-      </Sheet>
-
-      <Dialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Team Limit Reached</DialogTitle>
-            <DialogDescription>
-              You've reached the maximum limit of 3 active TagTeams. 
-              Please end one of your existing TagTeams before creating a new one.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={handleCloseLimit}>
-              I understand
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+              )}
+              <Button
+                type="button"
+                className="bg-black text-white hover:bg-black/90 ml-auto"
+                onClick={handleNext}
+                disabled={!canProceed()}
+              >
+                {currentStepIndex === steps.length - 1 ? "Send Request" : "Next"}
+              </Button>
+            </div>
+          </form>
+        )}
+      </SheetContent>
+    </Sheet>
   );
 };

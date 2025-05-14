@@ -22,7 +22,7 @@ const Index: React.FC = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   // Use the same team data hook that's used in TagTeamHub
-  const { tagTeams, fetchUserTeams, refreshTeams, hasReachedTeamLimit } = useTeamData(
+  const { tagTeams, fetchUserTeams, refreshTeams } = useTeamData(
     userProfile.id, 
     userProfile.fullName
   );
@@ -86,8 +86,7 @@ const Index: React.FC = () => {
         isOpen={isSheetOpen} 
         onClose={() => setIsSheetOpen(false)} 
         onCreateTeam={handleAddTeam} 
-        categories={userProfile.interests}
-        hasReachedTeamLimit={hasReachedTeamLimit?.() || false} 
+        categories={userProfile.interests} 
       />
       <BottomNavigation />
     </main>

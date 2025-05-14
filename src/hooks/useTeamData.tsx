@@ -88,17 +88,5 @@ export const useTeamData = (userId: string, userFullName: string) => {
     await fetchUserTeams();
   };
 
-  // Get the count of active teams
-  const getActiveTeamCount = () => {
-    return tagTeams.filter(team => !team.ended_at).length;
-  };
-
-  return { 
-    tagTeams, 
-    loading, 
-    fetchUserTeams, 
-    refreshTeams, 
-    getActiveTeamCount,
-    hasReachedTeamLimit: () => getActiveTeamCount() >= 3 // Helper function to check if limit reached
-  };
+  return { tagTeams, loading, fetchUserTeams, refreshTeams };
 };

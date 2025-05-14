@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -8,14 +9,6 @@ import { toast } from "sonner";
 import { Check, X, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription, 
-  DialogFooter 
-} from "@/components/ui/dialog";
 
 interface TeamRequest {
   id: string;
@@ -43,8 +36,6 @@ const NotificationsPage: React.FC = () => {
   const [requests, setRequests] = useState<TeamRequest[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showLimitDialog, setShowLimitDialog] = useState(false);
-  const [pendingAccept, setPendingAccept] = useState<{requestId: string, teamName: string} | null>(null);
 
   useEffect(() => {
     fetchNotifications();
@@ -114,50 +105,7 @@ const NotificationsPage: React.FC = () => {
     // For now, we're just using team_requests table for notifications
   };
 
-  const checkTeamLimit = async (userId: string) => {
-    // Count the active teams for the user
-    const { data: teamsData, error } = await supabase
-      .from('teams')
-      .select('id')
-      .contains('members', [userId])
-      .is('ended_at', null);
-      
-    if (error) {
-      console.error('Error checking team limit:', error);
-      return false;
-    }
-    
-    return (teamsData?.length || 0) >= 3;
-  };
-
   const handleAccept = async (requestId: string, teamName: string) => {
-    try {
-      const { data: userData } = await supabase.auth.getUser();
-      
-      if (!userData.user) {
-        toast.error("You must be logged in");
-        return;
-      }
-      
-      // Check if user has reached their team limit
-      const hasReachedLimit = await checkTeamLimit(userData.user.id);
-      
-      if (hasReachedLimit) {
-        // Store the pending request and show the limit dialog
-        setPendingAccept({ requestId, teamName });
-        setShowLimitDialog(true);
-        return;
-      }
-      
-      // Continue with accepting the request
-      await processAcceptRequest(requestId, teamName);
-    } catch (error) {
-      console.error('Error accepting team request:', error);
-      toast.error("Failed to accept the request");
-    }
-  };
-  
-  const processAcceptRequest = async (requestId: string, teamName: string) => {
     try {
       // Update the request status to accepted
       const { error: updateError } = await supabase
@@ -201,7 +149,7 @@ const NotificationsPage: React.FC = () => {
       setRequests(requests.filter(r => r.id !== requestId));
       toast.success(`You've accepted to join ${teamName}!`);
     } catch (error) {
-      console.error('Error processing team acceptance:', error);
+      console.error('Error accepting team request:', error);
       toast.error("Failed to accept the request");
     }
   };
@@ -308,24 +256,6 @@ const NotificationsPage: React.FC = () => {
           <EmptyNotifications />
         )}
       </div>
-      
-      <Dialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Team Limit Reached</DialogTitle>
-            <DialogDescription>
-              You've reached the maximum limit of 3 active TagTeams. 
-              Please end one of your existing TagTeams before accepting a new one.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => setShowLimitDialog(false)}>
-              I understand
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
       <BottomNavigation />
     </main>
   );
