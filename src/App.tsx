@@ -1,10 +1,10 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { useEffect, useState, ErrorBoundary, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
+import React from "react";
 import { AnimatePresence } from "framer-motion";
 import PageTransition from "./components/layout/PageTransition";
 import Index from "./pages/Index";
@@ -29,7 +29,7 @@ const queryClient = new QueryClient({
 });
 
 // Custom error boundary fallback component
-const ErrorFallback = ({ error, resetErrorBoundary }) => {
+const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-white">
       <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
@@ -60,7 +60,7 @@ const LoadingFallback = () => (
 );
 
 // Protected route component
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, hasCompletedOnboarding, authError } = useAuth();
   const [showFallback, setShowFallback] = useState(false);
   
@@ -107,7 +107,7 @@ const ProtectedRoute = ({ children }) => {
 };
 
 // Onboarding route - accessible only to authenticated users who haven't completed onboarding
-const OnboardingRoute = ({ children }) => {
+const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, hasCompletedOnboarding, authError } = useAuth();
   const [showFallback, setShowFallback] = useState(false);
   
@@ -154,7 +154,7 @@ const OnboardingRoute = ({ children }) => {
 };
 
 // Public route - redirects to home if already authenticated
-const PublicRoute = ({ children }) => {
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, hasCompletedOnboarding, authError } = useAuth();
   const [showFallback, setShowFallback] = useState(false);
   
@@ -282,18 +282,27 @@ const AnimatedRoutes = () => {
   );
 };
 
-// Fix the ErrorBoundary import
-class CustomErrorBoundary extends React.Component {
-  constructor(props) {
+// Fix the ErrorBoundary implementation with proper TypeScript interface
+interface CustomErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+interface CustomErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class CustomErrorBoundary extends React.Component<CustomErrorBoundaryProps, CustomErrorBoundaryState> {
+  constructor(props: CustomErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: Error): CustomErrorBoundaryState {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("App Error Boundary caught an error:", error, errorInfo);
   }
 
@@ -304,7 +313,7 @@ class CustomErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      return <ErrorFallback error={this.state.error} resetErrorBoundary={this.resetErrorBoundary} />;
+      return <ErrorFallback error={this.state.error!} resetErrorBoundary={this.resetErrorBoundary} />;
     }
 
     return this.props.children;
