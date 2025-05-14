@@ -1,6 +1,16 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
+// Define team interface explicitly to avoid circular type references
+type Team = {
+  id: string;
+  name: string;
+  members: string[];
+  category: string;
+  frequency: string;
+  status?: string;
+};
+
 export const fetchTeams = async (userId: string) => {
   try {
     const { data, error } = await supabase
