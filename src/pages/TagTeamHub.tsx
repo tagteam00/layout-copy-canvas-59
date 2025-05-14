@@ -32,6 +32,8 @@ interface TransformedTeam {
   frequency: string;
   resetDay?: string;
   resetTime?: string;
+  ended_at?: string | null;
+  ended_by?: string | null;
 }
 
 const TagTeamHub: React.FC = () => {
@@ -47,32 +49,7 @@ const TagTeamHub: React.FC = () => {
   const [isTagTeamSheetOpen, setIsTagTeamSheetOpen] = useState(false);
   const [selectedTagTeam, setSelectedTagTeam] = useState<TransformedTeam | null>(null);
 
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        const userData = await getUserData();
-        if (userData) {
-          const { data: authData } = await supabase.auth.getUser();
-          
-          setUserProfile({
-            fullName: userData.fullName,
-            interests: userData.interests || [],
-            id: authData.user?.id || ""
-          });
-          
-          // Fetch user's teams
-          await fetchUserTeams(userData, authData.user?.id || "");
-        }
-      } catch (error) {
-        console.error("Error loading user data:", error);
-        toast.error("Failed to load user profile");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadUserData();
-  }, []);
-  
+  // Function to fetch user teams
   const fetchUserTeams = async (userData: any, userId: string) => {
     try {
       if (!userId) return;
@@ -125,17 +102,47 @@ const TagTeamHub: React.FC = () => {
             interest: team.category,
             frequency: team.frequency,
             resetDay: resetDay,
-            resetTime: "00:30:00" // Example reset time
+            resetTime: "00:30:00", // Example reset time
+            ended_at: team.ended_at,
+            ended_by: team.ended_by
           };
         }));
         
-        setTagTeams(transformedTeams);
+        // Filter out any teams that have ended
+        const activeTeams = transformedTeams.filter(team => !team.ended_at);
+        setTagTeams(activeTeams);
       }
     } catch (error) {
       console.error("Error fetching teams:", error);
       toast.error("Failed to load teams");
     }
   };
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const userData = await getUserData();
+        if (userData) {
+          const { data: authData } = await supabase.auth.getUser();
+          
+          setUserProfile({
+            fullName: userData.fullName,
+            interests: userData.interests || [],
+            id: authData.user?.id || ""
+          });
+          
+          // Fetch user's teams
+          await fetchUserTeams(userData, authData.user?.id || "");
+        }
+      } catch (error) {
+        console.error("Error loading user data:", error);
+        toast.error("Failed to load user profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadUserData();
+  }, []);
 
   const handleLogActivity = (teamId: string) => {
     const team = tagTeams.find(team => team.id === teamId);
@@ -150,16 +157,20 @@ const TagTeamHub: React.FC = () => {
     setIsSheetOpen(false);
   };
 
-  // Add a handler for when a team is left to refresh the list
+  // Handler for when a team is left to refresh the list immediately
   const handleTagTeamClosed = async () => {
     setIsTagTeamSheetOpen(false);
-    // Wait a moment before refreshing to allow the leave operation to complete
-    setTimeout(() => {
-      if (userProfile.id) {
-        fetchUserTeams({fullName: userProfile.fullName, interests: userProfile.interests}, userProfile.id);
-      }
-    }, 500);
+    
+    // If the current user has a profile ID, refresh the team list
+    if (userProfile.id) {
+      setLoading(true); // Show loading state
+      await fetchUserTeams({fullName: userProfile.fullName, interests: userProfile.interests}, userProfile.id);
+      setLoading(false);
+    }
   };
+
+  // Filter out any ended teams before rendering
+  const activeTagTeams = tagTeams.filter(team => !team.ended_at);
 
   return (
     <main className="flex flex-col min-h-screen bg-white w-full mx-auto relative pb-16">
@@ -171,9 +182,9 @@ const TagTeamHub: React.FC = () => {
           <div className="flex justify-center p-8">
             <div className="animate-pulse">Loading your tagteams...</div>
           </div>
-        ) : tagTeams.length > 0 ? (
+        ) : activeTagTeams.length > 0 ? (
           <div className="space-y-4">
-            {tagTeams.map((team) => (
+            {activeTagTeams.map((team) => (
               <div key={team.id} onClick={() => handleLogActivity(team.id)} className="mb-4">
                 <TagTeamCard 
                   name={team.name}

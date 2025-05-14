@@ -51,11 +51,11 @@ export const LeaveTagTeamDialog: React.FC<LeaveTagTeamDialogProps> = ({
       // Close dialog
       onOpenChange(false);
       
-      // Execute callback if provided
+      // Execute callback if provided to refresh parent component
       if (onLeaveComplete) {
         onLeaveComplete();
       } else {
-        // Navigate back to the Tag Team hub by default
+        // Navigate back to the Tag Team hub by default and force a refresh
         navigate('/tagteam-hub');
       }
     } catch (error) {

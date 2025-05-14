@@ -23,6 +23,9 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
   const [isTagTeamSheetOpen, setIsTagTeamSheetOpen] = useState(false);
   const [selectedTagTeam, setSelectedTagTeam] = useState<TagTeam | null>(null);
 
+  // Filter out any ended teams before rendering
+  const activeTeams = teams.filter(team => !team.ended_at);
+
   const handleCardClick = (team: TagTeam) => {
     setSelectedTagTeam(team);
     setIsTagTeamSheetOpen(true);
@@ -44,7 +47,7 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
         <div className="border flex-1 h-px border-[rgba(0,0,0,0.5)] border-solid" />
       </div>
 
-      {teams.length === 0 ? (
+      {activeTeams.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-gray-500 w-full space-y-5 py-0 my-[8px]">
           <img
             alt="No tagteams yet"
@@ -80,7 +83,7 @@ export const TagTeamList: React.FC<TagTeamListProps> = ({
         </div>
       ) : (
         <div className="space-y-4 mt-4">
-          {teams.map((team) => (
+          {activeTeams.map((team) => (
             <div 
               key={team.id} 
               className="mb-4 relative transform transition-all active:scale-[0.98] cursor-pointer hover:shadow-md"
