@@ -25,8 +25,7 @@ const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const { saveUserData } = useUserData();
   const [loading, setLoading] = useState(false);
-  const { user, updateOnboardingStatus } = useAuth();
-  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const { user } = useAuth();
   
   const [formData, setFormData] = useState<UserData>({
     fullName: "",
@@ -73,28 +72,16 @@ const Onboarding: React.FC = () => {
     setStep(5);
   };
 
-  const handleBioSubmit = async (data: { bio: string, profileImage?: File | null }) => {
+  const handleBioSubmit = async (data: { bio: string }) => {
     try {
       setLoading(true);
       const finalFormData = { ...formData, bio: data.bio };
       
-      // Store profile image if provided
-      if (data.profileImage) {
-        setProfileImage(data.profileImage);
-      }
-      
-      const success = await saveUserData(finalFormData, data.profileImage || null);
+      const success = await saveUserData(finalFormData);
       
       if (success) {
         toast.success("Profile saved successfully!");
-        
-        // Update onboarding status in the auth context
-        if (updateOnboardingStatus) {
-          await updateOnboardingStatus(true);
-        }
-        
-        // Navigate to the home page
-        navigate("/home", { replace: true });
+        navigate("/home");
       } else {
         toast.error("Failed to save profile. Please try again.");
       }

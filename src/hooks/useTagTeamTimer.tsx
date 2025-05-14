@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { calculateAdaptiveTimer, getUrgencyColor } from "@/utils/timerUtils";
+import { calculateAdaptiveTimer, TimerUrgency, getUrgencyColor } from "@/utils/timerUtils";
 import { TimerDisplay } from "@/types/tagteam";
 
 export const useTagTeamTimer = (frequency: string, resetDay?: string) => {

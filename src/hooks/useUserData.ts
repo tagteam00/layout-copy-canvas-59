@@ -9,33 +9,7 @@ export type { UserData };
 export const useUserData = () => {
   const [loading, setLoading] = useState(false);
 
-  // Upload profile image to Supabase storage
-  const uploadProfileImage = async (file: File, userId: string): Promise<string | null> => {
-    try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${userId}/${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
-
-      if (uploadError) {
-        throw uploadError;
-      }
-      
-      // Get the public URL for the uploaded file
-      const { data } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-      
-      return data.publicUrl;
-    } catch (error: any) {
-      console.error('Error uploading profile image:', error.message);
-      return null;
-    }
-  };
-
-  const saveUserData = async (data: UserData, profileImage?: File | null) => {
+  const saveUserData = async (data: UserData) => {
     setLoading(true);
     
     try {
@@ -46,17 +20,6 @@ export const useUserData = () => {
       }
       
       const profileData = userDataToProfile(data, authData.user.id);
-      
-      // If a new profile image is provided, upload it
-      if (profileImage) {
-        const imageUrl = await uploadProfileImage(profileImage, authData.user.id);
-        if (imageUrl) {
-          profileData.avatar_url = imageUrl;
-        }
-      } else if (profileImage === null) {
-        // If explicitly set to null, remove the avatar
-        profileData.avatar_url = null;
-      }
       
       const { error } = await supabase
         .from('profiles')
@@ -118,5 +81,5 @@ export const useUserData = () => {
     }
   };
 
-  return { saveUserData, getUserData, getAllUsers, uploadProfileImage, loading };
+  return { saveUserData, getUserData, getAllUsers, loading };
 };

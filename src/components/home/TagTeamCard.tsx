@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Clock } from "lucide-react";
+import { Check, X } from "lucide-react";
 
 interface TagTeamCardProps {
   name: string;
@@ -31,9 +31,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
           <h3 className="text-xl font-bold truncate mr-2">{name}</h3>
           <Badge className="bg-[#8CFF6E] text-black font-semibold px-3 py-0.5 rounded-full">{category}</Badge>
         </div>
-        <div className="ml-2 text-base flex items-center gap-1">
-          <Clock className="w-4 h-4" /> {timeLeft}
-        </div>
+        <div className="ml-2 text-base">{timeLeft}</div>
       </div>
       <div className="text-gray-400 mb-2">{frequency}</div>
       <div className="flex items-center justify-between">

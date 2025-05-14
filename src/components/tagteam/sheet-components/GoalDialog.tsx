@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Dialog, 
@@ -20,8 +20,6 @@ interface GoalDialogProps {
   isSubmitting: boolean;
 }
 
-const MAX_GOAL_LENGTH = 180;
-
 export const GoalDialog: React.FC<GoalDialogProps> = ({
   isOpen,
   onOpenChange,
@@ -30,15 +28,6 @@ export const GoalDialog: React.FC<GoalDialogProps> = ({
   onSave,
   isSubmitting
 }) => {
-  const charactersLeft = MAX_GOAL_LENGTH - (newGoal?.length || 0);
-  
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    if (value.length <= MAX_GOAL_LENGTH) {
-      setNewGoal(value);
-    }
-  };
-  
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -49,12 +38,9 @@ export const GoalDialog: React.FC<GoalDialogProps> = ({
           <Textarea
             placeholder="Describe your goal here..."
             value={newGoal}
-            onChange={handleTextChange}
+            onChange={(e) => setNewGoal(e.target.value)}
             className="min-h-[100px]"
           />
-          <div className="text-xs text-gray-500 text-right">
-            {charactersLeft} characters left
-          </div>
         </div>
         <DialogFooter>
           <Button 
@@ -68,7 +54,7 @@ export const GoalDialog: React.FC<GoalDialogProps> = ({
           <Button 
             type="button" 
             onClick={onSave}
-            disabled={isSubmitting || !newGoal.trim()}
+            disabled={isSubmitting}
             className="bg-black text-white"
           >
             {isSubmitting ? "Saving..." : "Save Goal"}

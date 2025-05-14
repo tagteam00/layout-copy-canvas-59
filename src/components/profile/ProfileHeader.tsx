@@ -1,8 +1,6 @@
-
 import React from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Pin, Calendar } from "lucide-react";
-
 interface ProfileHeaderProps {
   userProfile: {
     fullName: string;
@@ -12,10 +10,8 @@ interface ProfileHeaderProps {
     city?: string;
     country?: string;
     occupation?: string;
-    avatarUrl?: string | null;
   };
 }
-
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   userProfile
 }) => {
@@ -43,21 +39,12 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       return dateString;
     }
   };
-  
   const location = userProfile.city && userProfile.country ? `${userProfile.city}, ${userProfile.country}` : userProfile.city || userProfile.country || "Location not specified";
-  
   return <div className="mb-6">
       <div className="flex items-start mb-6">
         <div className="relative my-[18px]">
           <Avatar className="w-24 h-24 border-2 border-white shadow-md bg-pink-100 text-gray-800">
-            {userProfile.avatarUrl ? (
-              <AvatarImage 
-                src={userProfile.avatarUrl} 
-                alt={userProfile.fullName || "User"} 
-                className="object-cover"
-              />
-            ) : null}
-            <AvatarFallback>{getInitials(userProfile.fullName || "User")}</AvatarFallback>
+            
           </Avatar>
         </div>
         

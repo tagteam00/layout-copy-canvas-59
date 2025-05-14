@@ -1,6 +1,5 @@
-
-import React, { useState, useRef, useEffect } from "react";
-import { X, Pencil, Loader2 } from "lucide-react";
+import React, { useState, useRef } from "react";
+import { X, Pencil } from "lucide-react";
 import { 
   Drawer, 
   DrawerContent, 
@@ -18,8 +17,6 @@ import { GoalSection } from "./sheet-components/GoalSection";
 import { CalendarSection } from "./sheet-components/CalendarSection";
 import { PartnerVerificationSection } from "./sheet-components/PartnerVerificationSection";
 import { GoalDialog } from "./sheet-components/GoalDialog";
-import { fetchTeamGoal, createTeamGoal, updateTeamGoal } from "@/services/goalService";
-import { useTeamActivity } from "@/hooks/useTeamActivity";
 
 interface TagTeamSheetProps {
   isOpen: boolean;
@@ -39,79 +36,20 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   const [newGoal, setNewGoal] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [sheetHeight, setSheetHeight] = useState<string>("75%");
-  const [updatingStatus, setUpdatingStatus] = useState<boolean>(false);
   const startY = useRef<number | null>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
-  
-  // State for user's goal data
-  const [currentUserGoal, setCurrentUserGoal] = useState<string | undefined>(undefined);
-  const [partnerUserGoal, setPartnerUserGoal] = useState<string | undefined>(undefined);
-  const [goalId, setGoalId] = useState<string | null>(null);
-  const [loadingGoals, setLoadingGoals] = useState<boolean>(true);
-  
-  // Use the team activity hook
-  const { updatePartnerStatus, firstUserStatus, secondUserStatus, loading: loadingActivities } = 
-    useTeamActivity(tagTeam.id, currentUserId);
   
   // Use the timer hook
   const { timer, timerColorClass } = useTagTeamTimer(tagTeam.frequency, tagTeam.resetDay);
   
   // Determine if current user is first or second user
   const isFirstUser = tagTeam.firstUser.id === currentUserId;
-  
-  useEffect(() => {
-    // Update the tagTeam object with the latest status information
-    if (isFirstUser) {
-      tagTeam.firstUser.status = firstUserStatus;
-      tagTeam.secondUser.status = secondUserStatus;
-    } else {
-      tagTeam.firstUser.status = firstUserStatus;
-      tagTeam.secondUser.status = secondUserStatus;
-    }
-  }, [firstUserStatus, secondUserStatus, isFirstUser, tagTeam]);
-  
-  const currentUser = {...(isFirstUser ? tagTeam.firstUser : tagTeam.secondUser), goal: currentUserGoal};
-  const partnerUser = {...(isFirstUser ? tagTeam.secondUser : tagTeam.firstUser), goal: partnerUserGoal};
-  const partnerId = isFirstUser ? tagTeam.secondUser.id : tagTeam.firstUser.id;
-  
-  // Make sure partner name is always defined
-  const partnerName = partnerUser.name || "Partner";
+  const currentUser = isFirstUser ? tagTeam.firstUser : tagTeam.secondUser;
+  const partnerUser = isFirstUser ? tagTeam.secondUser : tagTeam.firstUser;
   
   // Days of the week for the calendar section
   const daysOfWeek = ["Su", "Mo", "Tu", "W", "Th", "F", "Sa"];
   const today = new Date().getDay();
-  
-  // Fetch goals when the sheet opens
-  useEffect(() => {
-    if (isOpen && tagTeam.id) {
-      loadGoals();
-    }
-  }, [isOpen, tagTeam.id, currentUserId]);
-  
-  const loadGoals = async () => {
-    setLoadingGoals(true);
-    try {
-      // Fetch current user's goal
-      const userGoal = await fetchTeamGoal(tagTeam.id, currentUserId);
-      if (userGoal) {
-        setCurrentUserGoal(userGoal.goal);
-        setGoalId(userGoal.id);
-      } else {
-        setCurrentUserGoal(undefined);
-        setGoalId(null);
-      }
-      
-      // Fetch partner's goal
-      const partnerGoal = await fetchTeamGoal(tagTeam.id, partnerId);
-      setPartnerUserGoal(partnerGoal?.goal || undefined);
-      
-    } catch (error) {
-      console.error("Error fetching goals:", error);
-      toast.error("Failed to load goals");
-    } finally {
-      setLoadingGoals(false);
-    }
-  };
   
   const handleSetGoal = async () => {
     if (!newGoal.trim()) {
@@ -122,18 +60,7 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
     setIsSubmitting(true);
     
     try {
-      if (goalId) {
-        // Update existing goal
-        await updateTeamGoal(goalId, newGoal);
-      } else {
-        // Create new goal
-        const result = await createTeamGoal(tagTeam.id, currentUserId, newGoal);
-        if (result) {
-          setGoalId(result.id);
-        }
-      }
-      
-      setCurrentUserGoal(newGoal);
+      // In a real implementation, you would update the goal in the database
       toast.success("Goal set successfully!");
       setIsSettingGoal(false);
       setNewGoal("");
@@ -145,23 +72,12 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
     }
   };
   
-  const openGoalDialog = () => {
-    setNewGoal(currentUserGoal || "");
-    setIsSettingGoal(true);
-  };
-  
   const handleStatusUpdate = async (status: "completed" | "pending") => {
-    setUpdatingStatus(true);
     try {
-      const success = await updatePartnerStatus(partnerId, status);
-      if (success) {
-        toast.success(`Partner marked as ${status}`);
-      }
+      toast.success(`Partner marked as ${status}`);
     } catch (error) {
       console.error("Error updating status:", error);
       toast.error("Failed to update status");
-    } finally {
-      setUpdatingStatus(false);
     }
   };
   
@@ -259,19 +175,13 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
                   frequency={tagTeam.frequency}
                 />
                 
-                {loadingGoals ? (
-                  <div className="min-h-[80px] p-4 rounded-md bg-white mb-4 flex items-center justify-center">
-                    <p className="text-gray-400">Loading goals...</p>
-                  </div>
-                ) : (
-                  <GoalSection 
-                    activeGoal={activeGoal}
-                    setActiveGoal={setActiveGoal}
-                    currentUser={currentUser}
-                    partnerUser={partnerUser}
-                    onSetGoal={openGoalDialog}
-                  />
-                )}
+                <GoalSection 
+                  activeGoal={activeGoal}
+                  setActiveGoal={setActiveGoal}
+                  currentUser={currentUser}
+                  partnerUser={partnerUser}
+                  onSetGoal={() => setIsSettingGoal(true)}
+                />
               </div>
               
               <CalendarSection 
@@ -280,19 +190,21 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
               />
               
               <PartnerVerificationSection 
-                partnerName={partnerName}
+                partnerName={partnerUser.name}
                 onStatusUpdate={handleStatusUpdate}
-                isSubmitting={updatingStatus}
               />
             </ScrollArea>
             
             {/* Edit goal button positioned at bottom right */}
-            {currentUserGoal && activeGoal === "your" && (
+            {currentUser.goal && activeGoal === "your" && (
               <div className="absolute bottom-10 right-5">
                 <Button 
                   size="icon" 
                   className="h-10 w-10 rounded-full bg-gray-200 hover:bg-gray-300"
-                  onClick={openGoalDialog}
+                  onClick={() => {
+                    setNewGoal(currentUser.goal || "");
+                    setIsSettingGoal(true);
+                  }}
                 >
                   <Pencil className="h-5 w-5" />
                 </Button>

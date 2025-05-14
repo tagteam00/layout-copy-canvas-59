@@ -8,7 +8,6 @@ type AuthContextType = {
   session: any;
   loading: boolean;
   hasCompletedOnboarding: boolean;
-  updateOnboardingStatus?: (status: boolean) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -109,19 +108,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  // Function to update the onboarding status
-  const updateOnboardingStatus = async (status: boolean) => {
-    setHasCompletedOnboarding(status);
-  };
-
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      session, 
-      loading, 
-      hasCompletedOnboarding,
-      updateOnboardingStatus 
-    }}>
+    <AuthContext.Provider value={{ user, session, loading, hasCompletedOnboarding }}>
       {children}
     </AuthContext.Provider>
   );

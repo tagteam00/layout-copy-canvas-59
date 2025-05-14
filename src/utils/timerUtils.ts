@@ -1,9 +1,6 @@
 
 import { differenceInSeconds } from "date-fns";
-import { TimerDisplay } from "@/types/tagteam";
-
-// Export the TimerUrgency type so it can be imported in other files
-export type TimerUrgency = "normal" | "warning" | "urgent";
+import { TimerDisplay, TimerUrgency } from "@/types/tagteam";
 
 export const getWeekdayName = (dayIndex: number): string => {
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -17,7 +14,7 @@ export const getShortWeekdayName = (dayIndex: number): string => {
 
 /**
  * Calculates the remaining time based on frequency type
- * For daily frequency - shows concise time format
+ * For daily frequency - shows HH:MM:SS format
  * For weekly frequency - shows days remaining until reset day
  */
 export const calculateAdaptiveTimer = (frequency: string, resetDay?: string): TimerDisplay => {
@@ -25,7 +22,7 @@ export const calculateAdaptiveTimer = (frequency: string, resetDay?: string): Ti
   let timeString = "";
   let urgency: TimerUrgency = "normal";
   
-  // For daily frequency - show concise time format
+  // For daily frequency - show HH:MM:SS format
   if (frequency.toLowerCase().includes("daily")) {
     // Calculate time until midnight
     const tomorrow = new Date();
@@ -34,15 +31,9 @@ export const calculateAdaptiveTimer = (frequency: string, resetDay?: string): Ti
     
     const hours = Math.floor(secondsRemaining / 3600);
     const minutes = Math.floor((secondsRemaining % 3600) / 60);
+    const seconds = secondsRemaining % 60;
     
-    // More concise time representation
-    if (hours > 0) {
-      timeString = `${hours} ${hours === 1 ? 'Hr' : 'Hrs'}`;
-    } else if (minutes > 0) {
-      timeString = `${minutes} ${minutes === 1 ? 'Min' : 'Mins'}`;
-    } else {
-      timeString = `<1 Min`;
-    }
+    timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     
     // Set urgency based on time remaining
     if (hours < 1) {
@@ -67,11 +58,13 @@ export const calculateAdaptiveTimer = (frequency: string, resetDay?: string): Ti
         daysRemaining += 7;
       }
       
-      // Format the display based on days remaining - more concise
+      // Format the display based on days remaining
       if (daysRemaining === 1) {
         timeString = `Tomorrow (${getShortWeekdayName(resetDayIndex)})`;
-      } else {
+      } else if (daysRemaining < 7) {
         timeString = `${daysRemaining} Days (${getShortWeekdayName(resetDayIndex)})`;
+      } else {
+        timeString = `7 Days (${getShortWeekdayName(resetDayIndex)})`;
       }
       
       // Set urgency based on days remaining
@@ -86,7 +79,7 @@ export const calculateAdaptiveTimer = (frequency: string, resetDay?: string): Ti
     }
   } else {
     // Default fallback
-    timeString = "24 Hrs";
+    timeString = "24:00:00";
   }
   
   return { timeString, urgency };
