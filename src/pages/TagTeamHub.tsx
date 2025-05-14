@@ -57,7 +57,9 @@ const TagTeamHub: React.FC = () => {
       const { data: teamsData, error } = await supabase
         .from('teams')
         .select('*')
-        .contains('members', [userId]);
+        .contains('members', [userId])
+        .eq('status', 'active')
+        .is('ended_at', null);
         
       if (error) {
         throw error;
@@ -126,6 +128,17 @@ const TagTeamHub: React.FC = () => {
     setIsSheetOpen(false);
   };
 
+  // Add a handler for when a team is left to refresh the list
+  const handleTagTeamClosed = async () => {
+    setIsTagTeamSheetOpen(false);
+    // Wait a moment before refreshing to allow the leave operation to complete
+    setTimeout(() => {
+      if (userProfile.id) {
+        fetchUserTeams({fullName: userProfile.fullName, interests: userProfile.interests}, userProfile.id);
+      }
+    }, 500);
+  };
+
   return (
     <main className="flex flex-col min-h-screen bg-white w-full mx-auto relative pb-16">
       <AppHeader />
@@ -182,7 +195,7 @@ const TagTeamHub: React.FC = () => {
       {selectedTagTeam && (
         <TagTeamSheet 
           isOpen={isTagTeamSheetOpen}
-          onClose={() => setIsTagTeamSheetOpen(false)}
+          onClose={handleTagTeamClosed}
           tagTeam={selectedTagTeam}
           currentUserId={userProfile.id}
         />

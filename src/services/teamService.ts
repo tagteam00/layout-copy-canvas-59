@@ -1,7 +1,21 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export const fetchTeams = async (userId: string) => {
+// Define team type directly to avoid circular dependencies
+interface Team {
+  id: string;
+  name: string;
+  members: string[];
+  category: string;
+  frequency: string;
+  created_at: string;
+  status?: 'active' | 'ended';
+  ended_at?: string;
+  ended_by?: string;
+  end_reason?: string;
+}
+
+export const fetchTeams = async (userId: string): Promise<Team[]> => {
   try {
     const { data, error } = await supabase
       .from('teams')
@@ -16,18 +30,84 @@ export const fetchTeams = async (userId: string) => {
   }
 };
 
-export const createTeam = async (teamData: any) => {
+export const createTeam = async (teamData: {
+  name: string;
+  members: string[];
+  category: string;
+  frequency: string;
+}): Promise<Team> => {
   try {
     const { data, error } = await supabase
       .from('teams')
-      .insert([teamData])
+      .insert([{
+        ...teamData,
+        status: 'active'
+      }])
       .select();
       
     if (error) throw error;
-    return data?.[0];
+    return data?.[0] as Team;
   } catch (error) {
     console.error('Error creating team:', error);
     throw error;
+  }
+};
+
+export const leaveTeam = async (teamId: string, userId: string): Promise<Team> => {
+  try {
+    const { data, error } = await supabase
+      .from('teams')
+      .update({
+        status: 'ended',
+        ended_at: new Date().toISOString(),
+        ended_by: userId,
+        end_reason: 'user_left'
+      })
+      .eq('id', teamId)
+      .select();
+      
+    if (error) throw error;
+    
+    // Send notification to other team members
+    const team = data[0] as Team;
+    await notifyTeamMembers(team, userId);
+    
+    return team;
+  } catch (error) {
+    console.error('Error leaving team:', error);
+    throw error;
+  }
+};
+
+const notifyTeamMembers = async (team: Team, leavingUserId: string): Promise<void> => {
+  try {
+    // Find the other members who need to be notified
+    const otherMembers = team.members.filter(memberId => memberId !== leavingUserId);
+    
+    // Get the name of the user who left
+    const { data: userData } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', leavingUserId)
+      .single();
+    
+    const userName = userData?.full_name || 'Your partner';
+    
+    // Create notifications for each member
+    const notifications = otherMembers.map(memberId => ({
+      user_id: memberId,
+      related_id: team.id,
+      message: `${userName} has ended your Tag Team "${team.name}"`,
+      related_to: 'team_ended'
+    }));
+    
+    if (notifications.length > 0) {
+      await supabase.from('notifications').insert(notifications);
+    }
+  } catch (error) {
+    console.error('Error sending notifications:', error);
+    // Don't throw here - we don't want to fail the leave operation
+    // if notifications fail
   }
 };
 

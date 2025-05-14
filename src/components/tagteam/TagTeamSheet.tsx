@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { X, Pencil } from "lucide-react";
 import { 
@@ -19,6 +18,7 @@ import { CalendarSection } from "./sheet-components/CalendarSection";
 import { PartnerVerificationSection } from "./sheet-components/PartnerVerificationSection";
 import { GoalDialog } from "./sheet-components/GoalDialog";
 import { fetchTeamGoal, createTeamGoal, updateTeamGoal } from "@/services/goalService";
+import { LeaveTagTeamButton } from "./sheet-components/LeaveTagTeamButton";
 
 interface TagTeamSheetProps {
   isOpen: boolean;
@@ -255,6 +255,18 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
               <PartnerVerificationSection 
                 partnerName={partnerUser.name}
                 onStatusUpdate={handleStatusUpdate}
+              />
+              
+              {/* Add a subtle divider before the leave button */}
+              <div className="mt-8 mb-4 border-t border-gray-100"></div>
+              
+              {/* Leave Tag Team Button */}
+              <LeaveTagTeamButton
+                tagTeamId={tagTeam.id}
+                tagTeamName={tagTeam.name}
+                partnerName={partnerUser.name}
+                currentUserId={currentUserId}
+                onLeaveComplete={onClose}
               />
             </ScrollArea>
             
