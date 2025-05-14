@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 // Define team type directly to avoid circular dependencies
-interface Team {
+export interface Team {
   id: string;
   name: string;
   members: string[];
@@ -10,9 +10,9 @@ interface Team {
   frequency: string;
   created_at: string;
   status?: 'active' | 'ended';
-  ended_at?: string;
-  ended_by?: string;
-  end_reason?: string;
+  ended_at?: string | null;
+  ended_by?: string | null;
+  end_reason?: string | null;
 }
 
 export const fetchTeams = async (userId: string): Promise<Team[]> => {
@@ -39,10 +39,7 @@ export const createTeam = async (teamData: {
   try {
     const { data, error } = await supabase
       .from('teams')
-      .insert([{
-        ...teamData,
-        status: 'active'
-      }])
+      .insert([teamData])
       .select();
       
     if (error) throw error;
@@ -55,10 +52,19 @@ export const createTeam = async (teamData: {
 
 export const leaveTeam = async (teamId: string, userId: string): Promise<Team> => {
   try {
+    // First, get the current team data to ensure we have access to all fields
+    const { data: teamData, error: getError } = await supabase
+      .from('teams')
+      .select('*')
+      .eq('id', teamId)
+      .single();
+      
+    if (getError) throw getError;
+    
+    // Now update with all the end-related fields
     const { data, error } = await supabase
       .from('teams')
       .update({
-        status: 'ended',
         ended_at: new Date().toISOString(),
         ended_by: userId,
         end_reason: 'user_left'
@@ -68,11 +74,12 @@ export const leaveTeam = async (teamId: string, userId: string): Promise<Team> =
       
     if (error) throw error;
     
-    // Send notification to other team members
-    const team = data[0] as Team;
-    await notifyTeamMembers(team, userId);
+    if (data && data.length > 0) {
+      // Send notification to other team members
+      await notifyTeamMembers(data[0] as Team, userId);
+    }
     
-    return team;
+    return data?.[0] as Team;
   } catch (error) {
     console.error('Error leaving team:', error);
     throw error;

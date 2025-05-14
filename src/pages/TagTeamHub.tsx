@@ -10,6 +10,29 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { toast } from "sonner";
 import { TagTeamCard } from "@/components/tagteam/TagTeamCard";
 import { supabase } from "@/integrations/supabase/client";
+import { Team } from "@/services/teamService";
+
+// Define a separate interface for the transformed team data to avoid circular references
+interface TransformedTeam {
+  id: string;
+  name: string;
+  firstUser: {
+    id: string;
+    name: string;
+    status: "pending" | "completed";
+    goal: string;
+  };
+  secondUser: {
+    id: string;
+    name: string;
+    status: "pending" | "completed";
+    goal: string;
+  };
+  interest: string;
+  frequency: string;
+  resetDay?: string;
+  resetTime?: string;
+}
 
 const TagTeamHub: React.FC = () => {
   const { getUserData } = useUserData();
@@ -19,10 +42,10 @@ const TagTeamHub: React.FC = () => {
     id: ""
   });
   const [loading, setLoading] = useState(true);
-  const [tagTeams, setTagTeams] = useState<any[]>([]);
+  const [tagTeams, setTagTeams] = useState<TransformedTeam[]>([]);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isTagTeamSheetOpen, setIsTagTeamSheetOpen] = useState(false);
-  const [selectedTagTeam, setSelectedTagTeam] = useState<any>(null);
+  const [selectedTagTeam, setSelectedTagTeam] = useState<TransformedTeam | null>(null);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -58,7 +81,6 @@ const TagTeamHub: React.FC = () => {
         .from('teams')
         .select('*')
         .contains('members', [userId])
-        .eq('status', 'active')
         .is('ended_at', null);
         
       if (error) {
@@ -67,7 +89,7 @@ const TagTeamHub: React.FC = () => {
       
       // Transform team data for display
       if (teamsData) {
-        const transformedTeams = await Promise.all(teamsData.map(async (team) => {
+        const transformedTeams = await Promise.all(teamsData.map(async (team: Team) => {
           // Get the partner ID (the other member that is not the current user)
           const partnerId = team.members.find((id: string) => id !== userId);
           
