@@ -75,6 +75,21 @@ export const createGoalCompletedNotification = async (
     // Create notification message
     const message = `Congratulations! You've successfully completed your goal with your partner in "${teamName}"! 🎉`;
     
+    // Check if we've already sent a goal completion notification for this team recently
+    const { data: existingNotifications } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('related_id', teamId)
+      .eq('related_to', 'goal_completed' as NotificationType)
+      .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
+      .limit(1);
+      
+    // If we already sent a notification recently, don't send another one
+    if (existingNotifications && existingNotifications.length > 0) {
+      console.log('Goal completion notification already sent recently for this team');
+      return [null, null];
+    }
+    
     // Send notification to first user
     const firstUserNotification = await createNotification(
       firstUserId,
@@ -95,5 +110,31 @@ export const createGoalCompletedNotification = async (
   } catch (error) {
     console.error('Error creating goal completion notifications:', error);
     return [null, null];
+  }
+};
+
+/**
+ * Check if there's an unread goal completion notification for a user and team
+ */
+export const checkUnreadGoalCompletionNotification = async (
+  userId: string,
+  teamId: string
+): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('related_id', teamId)
+      .eq('related_to', 'goal_completed' as NotificationType)
+      .eq('read', false)
+      .limit(1);
+      
+    if (error) throw error;
+    
+    return data && data.length > 0;
+  } catch (error) {
+    console.error('Error checking unread goal notifications:', error);
+    return false;
   }
 };

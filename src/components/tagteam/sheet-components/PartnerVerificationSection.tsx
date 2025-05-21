@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -69,10 +70,11 @@ export const PartnerVerificationSection: React.FC<PartnerVerificationSectionProp
               try {
                 const isGoalCompleted = await checkTeamGoalCompletion(teamId, userId, partnerId);
                 if (isGoalCompleted) {
-                  // Show congratulations dialog
+                  // Show congratulations dialog for the current user who just completed the activity
                   setShowCongrats(true);
                   
-                  // Send notifications to both users
+                  // Send notifications to both users - this will ensure both get notified
+                  // regardless of whether they're currently in the app or not
                   await createGoalCompletedNotification(
                     userId,
                     partnerId,
@@ -135,10 +137,11 @@ export const PartnerVerificationSection: React.FC<PartnerVerificationSectionProp
         try {
           const isGoalCompleted = await checkTeamGoalCompletion(teamId, userId, partnerId);
           if (isGoalCompleted) {
-            // Show congratulations dialog
+            // Show congratulations dialog for the current user who just completed the activity
             setShowCongrats(true);
             
-            // Send notifications to both users
+            // Send notifications to both users - this will ensure both get notified
+            // The partner will see the popup when they next open the app
             await createGoalCompletedNotification(
               userId,
               partnerId,

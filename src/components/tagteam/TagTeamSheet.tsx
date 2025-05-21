@@ -15,6 +15,11 @@ import { GoalDialog } from "./sheet-components/GoalDialog";
 import { fetchTeamGoal, createTeamGoal, updateTeamGoal, closeAllActiveGoals } from "@/services/goalService";
 import { LeaveTagTeamButton } from "./sheet-components/LeaveTagTeamButton";
 import { supabase } from "@/integrations/supabase/client";
+import { CongratsDialog } from "./CongratsDialog";
+import { 
+  checkUnreadGoalCompletionNotification, 
+  markNotificationAsRead 
+} from "@/services/notificationService";
 
 interface TagTeamSheetProps {
   isOpen: boolean;
@@ -49,6 +54,10 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
 
   // Add state for partner activity status
   const [partnerStatus, setPartnerStatus] = useState<"completed" | "pending">(isFirstUser ? tagTeam.secondUser.status : tagTeam.firstUser.status);
+  
+  // Add state for congratulations dialog
+  const [showCongrats, setShowCongrats] = useState<boolean>(false);
+  const [checkedForUnreadNotifications, setCheckedForUnreadNotifications] = useState<boolean>(false);
 
   // Use the enhanced timer hook with team info for notifications
   const {
@@ -93,6 +102,31 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
     };
   }, [isOpen, tagTeam.id]);
 
+  // Subscribe to real-time updates for notifications
+  useEffect(() => {
+    if (!isOpen || !currentUserId || !tagTeam.id) return;
+
+    // Subscribe to changes in notifications table for this team and user
+    const channel = supabase.channel(`notifications-${tagTeam.id}-${currentUserId}`).on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'notifications',
+      filter: `user_id=eq.${currentUserId} AND related_id=eq.${tagTeam.id} AND related_to=eq.goal_completed`
+    }, payload => {
+      console.log('Goal completion notification:', payload);
+      // Show congratulations dialog if a new goal completion notification is received
+      if (!showCongrats) {
+        setShowCongrats(true);
+        markNotificationAsRead(payload.new.id);
+      }
+    }).subscribe();
+    
+    return () => {
+      // Clean up subscription on unmount or when sheet closes
+      supabase.removeChannel(channel);
+    };
+  }, [isOpen, currentUserId, tagTeam.id, showCongrats]);
+
   // Fetch goals when the sheet opens
   useEffect(() => {
     if (isOpen && tagTeam.id) {
@@ -107,6 +141,46 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
       handleResetGoals();
     }
   }, [isOpen, hasResetOccurred, goalId]);
+
+  // Check for unread goal completion notifications when the sheet opens
+  useEffect(() => {
+    const checkGoalNotifications = async () => {
+      if (!isOpen || !currentUserId || !tagTeam.id || checkedForUnreadNotifications) return;
+      
+      try {
+        // Check if there are unread goal completion notifications for this team
+        const hasUnreadNotifications = await checkUnreadGoalCompletionNotification(currentUserId, tagTeam.id);
+        
+        if (hasUnreadNotifications) {
+          console.log("Found unread goal completion notification, showing congratulations");
+          setShowCongrats(true);
+          
+          // Fetch notifications to mark them as read
+          const { data: notifications } = await supabase
+            .from('notifications')
+            .select('id')
+            .eq('user_id', currentUserId)
+            .eq('related_id', tagTeam.id)
+            .eq('related_to', 'goal_completed')
+            .eq('read', false);
+            
+          // Mark notifications as read
+          if (notifications && notifications.length > 0) {
+            for (const notification of notifications) {
+              await markNotificationAsRead(notification.id);
+            }
+          }
+        }
+        
+        setCheckedForUnreadNotifications(true);
+      } catch (error) {
+        console.error("Error checking goal notifications:", error);
+      }
+    };
+    
+    checkGoalNotifications();
+  }, [isOpen, currentUserId, tagTeam.id, checkedForUnreadNotifications]);
+  
   const handleResetGoals = async () => {
     try {
       // Close current goal cycle
@@ -252,6 +326,14 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
       return () => clearTimeout(timer);
     }
   }, [isOpen, needsNewGoal, isSettingGoal]);
+  
+  // Reset the checked flag when the sheet is closed
+  useEffect(() => {
+    if (!isOpen) {
+      setCheckedForUnreadNotifications(false);
+    }
+  }, [isOpen]);
+  
   return <>
       <Drawer open={isOpen} onOpenChange={open => !open && onClose()}>
         <DrawerOverlay />
@@ -313,5 +395,13 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
       
       {/* Goal Setting Dialog */}
       <GoalDialog isOpen={isSettingGoal} onOpenChange={setIsSettingGoal} newGoal={newGoal} setNewGoal={setNewGoal} onSave={handleSetGoal} isSubmitting={isSubmitting} cycleType={tagTeam.frequency.toLowerCase().includes("daily") ? "daily" : "weekly"} />
+      
+      {/* Congratulations Dialog */}
+      <CongratsDialog 
+        isOpen={showCongrats}
+        onOpenChange={setShowCongrats}
+        teamName={tagTeam.name}
+        partnerName={partnerUser.name}
+      />
     </>;
 };
