@@ -24,6 +24,8 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
         return <Clock className="h-5 w-5 text-amber-500" />;
       case 'team_request_accepted':
         return <Check className="h-5 w-5 text-green-500" />;
+      case 'goal_completed':
+        return <Bell className="h-5 w-5 text-yellow-500" />;
       default:
         return <Bell className="h-5 w-5 text-gray-500" />;
     }

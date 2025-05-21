@@ -43,7 +43,7 @@ export const createTimerWarningNotification = async (
     .select('id')
     .eq('user_id', userId)
     .eq('related_id', teamId)
-    .eq('related_to', 'timer_warning')
+    .eq('related_to', 'timer_warning' as NotificationType)
     .gt('created_at', new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()) // Last 12 hours
     .limit(1);
     

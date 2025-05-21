@@ -25,7 +25,8 @@ export const createNotification = async (
       
     if (error) throw error;
     
-    return data?.[0] || null;
+    // Explicitly cast the response to ensure TypeScript recognizes it as a Notification
+    return data?.[0] as Notification || null;
   } catch (error) {
     console.error('Error creating notification:', error);
     return null;
@@ -55,7 +56,8 @@ export const fetchNotifications = async (
       await markNotificationsAsRead(userId);
     }
     
-    return data || [];
+    // Explicitly cast the response to ensure TypeScript recognizes it as Notification[]
+    return data as Notification[] || [];
   } catch (error) {
     console.error('Error fetching notifications:', error);
     return [];
