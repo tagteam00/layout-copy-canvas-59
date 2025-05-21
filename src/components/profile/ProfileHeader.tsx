@@ -5,6 +5,7 @@ import { Pin, Calendar } from "lucide-react";
 
 interface ProfileHeaderProps {
   userProfile: {
+    id?: string; // Added id field (optional since it might not be used in this component)
     fullName: string;
     username: string;
     dateOfBirth: string;

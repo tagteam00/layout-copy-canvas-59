@@ -8,6 +8,7 @@ import { LogoutButton } from "./LogoutButton";
 
 interface ProfileInfoProps {
   userProfile: {
+    id: string; // Added id field
     fullName: string;
     username: string;
     dateOfBirth: string;

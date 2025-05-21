@@ -12,6 +12,7 @@ import { EditProfileSheet } from "@/components/profile/EditProfileSheet";
 
 const ProfilePage: React.FC = () => {
   const [userProfile, setUserProfile] = useState({
+    id: "", // Added id field to match the required type
     fullName: "",
     username: "",
     dateOfBirth: "",
