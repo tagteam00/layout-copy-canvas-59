@@ -2,6 +2,7 @@
 import { Tables } from "@/integrations/supabase/types";
 
 export interface UserData {
+  id: string;
   fullName: string;
   username: string;
   dateOfBirth: string;
@@ -41,6 +42,7 @@ export const userDataToProfile = (userData: UserData, userId: string): ProfileIn
 
 export const profileToUserData = (profile: Profile): UserData => {
   return {
+    id: profile.id,
     fullName: profile.full_name || '',
     username: profile.username || '',
     dateOfBirth: profile.date_of_birth ? new Date(profile.date_of_birth).toISOString().split('T')[0] : '',
