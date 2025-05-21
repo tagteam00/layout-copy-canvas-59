@@ -35,7 +35,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
       </div>
       <div className="text-gray-400 mb-2">{frequency}</div>
       <div className="flex items-center justify-between">
-        <div className="text-md text-black font-semibold">{members}</div>
+        <div className="text-md text-black font-semibold text-left">{members}</div>
         <div className="flex items-center gap-2">
           <div className={`p-1 rounded-full border border-gray-300 ${isLogged ? 'bg-[#8CFF6E]' : 'bg-white'}`}>
             {isLogged ? (

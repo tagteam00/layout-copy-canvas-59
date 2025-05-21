@@ -32,9 +32,9 @@ export const UserStatusSection: React.FC<UserStatusSectionProps> = ({
 
   return (
     <div className="flex justify-between items-start mb-4">
-      {/* First User */}
-      <div className="flex flex-col items-center space-y-2">
-        <span className="text-[16px] font-medium text-gray-800 text-center">
+      {/* First User - Left aligned */}
+      <div className="flex flex-col items-start space-y-2">
+        <span className="text-[16px] font-medium text-gray-800 text-left">
           {getFirstName(firstUser.name)}
         </span>
         <span className={`py-1 px-3 rounded-full text-sm font-medium ${
@@ -56,9 +56,9 @@ export const UserStatusSection: React.FC<UserStatusSectionProps> = ({
         </span>
       </div>
 
-      {/* Second User */}
-      <div className="flex flex-col items-center space-y-2">
-        <span className="text-[16px] font-medium text-gray-800 text-center">
+      {/* Second User - Right aligned */}
+      <div className="flex flex-col items-end space-y-2">
+        <span className="text-[16px] font-medium text-gray-800 text-right">
           {getFirstName(secondUser.name)}
         </span>
         <span className={`py-1 px-3 rounded-full text-sm font-medium ${

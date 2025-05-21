@@ -45,9 +45,9 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
 
       {/* User Status Section */}
       <div className="flex justify-between items-start mb-4">
-        {/* First User */}
-        <div className="flex flex-col items-center space-y-2">
-          <span className="text-[16px] font-medium text-gray-800 text-center truncate max-w-[100px]">
+        {/* First User - Left aligned */}
+        <div className="flex flex-col items-start space-y-2">
+          <span className="text-[16px] font-medium text-gray-800 text-left truncate max-w-[100px]">
             {getFirstName(firstUser.name)}
           </span>
           <span className={`py-1 px-3 rounded-full text-sm font-medium ${firstUser.status === "completed" ? "bg-[#DCFFDC] text-green-700" : "bg-[#FFE8CC] text-amber-700"}`}>
@@ -65,9 +65,9 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
           </span>
         </div>
 
-        {/* Second User */}
-        <div className="flex flex-col items-center space-y-2">
-          <span className="text-[16px] font-medium text-gray-800 text-center truncate max-w-[100px]">
+        {/* Second User - Right aligned */}
+        <div className="flex flex-col items-end space-y-2">
+          <span className="text-[16px] font-medium text-gray-800 text-right truncate max-w-[100px]">
             {getFirstName(secondUser.name)}
           </span>
           <span className={`py-1 px-3 rounded-full text-sm font-medium ${secondUser.status === "completed" ? "bg-[#DCFFDC] text-green-700" : "bg-[#FFE8CC] text-amber-700"}`}>
