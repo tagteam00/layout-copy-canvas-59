@@ -47,30 +47,33 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
-    if (!selectedCategory) return;
+    if (!selectedCategory || !currentUserId) return;
     setLoading(true);
     try {
       // Query for profiles containing selectedCategory in their interests,
-      // and exclude current user
+      // and explicitly exclude current user
       let {
         data: profiles,
         error
-      } = await supabase.from("profiles").select("*").contains("interests", [selectedCategory]);
+      } = await supabase
+        .from("profiles")
+        .select("*")
+        .contains("interests", [selectedCategory])
+        .neq('id', currentUserId); // Explicitly exclude the current user
+        
       if (error) throw error;
-      // Exclude self
-      profiles = profiles?.filter(profile => profile.id !== currentUserId);
 
       // Filter by query
-      let filteredProfiles = profiles;
+      let filteredProfiles = profiles || [];
       if (query.length >= 2) {
-        filteredProfiles = profiles.filter(profile => 
+        filteredProfiles = filteredProfiles.filter(profile => 
           (profile.full_name ?? "").toLowerCase().includes(query.toLowerCase()) || 
           (profile.username ?? "").toLowerCase().includes(query.toLowerCase())
         );
       }
 
       // Check if each user already has an active team for this interest
-      const profilesWithTeamStatus = await Promise.all((filteredProfiles || []).map(async (profile) => {
+      const profilesWithTeamStatus = await Promise.all(filteredProfiles.map(async (profile) => {
         // Get all active teams for this user with this interest
         const { data: teams } = await supabase
           .from('teams')
@@ -101,6 +104,12 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
   };
 
   const handleSelectPartner = (fullName: string, partnerId: string) => {
+    // Additional safety check to prevent selecting yourself
+    if (partnerId === currentUserId) {
+      toast.error("You cannot select yourself as a partner");
+      return;
+    }
+    
     onSelectPartner(fullName);
     onSelectPartnerId(partnerId);
     toast.success(`Selected ${fullName} as your TagTeam partner`);
