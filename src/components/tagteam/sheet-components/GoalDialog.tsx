@@ -18,6 +18,7 @@ interface GoalDialogProps {
   setNewGoal: (goal: string) => void;
   onSave: () => void;
   isSubmitting: boolean;
+  cycleType?: "daily" | "weekly";
 }
 
 const MAX_GOAL_LENGTH = 180;
@@ -28,7 +29,8 @@ export const GoalDialog: React.FC<GoalDialogProps> = ({
   newGoal,
   setNewGoal,
   onSave,
-  isSubmitting
+  isSubmitting,
+  cycleType = "daily"
 }) => {
   const charactersLeft = MAX_GOAL_LENGTH - (newGoal?.length || 0);
   
@@ -43,11 +45,16 @@ export const GoalDialog: React.FC<GoalDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Set Your Goal</DialogTitle>
+          <DialogTitle>Set Your {cycleType === "daily" ? "Daily" : "Weekly"} Goal</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
+          <p className="text-sm text-gray-600">
+            {cycleType === "daily" ? 
+              "This goal will reset at midnight. What do you want to accomplish today?" : 
+              "This goal will reset weekly. What do you want to accomplish this week?"}
+          </p>
           <Textarea
-            placeholder="Describe your goal here..."
+            placeholder={`Describe your ${cycleType} goal here...`}
             value={newGoal}
             onChange={handleTextChange}
             className="min-h-[100px]"

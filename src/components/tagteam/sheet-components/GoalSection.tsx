@@ -19,6 +19,7 @@ interface GoalSectionProps {
     id: string;
   };
   onSetGoal: () => void;
+  needsNewGoal?: boolean;
 }
 
 export const GoalSection: React.FC<GoalSectionProps> = ({
@@ -26,7 +27,8 @@ export const GoalSection: React.FC<GoalSectionProps> = ({
   setActiveGoal,
   currentUser,
   partnerUser,
-  onSetGoal
+  onSetGoal,
+  needsNewGoal = false
 }) => {
   // Get the first name only for display
   const getFirstName = (fullName: string) => {
@@ -63,13 +65,16 @@ export const GoalSection: React.FC<GoalSectionProps> = ({
           currentUser.goal ? (
             <p className="text-gray-700">{currentUser.goal}</p>
           ) : (
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center">
+              <p className={`text-center mb-3 ${needsNewGoal ? "text-amber-600 font-medium" : "text-gray-500"}`}>
+                {needsNewGoal ? "A new cycle has started! Set your goal:" : "No goal set yet"}
+              </p>
               <Button 
                 variant="default" 
                 className="bg-black text-white" 
                 onClick={onSetGoal}
               >
-                Set a new goal
+                {needsNewGoal ? "Set goal for this cycle" : "Set a new goal"}
               </Button>
             </div>
           )

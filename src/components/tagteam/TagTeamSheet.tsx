@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { X, Pencil } from "lucide-react";
 import { 
@@ -17,7 +18,12 @@ import { GoalSection } from "./sheet-components/GoalSection";
 import { CalendarSection } from "./sheet-components/CalendarSection";
 import { PartnerVerificationSection } from "./sheet-components/PartnerVerificationSection";
 import { GoalDialog } from "./sheet-components/GoalDialog";
-import { fetchTeamGoal, createTeamGoal, updateTeamGoal } from "@/services/goalService";
+import { 
+  fetchTeamGoal, 
+  createTeamGoal, 
+  updateTeamGoal, 
+  closeAllActiveGoals 
+} from "@/services/goalService";
 import { LeaveTagTeamButton } from "./sheet-components/LeaveTagTeamButton";
 
 interface TagTeamSheetProps {
@@ -46,9 +52,10 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   const [partnerUserGoal, setPartnerUserGoal] = useState<string | undefined>(undefined);
   const [goalId, setGoalId] = useState<string | null>(null);
   const [loadingGoals, setLoadingGoals] = useState<boolean>(true);
+  const [needsNewGoal, setNeedsNewGoal] = useState<boolean>(false);
   
-  // Use the timer hook
-  const { timer, timerColorClass } = useTagTeamTimer(tagTeam.frequency, tagTeam.resetDay);
+  // Use the enhanced timer hook
+  const { timer, timerColorClass, hasResetOccurred, acknowledgeReset } = useTagTeamTimer(tagTeam.frequency, tagTeam.resetDay);
   
   // Determine if current user is first or second user
   const isFirstUser = tagTeam.firstUser.id === currentUserId;
@@ -67,6 +74,32 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
     }
   }, [isOpen, tagTeam.id, currentUserId]);
   
+  // Check for timer resets when the component renders or when hasResetOccurred changes
+  useEffect(() => {
+    if (isOpen && hasResetOccurred && goalId) {
+      // Timer has reset, prompt for a new goal
+      handleResetGoals();
+    }
+  }, [isOpen, hasResetOccurred, goalId]);
+  
+  const handleResetGoals = async () => {
+    try {
+      // Close current goal cycle
+      if (goalId) {
+        await closeAllActiveGoals(tagTeam.id, currentUserId);
+        setCurrentUserGoal(undefined);
+        setGoalId(null);
+        setNeedsNewGoal(true);
+        toast.info("A new cycle has started! Set your new goal for this cycle.");
+      }
+      
+      // Acknowledge the reset
+      acknowledgeReset();
+    } catch (error) {
+      console.error("Error handling goal reset:", error);
+    }
+  };
+  
   const loadGoals = async () => {
     setLoadingGoals(true);
     try {
@@ -75,9 +108,11 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
       if (userGoal) {
         setCurrentUserGoal(userGoal.goal);
         setGoalId(userGoal.id);
+        setNeedsNewGoal(false);
       } else {
         setCurrentUserGoal(undefined);
         setGoalId(null);
+        setNeedsNewGoal(true);
       }
       
       // Fetch partner's goal
@@ -113,6 +148,7 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
       }
       
       setCurrentUserGoal(newGoal);
+      setNeedsNewGoal(false);
       toast.success("Goal set successfully!");
       setIsSettingGoal(false);
       setNewGoal("");
@@ -190,6 +226,24 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
     startY.current = null;
   };
   
+  // Check if a goal needs to be set - either it's a new cycle or there's no goal yet
+  useEffect(() => {
+    if (isOpen && !loadingGoals && !currentUserGoal) {
+      setNeedsNewGoal(true);
+    }
+  }, [isOpen, loadingGoals, currentUserGoal]);
+  
+  // Auto-open goal dialog if user needs to set a new goal
+  useEffect(() => {
+    if (isOpen && needsNewGoal && !isSettingGoal) {
+      // Slight delay to ensure the sheet is visible first
+      const timer = setTimeout(() => {
+        openGoalDialog();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, needsNewGoal, isSettingGoal]);
+  
   return (
     <>
       <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -243,6 +297,7 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
                     currentUser={currentUser}
                     partnerUser={partnerUser}
                     onSetGoal={openGoalDialog}
+                    needsNewGoal={needsNewGoal}
                   />
                 )}
               </div>
@@ -294,6 +349,7 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
         setNewGoal={setNewGoal}
         onSave={handleSetGoal}
         isSubmitting={isSubmitting}
+        cycleType={tagTeam.frequency.toLowerCase().includes("daily") ? "daily" : "weekly"}
       />
     </>
   );

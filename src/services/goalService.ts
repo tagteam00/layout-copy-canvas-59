@@ -3,11 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const fetchTeamGoal = async (teamId: string, userId: string) => {
   try {
+    // Updated to only fetch goals that are active for the current cycle
+    // (where cycle_end is null or in the future)
     const { data, error } = await supabase
       .from('team_goals')
       .select('*')
       .eq('team_id', teamId)
       .eq('user_id', userId)
+      .is('cycle_end', null)
       .order('created_at', { ascending: false })
       .limit(1);
       
@@ -21,12 +24,14 @@ export const fetchTeamGoal = async (teamId: string, userId: string) => {
 
 export const createTeamGoal = async (teamId: string, userId: string, goal: string) => {
   try {
+    // Set the cycle_start to current time when creating a new goal
     const { data, error } = await supabase
       .from('team_goals')
       .insert([{
         team_id: teamId,
         user_id: userId,
         goal,
+        cycle_start: new Date().toISOString()
       }])
       .select();
       
@@ -50,6 +55,42 @@ export const updateTeamGoal = async (goalId: string, goal: string) => {
     return data?.[0];
   } catch (error) {
     console.error('Error updating team goal:', error);
+    throw error;
+  }
+};
+
+// New function to mark goals as completed for a cycle
+export const closeCurrentGoalCycle = async (goalId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('team_goals')
+      .update({ cycle_end: new Date().toISOString() })
+      .eq('id', goalId)
+      .select();
+      
+    if (error) throw error;
+    return data?.[0];
+  } catch (error) {
+    console.error('Error closing goal cycle:', error);
+    throw error;
+  }
+};
+
+// New function to close all active goals for a user in a team
+export const closeAllActiveGoals = async (teamId: string, userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('team_goals')
+      .update({ cycle_end: new Date().toISOString() })
+      .eq('team_id', teamId)
+      .eq('user_id', userId)
+      .is('cycle_end', null)
+      .select();
+      
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error closing active goals:', error);
     throw error;
   }
 };
