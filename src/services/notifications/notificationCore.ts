@@ -9,7 +9,8 @@ export const createNotification = async (
   userId: string, 
   message: string, 
   relatedTo: NotificationType, 
-  relatedId?: string
+  relatedId?: string,
+  metadata?: Record<string, any>
 ): Promise<Notification | null> => {
   try {
     const { data, error } = await supabase
@@ -19,7 +20,8 @@ export const createNotification = async (
         message,
         related_to: relatedTo,
         related_id: relatedId,
-        read: false
+        read: false,
+        metadata
       }])
       .select();
       

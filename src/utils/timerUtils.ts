@@ -5,6 +5,9 @@ import { TimerDisplay } from "@/types/tagteam";
 // Export the TimerUrgency type so it can be imported in other files
 export type TimerUrgency = "normal" | "warning" | "urgent";
 
+// Define specific notification trigger points (in seconds)
+export type NotificationTriggerPoint = "4hours" | "2hours" | "30minutes" | null;
+
 export const getWeekdayName = (dayIndex: number): string => {
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   return days[dayIndex];
@@ -96,6 +99,64 @@ export const calculateAdaptiveTimer = (frequency: string, resetDay?: string): Ti
   return { timeString, urgency };
 };
 
+/**
+ * Checks if the current time is at a specific notification trigger point
+ * Returns the trigger point if we're at one, null otherwise
+ */
+export const checkNotificationTriggerPoint = (frequency: string, resetDay?: string): NotificationTriggerPoint => {
+  const now = new Date();
+  
+  if (frequency.toLowerCase().includes("daily")) {
+    // Calculate time until midnight
+    const tomorrow = new Date();
+    tomorrow.setHours(24, 0, 0, 0);
+    const secondsRemaining = differenceInSeconds(tomorrow, now);
+    const hoursRemaining = secondsRemaining / 3600;
+    
+    // Check for specific trigger points
+    // Add a small buffer (5 minutes) to catch the notification points
+    if (Math.abs(hoursRemaining - 4) < 5/60) {
+      return "4hours";
+    } else if (Math.abs(hoursRemaining - 2) < 5/60) {
+      return "2hours";
+    } else if (Math.abs(hoursRemaining - 0.5) < 5/60) {
+      return "30minutes";
+    }
+  }
+  else if (frequency.toLowerCase().includes("weekly")) {
+    // For weekly, we only care about the day before (which is approximately 24 hours)
+    const weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    const resetDayLower = resetDay ? resetDay.toLowerCase() : "monday"; // Default to Monday
+    const resetDayIndex = weekdays.indexOf(resetDayLower);
+    
+    if (resetDayIndex !== -1) {
+      const currentDayIndex = now.getDay();
+      let daysRemaining = resetDayIndex - currentDayIndex;
+      
+      // If the day has already passed this week, calculate for next week
+      if (daysRemaining <= 0) {
+        daysRemaining += 7;
+      }
+      
+      // For weekly, we'll use simpler notification points
+      // Notify at exactly 1 day remaining (adds up to ~24 hours)
+      if (daysRemaining === 1) {
+        // Check hour of day to determine approximate time remaining
+        const hourOfDay = now.getHours();
+        if (hourOfDay >= 19 && hourOfDay < 20) {
+          return "4hours";
+        } else if (hourOfDay >= 21 && hourOfDay < 22) {
+          return "2hours";
+        } else if (hourOfDay >= 23 || hourOfDay < 0.5) {
+          return "30minutes";
+        }
+      }
+    }
+  }
+  
+  return null;
+};
+
 export const getUrgencyColor = (urgency: TimerUrgency): string => {
   switch (urgency) {
     case "urgent":
@@ -105,5 +166,22 @@ export const getUrgencyColor = (urgency: TimerUrgency): string => {
     case "normal":
     default:
       return "text-blue-500";
+  }
+};
+
+/**
+ * Formats the time remaining for a notification message
+ * @param triggerPoint The notification trigger point
+ */
+export const formatTimeRemainingForNotification = (triggerPoint: NotificationTriggerPoint): string => {
+  switch (triggerPoint) {
+    case "4hours":
+      return "4 hours";
+    case "2hours":
+      return "2 hours";
+    case "30minutes":
+      return "30 minutes";
+    default:
+      return "soon";
   }
 };

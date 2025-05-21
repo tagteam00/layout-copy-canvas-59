@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Notification, NotificationType } from './notificationTypes';
 import { createNotification } from './notificationCore';
+import { NotificationTriggerPoint } from '@/utils/timerUtils';
 
 /**
  * Create an activity status notification
@@ -31,34 +32,53 @@ export const createTimerWarningNotification = async (
   userId: string,
   teamName: string,
   timeRemaining: string,
-  urgency: 'normal' | 'warning' | 'urgent',
+  triggerPoint: NotificationTriggerPoint,
   teamId: string
 ): Promise<Notification | null> => {
-  // Only send warnings for warning or urgent timers
-  if (urgency === 'normal') return null;
+  // Only send notifications for valid trigger points
+  if (!triggerPoint) return null;
   
-  // Check if we've already sent a warning notification recently for this team
+  // Check if we've already sent this specific trigger point notification recently
   const { data: existingWarnings } = await supabase
     .from('notifications')
-    .select('id')
+    .select('id, metadata')
     .eq('user_id', userId)
     .eq('related_id', teamId)
     .eq('related_to', 'timer_warning' as NotificationType)
-    .gt('created_at', new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()) // Last 12 hours
-    .limit(1);
+    .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
+    .order('created_at', { ascending: false })
+    .limit(5); // Get the most recent ones
     
-  // If we already sent a warning recently, don't send another one
-  if (existingWarnings && existingWarnings.length > 0) return null;
+  // Check if we've already sent this specific trigger point
+  if (existingWarnings && existingWarnings.length > 0) {
+    for (const warning of existingWarnings) {
+      try {
+        // Parse the metadata if it exists
+        if (warning.metadata && typeof warning.metadata === 'object') {
+          const metadata = warning.metadata as any;
+          if (metadata.triggerPoint === triggerPoint) {
+            console.log(`Already sent ${triggerPoint} warning recently`);
+            return null;
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing notification metadata:", error);
+      }
+    }
+  }
   
-  // Send a warning notification
-  const urgencyText = urgency === 'urgent' ? 'urgently ' : '';
-  const message = `Your TagTeam "${teamName}" timer is ${urgencyText}about to reset (${timeRemaining} remaining). Don't forget to log your activity!`;
+  // Send a warning notification with the specific time point
+  const message = `Your TagTeam "${teamName}" has ${timeRemaining} remaining. Don't forget to log your activity!`;
+  
+  // Include the trigger point in metadata so we can avoid duplicates
+  const metadata = { triggerPoint };
   
   return createNotification(
     userId,
     message,
     'timer_warning',
-    teamId
+    teamId,
+    metadata
   );
 };
 

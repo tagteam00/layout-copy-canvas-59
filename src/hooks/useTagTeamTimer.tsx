@@ -1,8 +1,13 @@
-
 import { useState, useEffect, useRef } from "react";
-import { calculateAdaptiveTimer, getUrgencyColor } from "@/utils/timerUtils";
+import { 
+  calculateAdaptiveTimer, 
+  getUrgencyColor, 
+  checkNotificationTriggerPoint, 
+  formatTimeRemainingForNotification,
+  NotificationTriggerPoint 
+} from "@/utils/timerUtils";
 import { TimerDisplay } from "@/types/tagteam";
-import { checkAndSendTimerWarning } from "@/services/activityService";
+import { createTimerWarningNotification } from "@/services/notificationService";
 
 export const useTagTeamTimer = (
   frequency: string, 
@@ -21,7 +26,9 @@ export const useTagTeamTimer = (
   
   // Keep track of last check time
   const lastCheckRef = useRef<Date>(new Date());
-  const lastWarningRef = useRef<Date | null>(null);
+  
+  // Track which notification points have already been triggered for the current cycle
+  const triggeredNotificationsRef = useRef<Set<NotificationTriggerPoint>>(new Set());
   
   // Update timer based on frequency
   useEffect(() => {
@@ -31,23 +38,29 @@ export const useTagTeamTimer = (
       setTimer(timerDisplay);
       setTimerColorClass(getUrgencyColor(timerDisplay.urgency));
       
-      // Check if we should send warning notifications
-      if (teamId && userId && teamName && (timerDisplay.urgency === 'warning' || timerDisplay.urgency === 'urgent')) {
-        // Don't send warnings more than once every 4 hours
-        const shouldCheckWarning = !lastWarningRef.current || 
-          (now.getTime() - lastWarningRef.current.getTime() > 4 * 60 * 60 * 1000);
+      // Check if we're at a specific notification trigger point
+      if (teamId && userId && teamName) {
+        const triggerPoint = checkNotificationTriggerPoint(frequency, resetDay);
+        
+        // Only send notification if we're at a trigger point and haven't sent this one yet
+        if (triggerPoint && !triggeredNotificationsRef.current.has(triggerPoint)) {
+          console.log(`Timer notification trigger point: ${triggerPoint}`);
           
-        if (shouldCheckWarning) {
-          const warningWasSent = await checkAndSendTimerWarning(
-            teamId,
+          // Format the time remaining for the notification
+          const timeRemaining = formatTimeRemainingForNotification(triggerPoint);
+          
+          const notificationSent = await createTimerWarningNotification(
             userId,
             teamName,
-            timerDisplay.timeString,
-            timerDisplay.urgency
+            timeRemaining,
+            triggerPoint,
+            teamId
           );
           
-          if (warningWasSent) {
-            lastWarningRef.current = now;
+          // If notification was sent successfully, mark this trigger point as done
+          if (notificationSent) {
+            console.log(`Sent ${triggerPoint} notification for ${teamName}`);
+            triggeredNotificationsRef.current.add(triggerPoint);
           }
         }
       }
@@ -65,6 +78,8 @@ export const useTagTeamTimer = (
         if (lastDate !== currentDate) {
           console.log("Daily reset detected!");
           setHasResetOccurred(true);
+          // Clear triggered notifications on reset
+          triggeredNotificationsRef.current.clear();
         }
       } 
       // For weekly frequency, check if we've reached the reset day
@@ -82,6 +97,8 @@ export const useTagTeamTimer = (
               (lastDayOfWeek === currentDayOfWeek && now.getTime() - lastCheck.getTime() >= 7 * 24 * 60 * 60 * 1000)) {
             console.log("Weekly reset detected!");
             setHasResetOccurred(true);
+            // Clear triggered notifications on reset
+            triggeredNotificationsRef.current.clear();
           }
         }
       }
@@ -93,8 +110,10 @@ export const useTagTeamTimer = (
     // Initial update
     updateTimer();
     
-    // Set interval based on frequency type - more efficient interval management
-    const intervalMs = frequency.toLowerCase().includes("daily") ? 1000 : 60000; // Update every second for daily, every minute for weekly
+    // Set interval for updates - more frequent updates to catch time thresholds accurately
+    // For daily timer: check every 30 seconds to catch exact notification triggers
+    // For weekly timer: check every minute
+    const intervalMs = frequency.toLowerCase().includes("daily") ? 30000 : 60000;
     const interval = setInterval(updateTimer, intervalMs);
     
     return () => clearInterval(interval);
@@ -103,6 +122,8 @@ export const useTagTeamTimer = (
   // Function to acknowledge the reset
   const acknowledgeReset = () => {
     setHasResetOccurred(false);
+    // Clear triggered notifications when reset is acknowledged
+    triggeredNotificationsRef.current.clear();
   };
 
   return { timer, timerColorClass, hasResetOccurred, acknowledgeReset };
