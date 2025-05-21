@@ -47,6 +47,9 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   const startY = useRef<number | null>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   
+  // Determine if current user is first or second user - moved this up before its usage
+  const isFirstUser = tagTeam.firstUser.id === currentUserId;
+  
   // State for user's goal data
   const [currentUserGoal, setCurrentUserGoal] = useState<string | undefined>(undefined);
   const [partnerUserGoal, setPartnerUserGoal] = useState<string | undefined>(undefined);
@@ -62,8 +65,6 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   // Use the enhanced timer hook
   const { timer, timerColorClass, hasResetOccurred, acknowledgeReset } = useTagTeamTimer(tagTeam.frequency, tagTeam.resetDay);
   
-  // Determine if current user is first or second user
-  const isFirstUser = tagTeam.firstUser.id === currentUserId;
   const currentUser = {...(isFirstUser ? tagTeam.firstUser : tagTeam.secondUser), goal: currentUserGoal};
   const partnerUser = {...(isFirstUser ? tagTeam.secondUser : tagTeam.firstUser), goal: partnerUserGoal};
   const partnerId = isFirstUser ? tagTeam.secondUser.id : tagTeam.firstUser.id;

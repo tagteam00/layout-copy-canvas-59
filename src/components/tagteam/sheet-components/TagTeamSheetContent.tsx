@@ -113,6 +113,9 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
         
         <PartnerVerificationSection 
           partnerName={partnerUser.name}
+          partnerId={partnerUser.id}
+          userId={currentUserId}
+          teamId={tagTeam.id}
           onStatusUpdate={onStatusUpdate}
         />
         
