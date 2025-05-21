@@ -50,11 +50,11 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
             {getFirstName(firstUser.name)}
           </span>
           <span className={`py-1 px-2 rounded-full text-xs font-medium ${firstUser.status === "completed" ? "bg-[#DCFFDC] text-green-700" : "bg-[#FFE8CC] text-amber-700"}`}>
-            {firstUser.status === "completed" ? "Done" : "Pending"}
+            {firstUser.status === "completed" ? "Completed" : "Pending"}
           </span>
         </div>
 
-        {/* Reset Timer */}
+        {/* Reset Timer - simplified */}
         <div className="flex flex-col items-center">
           <span className="text-[13px] text-gray-600">
             Resets:
@@ -70,7 +70,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
             {getFirstName(secondUser.name)}
           </span>
           <span className={`py-1 px-2 rounded-full text-xs font-medium ${secondUser.status === "completed" ? "bg-[#DCFFDC] text-green-700" : "bg-[#FFE8CC] text-amber-700"}`}>
-            {secondUser.status === "completed" ? "Done" : "Pending"}
+            {secondUser.status === "completed" ? "Completed" : "Pending"}
           </span>
         </div>
       </div>
