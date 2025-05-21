@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -9,7 +8,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CongratsDialog } from "@/components/tagteam/CongratsDialog";
-import { createGoalCompletedNotification } from "@/services/notificationService";
+import { createActivityStatusNotification, createGoalCompletedNotification } from "@/services/notificationService";
 
 interface PartnerVerificationSectionProps {
   partnerName: string;
