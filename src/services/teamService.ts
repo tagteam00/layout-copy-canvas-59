@@ -136,3 +136,55 @@ export const getUserTeamActivity = async (teamId: string, userId: string) => {
     lastCompletedAt: new Date().toISOString(),
   };
 };
+
+// New function to check if user already has an active team for a specific interest
+export const hasActiveTeamForInterest = async (userId: string, interest: string): Promise<boolean> => {
+  try {
+    // Get all active teams (where ended_at is null) for the user
+    const { data, error } = await supabase
+      .from('teams')
+      .select('*')
+      .contains('members', [userId])
+      .is('ended_at', null);
+      
+    if (error) throw error;
+    
+    // Check if any of the active teams have the specified interest
+    const hasTeam = (data || []).some((team: Team) => team.category === interest);
+    
+    return hasTeam;
+  } catch (error) {
+    console.error('Error checking active teams for interest:', error);
+    throw error;
+  }
+};
+
+// New function to check if there's a pending request for the interest
+export const hasPendingRequestForInterest = async (userId: string, interest: string): Promise<boolean> => {
+  try {
+    // Check for pending sent requests
+    const { data: sentRequests, error: sentError } = await supabase
+      .from('team_requests')
+      .select('*')
+      .eq('sender_id', userId)
+      .eq('category', interest)
+      .eq('status', 'pending');
+      
+    if (sentError) throw sentError;
+
+    // Check for pending received requests
+    const { data: receivedRequests, error: receivedError } = await supabase
+      .from('team_requests')
+      .select('*')
+      .eq('receiver_id', userId)
+      .eq('category', interest)
+      .eq('status', 'pending');
+      
+    if (receivedError) throw receivedError;
+    
+    return (sentRequests?.length || 0) > 0 || (receivedRequests?.length || 0) > 0;
+  } catch (error) {
+    console.error('Error checking pending requests for interest:', error);
+    throw error;
+  }
+};

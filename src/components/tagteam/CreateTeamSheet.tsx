@@ -11,6 +11,7 @@ import { StepIndicator } from "@/components/onboarding/StepIndicator";
 import { useUserData } from "@/hooks/useUserData";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { hasActiveTeamForInterest, hasPendingRequestForInterest } from "@/services/teamService";
 
 interface CreateTeamSheetProps {
   isOpen: boolean;
@@ -46,8 +47,47 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
   const steps: CreateTeamStep[] = ["interest", "partner", "frequency", "name"];
   const currentStepIndex = steps.indexOf(currentStep);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const nextStep = steps[currentStepIndex + 1];
+    
+    // If moving from interest selection to partner selection, check if user already has an active team
+    if (currentStep === "interest" && nextStep === "partner" && selectedCategory) {
+      setLoading(true);
+      try {
+        const { data: authData } = await supabase.auth.getUser();
+        if (!authData.user) {
+          toast.error("You must be logged in to create a TagTeam");
+          setLoading(false);
+          return;
+        }
+        
+        // Check if user already has an active team for this interest
+        const hasActiveTeam = await hasActiveTeamForInterest(authData.user.id, selectedCategory);
+        
+        // Check if user has a pending request for this interest
+        const hasPendingRequest = await hasPendingRequestForInterest(authData.user.id, selectedCategory);
+        
+        if (hasActiveTeam) {
+          toast.error(`You already have an active TagTeam for ${selectedCategory}. Please end that team before creating a new one.`);
+          setLoading(false);
+          return;
+        }
+        
+        if (hasPendingRequest) {
+          toast.error(`You already have a pending request for ${selectedCategory}. Please wait for a response or cancel the request.`);
+          setLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.error("Error checking active teams:", error);
+        toast.error("Something went wrong. Please try again.");
+        setLoading(false);
+        return;
+      } finally {
+        setLoading(false);
+      }
+    }
+    
     if (nextStep) {
       setCurrentStep(nextStep);
     } else {
@@ -68,6 +108,14 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
       const { data: authData } = await supabase.auth.getUser();
       if (!authData.user) {
         toast.error("You must be logged in to create a TagTeam");
+        setLoading(false);
+        return;
+      }
+
+      // Double-check that user still doesn't have an active team for this interest
+      const hasActiveTeam = await hasActiveTeamForInterest(authData.user.id, selectedCategory);
+      if (hasActiveTeam) {
+        toast.error(`You already have an active TagTeam for ${selectedCategory}. Please end that team before creating a new one.`);
         setLoading(false);
         return;
       }

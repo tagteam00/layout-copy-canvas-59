@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Check, X, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { hasActiveTeamForInterest } from "@/services/teamService";
 
 interface TeamRequest {
   id: string;
@@ -105,8 +106,26 @@ const NotificationsPage: React.FC = () => {
     // For now, we're just using team_requests table for notifications
   };
 
-  const handleAccept = async (requestId: string, teamName: string) => {
+  const handleAccept = async (requestId: string, teamName: string, category: string) => {
     try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("You must be logged in to accept a request");
+        setLoading(false);
+        return;
+      }
+
+      // Check if user already has an active team for this interest
+      const hasActiveTeam = await hasActiveTeamForInterest(user.id, category);
+      
+      if (hasActiveTeam) {
+        toast.error(`You already have an active TagTeam for ${category}. Please end that team before accepting this request.`);
+        setLoading(false);
+        return;
+      }
+
       // Update the request status to accepted
       const { error: updateError } = await supabase
         .from('team_requests')
@@ -151,6 +170,8 @@ const NotificationsPage: React.FC = () => {
     } catch (error) {
       console.error('Error accepting team request:', error);
       toast.error("Failed to accept the request");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -243,7 +264,7 @@ const NotificationsPage: React.FC = () => {
                   </Button>
                   <Button
                     className="bg-[#827AFF] hover:bg-[#827AFF]/90"
-                    onClick={() => handleAccept(request.id, request.name)}
+                    onClick={() => handleAccept(request.id, request.name, request.category)}
                   >
                     <Check className="w-4 h-4 mr-1" />
                     Accept
