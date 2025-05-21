@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Search, Send } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -90,6 +90,7 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
           gender: profile.gender || '',
           interests: profile.interests || [],
           commitmentLevel: profile.commitment_level || '',
+          avatarUrl: profile.avatar_url, // Include avatar URL
           hasActiveTeam: (teams?.length || 0) > 0
         };
       }));
@@ -157,6 +158,13 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
               <div key={user.id} className="p-4 border border-[rgba(130,122,255,0.41)] rounded-xl flex items-center justify-between hover:bg-[rgba(130,122,255,0.1)] transition-colors">
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-10 w-10">
+                    {user.avatarUrl && (
+                      <AvatarImage 
+                        src={user.avatarUrl} 
+                        alt={user.fullName || "User"}
+                        className="object-cover"
+                      />
+                    )}
                     <AvatarFallback>
                       {user.fullName?.charAt(0) || user.username?.charAt(0)}
                     </AvatarFallback>
@@ -188,6 +196,13 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
               <div key={user.id} className="p-4 border border-gray-200 bg-gray-50 rounded-xl flex items-center justify-between opacity-70">
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-10 w-10">
+                    {user.avatarUrl && (
+                      <AvatarImage 
+                        src={user.avatarUrl} 
+                        alt={user.fullName || "User"}
+                        className="object-cover"
+                      />
+                    )}
                     <AvatarFallback>
                       {user.fullName?.charAt(0) || user.username?.charAt(0)}
                     </AvatarFallback>
