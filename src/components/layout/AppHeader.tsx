@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchUnreadNotificationsCount } from "@/services/goalService";
+import { fetchUnreadNotificationsCount } from "@/services/notificationService";
 
 export const AppHeader = () => {
   const navigate = useNavigate();

@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { createNotification } from './goalService';
+import { createActivityStatusNotification, createTimerWarningNotification } from './notificationService';
 
 export interface TeamActivity {
   id: string;
@@ -55,13 +55,11 @@ export const logPartnerActivity = async (
     
     // Once activity is logged, send a notification to the verified user
     if (teamName && partnerName) {
-      const statusText = status === 'completed' ? 'completed' : 'pending';
-      const message = `${partnerName} has marked your activity as ${statusText} in "${teamName}"`;
-      
-      await createNotification(
-        verifiedUserId, 
-        message, 
-        'activity_status_update', 
+      await createActivityStatusNotification(
+        verifiedUserId,
+        partnerName,
+        status,
+        teamName,
         teamId
       );
     }
@@ -82,34 +80,15 @@ export const checkAndSendTimerWarning = async (
   urgency: 'normal' | 'warning' | 'urgent'
 ): Promise<boolean> => {
   try {
-    // Only send warnings for warning or urgent timers
-    if (urgency === 'normal') return false;
-    
-    // Check if we've already sent a warning notification recently for this team
-    const { data: existingWarnings } = await supabase
-      .from('notifications')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('related_id', teamId)
-      .eq('related_to', 'timer_warning')
-      .gt('created_at', new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()) // Last 12 hours
-      .limit(1);
-      
-    // If we already sent a warning recently, don't send another one
-    if (existingWarnings && existingWarnings.length > 0) return false;
-    
-    // Send a warning notification
-    const urgencyText = urgency === 'urgent' ? 'urgently ' : '';
-    const message = `Your TagTeam "${teamName}" timer is ${urgencyText}about to reset (${timeRemaining} remaining). Don't forget to log your activity!`;
-    
-    await createNotification(
+    const notification = await createTimerWarningNotification(
       userId,
-      message,
-      'timer_warning',
+      teamName,
+      timeRemaining,
+      urgency,
       teamId
     );
     
-    return true;
+    return !!notification;
   } catch (error) {
     console.error('Error checking/sending timer warning:', error);
     return false;

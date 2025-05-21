@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -5,12 +6,19 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Check, X, Bell, AlertCircle, Clock, UserCheck } from "lucide-react";
+import { Check, X, Bell, UserCheck, Clock, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { hasActiveTeamForInterest } from "@/services/teamService";
-import { markNotificationsAsRead } from "@/services/goalService";
 import { formatDistanceToNow } from "date-fns";
+import { 
+  fetchNotifications, 
+  markNotificationsAsRead, 
+  deleteNotification,
+  getNotificationStyles,
+  Notification,
+  subscribeToNotifications
+} from "@/services/notificationService";
 
 interface TeamRequest {
   id: string;
@@ -24,23 +32,13 @@ interface TeamRequest {
   sender_name?: string;
 }
 
-interface Notification {
-  id: string;
-  user_id: string;
-  message: string;
-  related_to: string;
-  related_id: string | null;
-  read: boolean;
-  created_at: string;
-}
-
 const NotificationsPage: React.FC = () => {
   const [requests, setRequests] = useState<TeamRequest[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchNotifications();
+    fetchAllNotifications();
     
     // Set up real-time listener for new notifications
     const channel = supabase
@@ -58,7 +56,7 @@ const NotificationsPage: React.FC = () => {
           if (notification) {
             supabase.auth.getUser().then(({ data }) => {
               if (data?.user && notification.user_id === data.user.id) {
-                fetchNotifications();
+                fetchAllNotifications();
               }
             });
           }
@@ -72,7 +70,7 @@ const NotificationsPage: React.FC = () => {
           table: 'team_requests'
         },
         () => {
-          fetchNotifications();
+          fetchAllNotifications();
         }
       )
       .subscribe();
@@ -82,7 +80,7 @@ const NotificationsPage: React.FC = () => {
     };
   }, []);
 
-  const fetchNotifications = async () => {
+  const fetchAllNotifications = async () => {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
@@ -97,7 +95,8 @@ const NotificationsPage: React.FC = () => {
       await fetchTeamRequests(user.id);
       
       // Fetch regular notifications
-      await fetchUserNotifications(user.id);
+      const notificationsData = await fetchNotifications(user.id);
+      setNotifications(notificationsData);
 
       // Set all notifications as read when visiting the page
       await markNotificationsAsRead(user.id);
@@ -106,24 +105,6 @@ const NotificationsPage: React.FC = () => {
       toast.error("Failed to load notifications");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchUserNotifications = async (userId: string) => {
-    try {
-      const { data: notificationsData, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(20);
-      
-      if (error) throw error;
-      
-      setNotifications(notificationsData || []);
-    } catch (error) {
-      console.error('Error fetching user notifications:', error);
-      toast.error("Failed to load notifications");
     }
   };
 
@@ -211,7 +192,7 @@ const NotificationsPage: React.FC = () => {
           .from('notifications')
           .insert({
             user_id: requestToAccept.sender_id,
-            message: `${requestToAccept.receiver_id} has accepted your TagTeam request for ${teamName}`,
+            message: `${user.user_metadata?.full_name || 'Your partner'} has accepted your TagTeam request for ${teamName}`,
             related_to: 'team_request_accepted',
             related_id: requestId,
             read: false
@@ -252,12 +233,9 @@ const NotificationsPage: React.FC = () => {
   const handleDismissNotification = async (notificationId: string) => {
     try {
       // Delete the notification
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', notificationId);
+      const success = await deleteNotification(notificationId);
 
-      if (error) throw error;
+      if (!success) throw new Error("Failed to delete notification");
 
       // Remove the notification from the UI
       setNotifications(notifications.filter(n => n.id !== notificationId));
@@ -279,20 +257,6 @@ const NotificationsPage: React.FC = () => {
         return <Check className="h-5 w-5 text-green-500" />;
       default:
         return <Bell className="h-5 w-5 text-gray-500" />;
-    }
-  };
-
-  // Get notification style based on type
-  const getNotificationStyle = (type: string) => {
-    switch (type) {
-      case 'activity_status_update':
-        return "border-blue-100";
-      case 'timer_warning':
-        return "border-amber-100";
-      case 'team_request_accepted':
-        return "border-green-100";
-      default:
-        return "border-gray-100";
     }
   };
 
@@ -393,32 +357,35 @@ const NotificationsPage: React.FC = () => {
               <div>
                 {requests.length > 0 && <h2 className="text-lg font-medium mb-3">Activity Updates</h2>}
                 <div className="space-y-3">
-                  {notifications.map((notification) => (
-                    <Card 
-                      key={notification.id} 
-                      className={`border-l-4 ${getNotificationStyle(notification.related_to)}`}
-                    >
-                      <CardHeader className="py-3 px-4 flex flex-row items-center justify-between">
-                        <div className="flex items-center">
-                          {getNotificationIcon(notification.related_to)}
-                          <span className="ml-2 text-sm text-gray-500">
-                            {formatNotificationTime(notification.created_at)}
-                          </span>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => handleDismissNotification(notification.id)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </CardHeader>
-                      <CardContent className="py-2 px-4">
-                        <p className="text-sm">{notification.message}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {notifications.map((notification) => {
+                    const styles = getNotificationStyles(notification.related_to);
+                    return (
+                      <Card 
+                        key={notification.id} 
+                        className={`border-l-4 ${styles.borderColor}`}
+                      >
+                        <CardHeader className="py-3 px-4 flex flex-row items-center justify-between">
+                          <div className="flex items-center">
+                            {getNotificationIcon(notification.related_to)}
+                            <span className="ml-2 text-sm text-gray-500">
+                              {formatNotificationTime(notification.created_at)}
+                            </span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleDismissNotification(notification.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </CardHeader>
+                        <CardContent className="py-2 px-4">
+                          <p className="text-sm">{notification.message}</p>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -434,5 +401,40 @@ const NotificationsPage: React.FC = () => {
     </main>
   );
 };
+
+const NotificationSkeleton = () => (
+  <div className="animate-pulse space-y-4">
+    {[1, 2].map((i) => (
+      <Card key={i} className="border-[rgba(130,122,255,0.41)]">
+        <CardHeader className="pb-2">
+          <Skeleton className="h-6 w-3/4" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-4 w-full mb-2" />
+          <div className="flex gap-2 mt-2">
+            <Skeleton className="h-6 w-16 rounded-full" />
+            <Skeleton className="h-6 w-16 rounded-full" />
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-end gap-2">
+          <Skeleton className="h-9 w-20" />
+          <Skeleton className="h-9 w-20" />
+        </CardFooter>
+      </Card>
+    ))}
+  </div>
+);
+
+const EmptyNotifications = () => (
+  <div className="flex flex-col items-center justify-center py-12">
+    <div className="bg-gray-100 p-6 rounded-full mb-4">
+      <Bell className="h-10 w-10 text-gray-400" />
+    </div>
+    <h3 className="text-lg font-medium mb-2">No notifications</h3>
+    <p className="text-sm text-gray-500 text-center max-w-xs">
+      You're all caught up! We'll notify you when there's activity or requests from other users.
+    </p>
+  </div>
+);
 
 export default NotificationsPage;
