@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { UserStatusSection } from "./UserStatusSection";
 import { TeamInfoSection } from "./TeamInfoSection";
@@ -77,7 +77,7 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
       
       <ScrollArea className="flex-1 px-4 pb-8">
         {/* User Status Section */}
-        <div className="bg-[#F8F7FC] rounded-xl p-4 mb-4 mt-4">
+        <div className="rounded-xl p-4 mb-4 mt-4 bg-[#f3f3f3]/[0.48]">
           <UserStatusSection 
             firstUser={tagTeam.firstUser}
             secondUser={tagTeam.secondUser}
