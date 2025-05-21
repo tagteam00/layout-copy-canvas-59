@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Team } from "@/services/teamService";
 import { toast } from "sonner";
 import { TransformedTeam } from "@/types/tagteam";
+import { getLatestTeamActivities, TeamActivity } from "@/services/activityService";
 
 export const useTeamData = (userId: string, userFullName: string) => {
   const [tagTeams, setTagTeams] = useState<TransformedTeam[]>([]);
@@ -47,6 +48,35 @@ export const useTeamData = (userId: string, userFullName: string) => {
             const match = team.frequency.match(/\((.*?)\)/);
             resetDay = match ? match[1] : undefined;
           }
+
+          // Fetch the latest activity statuses for this team
+          let firstUserStatus: "pending" | "completed" = "pending";
+          let secondUserStatus: "pending" | "completed" = "pending";
+
+          try {
+            const activities = await getLatestTeamActivities(team.id);
+            
+            // Find activity where current user logs partner's status
+            const currentUserLoggedActivity = activities.find(
+              activity => activity.logged_by_user_id === userId && activity.verified_user_id === partnerId
+            );
+            
+            // Find activity where partner logs current user's status
+            const partnerLoggedActivity = activities.find(
+              activity => activity.logged_by_user_id === partnerId && activity.verified_user_id === userId
+            );
+            
+            // Set statuses based on activities
+            if (partnerLoggedActivity) {
+              firstUserStatus = partnerLoggedActivity.status;
+            }
+            
+            if (currentUserLoggedActivity) {
+              secondUserStatus = currentUserLoggedActivity.status;
+            }
+          } catch (err) {
+            console.error("Error fetching activity status:", err);
+          }
             
           return {
             id: team.id,
@@ -54,13 +84,13 @@ export const useTeamData = (userId: string, userFullName: string) => {
             firstUser: {
               id: userId,
               name: userFullName,
-              status: "pending" as const, // For now, hardcoded
+              status: firstUserStatus,
               goal: "Will do Push pull legs the entire week, and take as much protien as I can" // Example goal
             },
             secondUser: {
               id: partnerId || "",
               name: partnerData?.full_name || "Partner",
-              status: "completed" as const, // For now, hardcoded
+              status: secondUserStatus,
               goal: "" // Empty goal for example
             },
             interest: team.category,
@@ -81,6 +111,34 @@ export const useTeamData = (userId: string, userFullName: string) => {
       setLoading(false);
     }
   };
+
+  // Set up real-time subscription for team activities
+  useEffect(() => {
+    if (!userId) return;
+
+    // Subscribe to changes in team_activities table
+    const channel = supabase
+      .channel('team-activities-changes')
+      .on(
+        'postgres_changes', 
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'team_activities',
+        }, 
+        (payload) => {
+          console.log('New activity logged:', payload);
+          // Refresh the teams data when a new activity is logged
+          fetchUserTeams();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      // Clean up subscription on unmount
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
 
   // Expose the ability to refresh teams
   const refreshTeams = async () => {

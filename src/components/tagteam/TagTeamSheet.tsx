@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { X, Pencil } from "lucide-react";
 import { 
@@ -25,6 +24,7 @@ import {
   closeAllActiveGoals 
 } from "@/services/goalService";
 import { LeaveTagTeamButton } from "./sheet-components/LeaveTagTeamButton";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TagTeamSheetProps {
   isOpen: boolean;
@@ -54,6 +54,11 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   const [loadingGoals, setLoadingGoals] = useState<boolean>(true);
   const [needsNewGoal, setNeedsNewGoal] = useState<boolean>(false);
   
+  // Add state for partner activity status
+  const [partnerStatus, setPartnerStatus] = useState<"completed" | "pending">(
+    isFirstUser ? tagTeam.secondUser.status : tagTeam.firstUser.status
+  );
+  
   // Use the enhanced timer hook
   const { timer, timerColorClass, hasResetOccurred, acknowledgeReset } = useTagTeamTimer(tagTeam.frequency, tagTeam.resetDay);
   
@@ -66,6 +71,36 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   // Days of the week for the calendar section
   const daysOfWeek = ["Su", "Mo", "Tu", "W", "Th", "F", "Sa"];
   const today = new Date().getDay();
+  
+  // Subscribe to real-time updates for team activities
+  useEffect(() => {
+    if (!isOpen || !tagTeam.id) return;
+    
+    // Subscribe to changes in team_activities table for this team
+    const channel = supabase
+      .channel(`team-activities-${tagTeam.id}`)
+      .on(
+        'postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'team_activities',
+          filter: `team_id=eq.${tagTeam.id}`
+        }, 
+        (payload) => {
+          console.log('Activity update:', payload);
+          // Call onClose to refresh data when reopening
+          onClose();
+          toast.info("Partner activity status updated");
+        }
+      )
+      .subscribe();
+
+    return () => {
+      // Clean up subscription on unmount or when sheet closes
+      supabase.removeChannel(channel);
+    };
+  }, [isOpen, tagTeam.id]);
   
   // Fetch goals when the sheet opens
   useEffect(() => {
@@ -165,13 +200,10 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
     setIsSettingGoal(true);
   };
   
+  // Update partner status handler
   const handleStatusUpdate = async (status: "completed" | "pending") => {
-    try {
-      toast.success(`Partner marked as ${status}`);
-    } catch (error) {
-      console.error("Error updating status:", error);
-      toast.error("Failed to update status");
-    }
+    setPartnerStatus(status);
+    // The actual API call is now handled in PartnerVerificationSection
   };
   
   // Touch event handlers for custom drag behavior
@@ -309,6 +341,9 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
               
               <PartnerVerificationSection 
                 partnerName={partnerUser.name}
+                partnerId={partnerUser.id}
+                userId={currentUserId}
+                teamId={tagTeam.id}
                 onStatusUpdate={handleStatusUpdate}
               />
               
