@@ -29,7 +29,6 @@ const Onboarding: React.FC = () => {
   const [profileImage, setProfileImage] = useState<File | null>(null);
   
   const [formData, setFormData] = useState<UserData>({
-    id: user?.id || "", // Include the id field from the authenticated user
     fullName: "",
     username: "",
     dateOfBirth: "",

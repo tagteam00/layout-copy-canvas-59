@@ -1,11 +1,9 @@
-
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users } from "lucide-react";
 import { UserData } from "@/hooks/useUserData";
 import { Skeleton } from "@/components/ui/skeleton";
-import { supabase } from "@/integrations/supabase/client";
 
 interface UsersListProps {
   users: UserData[];
@@ -16,19 +14,6 @@ export const UsersList = ({
   users,
   loading = false
 }: UsersListProps) => {
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  
-  useEffect(() => {
-    const getCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUserId(user?.id || null);
-    };
-    getCurrentUser();
-  }, []);
-
-  // Filter out the current user from the users list
-  const filteredUsers = users.filter(user => user.id !== currentUserId);
-  
   if (loading) {
     return <section className="mt-8">
         <div className="flex items-center gap-[9px] text-xs text-black font-normal mb-4">
@@ -72,7 +57,7 @@ export const UsersList = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredUsers.length === 0 ? <p className="text-gray-500 col-span-2 text-center py-4">No members found</p> : filteredUsers.map(user => <Card key={user.username} className="border-[rgba(130,122,255,0.41)]">
+        {users.length === 0 ? <p className="text-gray-500 col-span-2 text-center py-4">No members found</p> : users.map(user => <Card key={user.username} className="border-[rgba(130,122,255,0.41)]">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">{user.fullName}</CardTitle>
               </CardHeader>

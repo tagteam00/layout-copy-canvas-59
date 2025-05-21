@@ -19,7 +19,6 @@ import { useUserData } from "@/hooks/useUserData";
 
 interface EditProfileSheetProps {
   currentProfile: {
-    id: string; // Added id property
     fullName: string;
     username: string;
     interests: string[];
@@ -69,7 +68,6 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
     try {
       setIsSaving(true);
       const success = await saveUserData({
-        id: formData.id, // Include the id field
         fullName: formData.fullName,
         username: formData.username,
         interests: formData.interests,
