@@ -15,12 +15,14 @@ import { GoalDialog } from "./sheet-components/GoalDialog";
 import { fetchTeamGoal, createTeamGoal, updateTeamGoal, closeAllActiveGoals } from "@/services/goalService";
 import { LeaveTagTeamButton } from "./sheet-components/LeaveTagTeamButton";
 import { supabase } from "@/integrations/supabase/client";
+
 interface TagTeamSheetProps {
   isOpen: boolean;
   onClose: () => void;
   tagTeam: TagTeam;
   currentUserId: string;
 }
+
 export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   isOpen,
   onClose,
@@ -283,7 +285,14 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
               
               <CalendarSection daysOfWeek={daysOfWeek} today={today} />
               
-              <PartnerVerificationSection partnerName={partnerUser.name} partnerId={partnerUser.id} userId={currentUserId} teamId={tagTeam.id} onStatusUpdate={handleStatusUpdate} />
+              <PartnerVerificationSection 
+                partnerName={partnerUser.name} 
+                partnerId={partnerUser.id} 
+                userId={currentUserId} 
+                teamId={tagTeam.id} 
+                teamName={tagTeam.name}
+                onStatusUpdate={handleStatusUpdate} 
+              />
               
               {/* Add a subtle divider before the leave button */}
               <div className="mt-8 mb-4 border-t border-gray-100"></div>

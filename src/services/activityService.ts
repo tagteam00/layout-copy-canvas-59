@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { createActivityStatusNotification, createTimerWarningNotification } from './notificationService';
+import { createActivityStatusNotification, createTimerWarningNotification, createGoalCompletedNotification } from './notificationService';
 
 export interface TeamActivity {
   id: string;
@@ -68,6 +68,48 @@ export const logPartnerActivity = async (
   } catch (error) {
     console.error('Error logging partner activity:', error);
     throw error;
+  }
+};
+
+// Function to check if both users have completed their goals
+export const checkTeamGoalCompletion = async (
+  teamId: string,
+  firstUserId: string,
+  secondUserId: string
+): Promise<boolean> => {
+  try {
+    // Get the latest active activities for this team
+    const { data, error } = await supabase
+      .from('team_activities')
+      .select('*')
+      .eq('team_id', teamId)
+      .is('cycle_end', null);
+      
+    if (error) throw error;
+    
+    if (!data || data.length === 0) return false;
+    
+    // Check if first user logged second user as completed
+    const firstUserLoggedSecond = data.find(
+      activity => 
+        activity.logged_by_user_id === firstUserId && 
+        activity.verified_user_id === secondUserId &&
+        activity.status === 'completed'
+    );
+    
+    // Check if second user logged first user as completed
+    const secondUserLoggedFirst = data.find(
+      activity => 
+        activity.logged_by_user_id === secondUserId && 
+        activity.verified_user_id === firstUserId &&
+        activity.status === 'completed'
+    );
+    
+    // Both need to have logged each other as completed
+    return !!firstUserLoggedSecond && !!secondUserLoggedFirst;
+  } catch (error) {
+    console.error('Error checking team goal completion:', error);
+    return false;
   }
 };
 

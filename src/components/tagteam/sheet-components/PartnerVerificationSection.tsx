@@ -1,9 +1,15 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { logPartnerActivity, hasActiveActivityLog } from "@/services/activityService";
+import { 
+  logPartnerActivity, 
+  hasActiveActivityLog,
+  checkTeamGoalCompletion 
+} from "@/services/activityService";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { CongratsDialog } from "@/components/tagteam/CongratsDialog";
+import { createGoalCompletedNotification } from "@/services/notificationService";
 
 interface PartnerVerificationSectionProps {
   partnerName: string;
@@ -19,11 +25,12 @@ export const PartnerVerificationSection: React.FC<PartnerVerificationSectionProp
   partnerId,
   userId,
   teamId,
-  teamName,
+  teamName = "TagTeam",
   onStatusUpdate
 }) => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [hasLoggedActivity, setHasLoggedActivity] = useState<boolean>(false);
+  const [showCongrats, setShowCongrats] = useState<boolean>(false);
 
   // Check if user has already logged an activity for this partner
   useEffect(() => {
@@ -51,12 +58,33 @@ export const PartnerVerificationSection: React.FC<PartnerVerificationSectionProp
           table: 'team_activities',
           filter: `team_id=eq.${teamId}`
         },
-        (payload) => {
+        async (payload) => {
           // If a new activity is logged for this team where the current user logged it
           if (payload.new && 
               payload.new.logged_by_user_id === userId &&
               payload.new.verified_user_id === partnerId) {
             setHasLoggedActivity(true);
+            
+            // Check if this activity completes the goal (both users marked each other as completed)
+            if (payload.new.status === "completed") {
+              try {
+                const isGoalCompleted = await checkTeamGoalCompletion(teamId, userId, partnerId);
+                if (isGoalCompleted) {
+                  // Show congratulations dialog
+                  setShowCongrats(true);
+                  
+                  // Send notifications to both users
+                  await createGoalCompletedNotification(
+                    userId,
+                    partnerId,
+                    teamName,
+                    teamId
+                  );
+                }
+              } catch (err) {
+                console.error("Error checking goal completion:", err);
+              }
+            }
           }
         }
       )
@@ -65,7 +93,7 @@ export const PartnerVerificationSection: React.FC<PartnerVerificationSectionProp
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [teamId, userId, partnerId]);
+  }, [teamId, userId, partnerId, teamName]);
 
   // Get the first name only for display
   const getFirstName = (fullName: string) => {
@@ -102,6 +130,27 @@ export const PartnerVerificationSection: React.FC<PartnerVerificationSectionProp
       setHasLoggedActivity(true);
       
       toast.success(`${getFirstName(partnerName)}'s status marked as ${status}`);
+      
+      // Check if this action completes the goal
+      if (status === "completed") {
+        try {
+          const isGoalCompleted = await checkTeamGoalCompletion(teamId, userId, partnerId);
+          if (isGoalCompleted) {
+            // Show congratulations dialog
+            setShowCongrats(true);
+            
+            // Send notifications to both users
+            await createGoalCompletedNotification(
+              userId,
+              partnerId,
+              actualTeamName,
+              teamId
+            );
+          }
+        } catch (err) {
+          console.error("Error checking goal completion:", err);
+        }
+      }
     } catch (error) {
       console.error("Error updating status:", error);
       toast.error(`Failed to update ${getFirstName(partnerName)}'s status`);
@@ -110,10 +159,16 @@ export const PartnerVerificationSection: React.FC<PartnerVerificationSectionProp
     }
   };
 
+  const getFrequencyText = () => {
+    // Get activity frequency from the team data
+    // Default to "Daily" if not available
+    return "Daily";
+  };
+
   return (
     <div className="mt-auto mb-6">
       <p className="text-center text-[16px] font-medium mb-4">
-        Has {getFirstName(partnerName)} completed his Daily goal?
+        Has {getFirstName(partnerName)} completed his {getFrequencyText()} goal?
       </p>
       
       <div className="flex justify-between gap-4">
@@ -138,6 +193,14 @@ export const PartnerVerificationSection: React.FC<PartnerVerificationSectionProp
           You've already verified {getFirstName(partnerName)}'s status for this cycle.
         </p>
       )}
+      
+      {/* Congratulations Dialog */}
+      <CongratsDialog 
+        isOpen={showCongrats} 
+        onOpenChange={setShowCongrats}
+        teamName={teamName}
+        partnerName={partnerName}
+      />
     </div>
   );
 };

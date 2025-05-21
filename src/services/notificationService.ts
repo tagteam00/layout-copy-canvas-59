@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -12,7 +11,7 @@ export interface Notification {
   created_at: string;
 }
 
-export type NotificationType = 'activity_status_update' | 'timer_warning' | 'team_request_accepted' | 'team_request' | 'team_update';
+export type NotificationType = 'activity_status_update' | 'timer_warning' | 'team_request_accepted' | 'team_request' | 'team_update' | 'goal_completed';
 
 /**
  * Create a new notification for a user
@@ -220,6 +219,42 @@ export const createTimerWarningNotification = async (
 };
 
 /**
+ * Create a goal completion notification for both users
+ */
+export const createGoalCompletedNotification = async (
+  firstUserId: string,
+  secondUserId: string,
+  teamName: string,
+  teamId: string
+): Promise<[Notification | null, Notification | null]> => {
+  try {
+    // Create notification message
+    const message = `Congratulations! You've successfully completed your goal with your partner in "${teamName}"! 🎉`;
+    
+    // Send notification to first user
+    const firstUserNotification = await createNotification(
+      firstUserId,
+      message,
+      'goal_completed',
+      teamId
+    );
+    
+    // Send notification to second user
+    const secondUserNotification = await createNotification(
+      secondUserId,
+      message,
+      'goal_completed',
+      teamId
+    );
+    
+    return [firstUserNotification, secondUserNotification];
+  } catch (error) {
+    console.error('Error creating goal completion notifications:', error);
+    return [null, null];
+  }
+};
+
+/**
  * Set up a real-time subscription for notifications
  */
 export const subscribeToNotifications = (
@@ -278,6 +313,11 @@ export const getNotificationStyles = (type: string) => {
       return {
         iconColor: "text-purple-500",
         borderColor: "border-purple-100"
+      };
+    case 'goal_completed':
+      return {
+        iconColor: "text-yellow-500",
+        borderColor: "border-yellow-100"
       };
     default:
       return {
