@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Search, Send } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -63,7 +63,7 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
         
       if (error) throw error;
 
-      // Filter by query only if it has 2 or more characters
+      // Filter by query
       let filteredProfiles = profiles || [];
       if (query.length >= 2) {
         filteredProfiles = filteredProfiles.filter(profile => 
@@ -90,7 +90,6 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
           gender: profile.gender || '',
           interests: profile.interests || [],
           commitmentLevel: profile.commitment_level || '',
-          avatarUrl: profile.avatar_url, // Include avatar URL
           hasActiveTeam: (teams?.length || 0) > 0
         };
       }));
@@ -137,7 +136,7 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
         />
       </div>
 
-      {availableUsers.length === 0 && !loading && searchResults.length === 0 && (
+      {availableUsers.length === 0 && !loading && searchQuery.length === 0 && (
         <Alert className="bg-amber-50 border-amber-200 mt-4">
           <AlertTitle>No available partners</AlertTitle>
           <AlertDescription>
@@ -158,13 +157,6 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
               <div key={user.id} className="p-4 border border-[rgba(130,122,255,0.41)] rounded-xl flex items-center justify-between hover:bg-[rgba(130,122,255,0.1)] transition-colors">
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-10 w-10">
-                    {user.avatarUrl && (
-                      <AvatarImage 
-                        src={user.avatarUrl} 
-                        alt={user.fullName || "User"}
-                        className="object-cover"
-                      />
-                    )}
                     <AvatarFallback>
                       {user.fullName?.charAt(0) || user.username?.charAt(0)}
                     </AvatarFallback>
@@ -196,13 +188,6 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
               <div key={user.id} className="p-4 border border-gray-200 bg-gray-50 rounded-xl flex items-center justify-between opacity-70">
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-10 w-10">
-                    {user.avatarUrl && (
-                      <AvatarImage 
-                        src={user.avatarUrl} 
-                        alt={user.fullName || "User"}
-                        className="object-cover"
-                      />
-                    )}
                     <AvatarFallback>
                       {user.fullName?.charAt(0) || user.username?.charAt(0)}
                     </AvatarFallback>
@@ -220,7 +205,7 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
           </>
         )}
 
-        {availableUsers.length === 0 && unavailableUsers.length === 0 && !loading && searchQuery.length === 0 && (
+        {availableUsers.length === 0 && unavailableUsers.length === 0 && !loading && (
           <div className="text-center text-gray-500 py-4">
             {`No users found with interest in ${selectedCategory}`}
           </div>
