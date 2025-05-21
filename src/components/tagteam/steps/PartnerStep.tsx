@@ -63,7 +63,7 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
         
       if (error) throw error;
 
-      // Filter by query
+      // Filter by query only if it has 2 or more characters
       let filteredProfiles = profiles || [];
       if (query.length >= 2) {
         filteredProfiles = filteredProfiles.filter(profile => 
@@ -137,7 +137,7 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
         />
       </div>
 
-      {availableUsers.length === 0 && !loading && searchQuery.length === 0 && (
+      {availableUsers.length === 0 && !loading && searchResults.length === 0 && (
         <Alert className="bg-amber-50 border-amber-200 mt-4">
           <AlertTitle>No available partners</AlertTitle>
           <AlertDescription>
@@ -220,7 +220,7 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
           </>
         )}
 
-        {availableUsers.length === 0 && unavailableUsers.length === 0 && !loading && (
+        {availableUsers.length === 0 && unavailableUsers.length === 0 && !loading && searchQuery.length === 0 && (
           <div className="text-center text-gray-500 py-4">
             {`No users found with interest in ${selectedCategory}`}
           </div>
