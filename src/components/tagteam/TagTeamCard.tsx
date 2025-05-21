@@ -1,6 +1,5 @@
 
 import React from "react";
-import { Clock } from "lucide-react";
 import { useTagTeamTimer } from "@/hooks/useTagTeamTimer";
 
 interface TagTeamCardProps {
@@ -39,55 +38,55 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
 
   return <div onClick={onClick} className="w-full rounded-2xl border border-[#E5DEFF] p-4 cursor-pointer hover:shadow-md transition-shadow bg-slate-50">
       {/* Header Section */}
-      <h3 className="text-center text-[20px] text-[#827AFF] mb-4 truncate font-extrabold">
+      <h3 className="text-center text-[20px] text-[#827AFF] mb-3 truncate font-extrabold">
         {name}
       </h3>
 
       {/* User Status Section */}
       <div className="flex justify-between items-start mb-4">
         {/* First User - Left aligned */}
-        <div className="flex flex-col items-start space-y-2">
-          <span className="text-[16px] font-medium text-gray-800 text-left truncate max-w-[100px]">
+        <div className="flex flex-col items-start space-y-2 max-w-[30%]">
+          <span className="text-[16px] font-medium text-gray-800 text-left truncate w-full">
             {getFirstName(firstUser.name)}
           </span>
-          <span className={`py-1 px-3 rounded-full text-sm font-medium ${firstUser.status === "completed" ? "bg-[#DCFFDC] text-green-700" : "bg-[#FFE8CC] text-amber-700"}`}>
-            {firstUser.status === "completed" ? "Completed" : "Pending"}
+          <span className={`py-1 px-2 rounded-full text-xs font-medium ${firstUser.status === "completed" ? "bg-[#DCFFDC] text-green-700" : "bg-[#FFE8CC] text-amber-700"}`}>
+            {firstUser.status === "completed" ? "Done" : "Pending"}
           </span>
         </div>
 
         {/* Reset Timer */}
-        <div className="flex flex-col items-center space-y-2">
-          <span className="text-[14px] text-gray-600 flex items-center gap-1">
-            <Clock className="w-4 h-4" /> Resets in:
+        <div className="flex flex-col items-center">
+          <span className="text-[13px] text-gray-600">
+            Resets:
           </span>
-          <span className={`text-[16px] font-medium ${timerColorClass}`}>
+          <span className={`text-[15px] font-medium ${timerColorClass}`}>
             {timer.timeString}
           </span>
         </div>
 
         {/* Second User - Right aligned */}
-        <div className="flex flex-col items-end space-y-2">
-          <span className="text-[16px] font-medium text-gray-800 text-right truncate max-w-[100px]">
+        <div className="flex flex-col items-end space-y-2 max-w-[30%]">
+          <span className="text-[16px] font-medium text-gray-800 text-right truncate w-full">
             {getFirstName(secondUser.name)}
           </span>
-          <span className={`py-1 px-3 rounded-full text-sm font-medium ${secondUser.status === "completed" ? "bg-[#DCFFDC] text-green-700" : "bg-[#FFE8CC] text-amber-700"}`}>
-            {secondUser.status === "completed" ? "Completed" : "Pending"}
+          <span className={`py-1 px-2 rounded-full text-xs font-medium ${secondUser.status === "completed" ? "bg-[#DCFFDC] text-green-700" : "bg-[#FFE8CC] text-amber-700"}`}>
+            {secondUser.status === "completed" ? "Done" : "Pending"}
           </span>
         </div>
       </div>
 
       {/* Divider */}
-      <div className="h-px w-full bg-[#E0E0E0] my-4"></div>
+      <div className="h-px w-full bg-[#E0E0E0] my-3"></div>
 
-      {/* Information Section */}
-      <div className="flex flex-wrap justify-between items-center">
-        <div className="mb-2 sm:mb-0">
-          <span className="text-[14px] text-gray-600">Tagteam's Interest: </span>
-          <span className="text-[14px] font-medium text-gray-800">{interest}</span>
+      {/* Information Section - Simplify for mobile */}
+      <div className="flex flex-wrap justify-between items-center text-sm">
+        <div>
+          <span className="text-gray-600">Interest: </span>
+          <span className="font-medium text-gray-800 truncate">{interest}</span>
         </div>
         <div>
-          <span className="text-[14px] text-gray-600">Frequency: </span>
-          <span className="text-[14px] font-medium text-gray-800">{frequency}</span>
+          <span className="text-gray-600">Freq: </span>
+          <span className="font-medium text-gray-800">{frequency}</span>
         </div>
       </div>
     </div>;

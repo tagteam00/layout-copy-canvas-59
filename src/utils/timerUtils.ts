@@ -17,15 +17,15 @@ export const getShortWeekdayName = (dayIndex: number): string => {
 
 /**
  * Calculates the remaining time based on frequency type
- * For daily frequency - shows HH:MM:SS format
- * For weekly frequency - shows days remaining until reset day
+ * For daily frequency - shows simplified format (4h, 25m, etc.)
+ * For weekly frequency - shows simplified days remaining (2d, 1d, etc.)
  */
 export const calculateAdaptiveTimer = (frequency: string, resetDay?: string): TimerDisplay => {
   const now = new Date();
   let timeString = "";
   let urgency: TimerUrgency = "normal";
   
-  // For daily frequency - show HH:MM:SS format
+  // For daily frequency - show simplified format
   if (frequency.toLowerCase().includes("daily")) {
     // Calculate time until midnight
     const tomorrow = new Date();
@@ -34,9 +34,19 @@ export const calculateAdaptiveTimer = (frequency: string, resetDay?: string): Ti
     
     const hours = Math.floor(secondsRemaining / 3600);
     const minutes = Math.floor((secondsRemaining % 3600) / 60);
-    const seconds = secondsRemaining % 60;
     
-    timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    // Simplified format based on time remaining
+    if (hours > 0) {
+      timeString = `${hours}h`;
+      if (minutes > 0 && hours < 10) {
+        // Only show minutes if hours are less than 10
+        timeString += ` ${minutes}m`;
+      }
+    } else if (minutes > 0) {
+      timeString = `${minutes}m`;
+    } else {
+      timeString = `<1m`;
+    }
     
     // Set urgency based on time remaining
     if (hours < 1) {
@@ -45,7 +55,7 @@ export const calculateAdaptiveTimer = (frequency: string, resetDay?: string): Ti
       urgency = "warning";
     }
   } 
-  // For weekly frequency - show days remaining
+  // For weekly frequency - show simplified days format
   else if (frequency.toLowerCase().includes("weekly")) {
     // Find the day index for the reset day
     const weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
@@ -63,11 +73,9 @@ export const calculateAdaptiveTimer = (frequency: string, resetDay?: string): Ti
       
       // Format the display based on days remaining
       if (daysRemaining === 1) {
-        timeString = `Tomorrow (${getShortWeekdayName(resetDayIndex)})`;
-      } else if (daysRemaining < 7) {
-        timeString = `${daysRemaining} Days (${getShortWeekdayName(resetDayIndex)})`;
+        timeString = `Tomorrow`;
       } else {
-        timeString = `7 Days (${getShortWeekdayName(resetDayIndex)})`;
+        timeString = `${daysRemaining}d`;
       }
       
       // Set urgency based on days remaining
@@ -78,11 +86,11 @@ export const calculateAdaptiveTimer = (frequency: string, resetDay?: string): Ti
       }
     } else {
       // Fallback if the day isn't valid
-      timeString = "7 Days";
+      timeString = `7d`;
     }
   } else {
     // Default fallback
-    timeString = "24:00:00";
+    timeString = `24h`;
   }
   
   return { timeString, urgency };

@@ -1,6 +1,5 @@
 
 import React from "react";
-import { Clock } from "lucide-react";
 import { TimerUrgency } from "@/types/tagteam";
 
 interface UserStatusSectionProps {
@@ -33,8 +32,8 @@ export const UserStatusSection: React.FC<UserStatusSectionProps> = ({
   return (
     <div className="flex justify-between items-start mb-4">
       {/* First User - Left aligned */}
-      <div className="flex flex-col items-start space-y-2">
-        <span className="text-[16px] font-medium text-gray-800 text-left">
+      <div className="flex flex-col items-start space-y-2 max-w-[30%]">
+        <span className="text-[16px] font-medium text-gray-800 text-left truncate w-full">
           {getFirstName(firstUser.name)}
         </span>
         <span className={`py-1 px-3 rounded-full text-sm font-medium ${
@@ -46,10 +45,10 @@ export const UserStatusSection: React.FC<UserStatusSectionProps> = ({
         </span>
       </div>
 
-      {/* Reset Timer */}
-      <div className="flex flex-col items-center space-y-2">
-        <span className="text-[14px] text-gray-600 flex items-center gap-1">
-          <Clock className="h-4 w-4" /> Resets in:
+      {/* Reset Timer - simplified */}
+      <div className="flex flex-col items-center space-y-1">
+        <span className="text-[14px] text-gray-600">
+          Resets in:
         </span>
         <span className={`text-[16px] font-medium ${timerColorClass}`}>
           {timer.timeString}
@@ -57,8 +56,8 @@ export const UserStatusSection: React.FC<UserStatusSectionProps> = ({
       </div>
 
       {/* Second User - Right aligned */}
-      <div className="flex flex-col items-end space-y-2">
-        <span className="text-[16px] font-medium text-gray-800 text-right">
+      <div className="flex flex-col items-end space-y-2 max-w-[30%]">
+        <span className="text-[16px] font-medium text-gray-800 text-right truncate w-full">
           {getFirstName(secondUser.name)}
         </span>
         <span className={`py-1 px-3 rounded-full text-sm font-medium ${
