@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { createActivityStatusNotification, createTimerWarningNotification, createGoalCompletedNotification } from './notificationService';
+import { NotificationTriggerPoint } from '@/utils/timerUtils';
 
 export interface TeamActivity {
   id: string;
@@ -119,7 +120,7 @@ export const checkAndSendTimerWarning = async (
   userId: string,
   teamName: string,
   timeRemaining: string,
-  urgency: 'normal' | 'warning' | 'urgent'
+  urgency: NotificationTriggerPoint // Fixed type here to match what's expected
 ): Promise<boolean> => {
   try {
     const notification = await createTimerWarningNotification(

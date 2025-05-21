@@ -39,7 +39,7 @@ export const createTimerWarningNotification = async (
   if (!triggerPoint) return null;
   
   // Check if we've already sent this specific trigger point notification recently
-  const { data: existingWarnings } = await supabase
+  const { data: existingWarnings, error } = await supabase
     .from('notifications')
     .select('id, metadata')
     .eq('user_id', userId)
@@ -48,6 +48,11 @@ export const createTimerWarningNotification = async (
     .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
     .order('created_at', { ascending: false })
     .limit(5); // Get the most recent ones
+  
+  if (error) {
+    console.error("Error checking for existing timer warnings:", error);
+    return null;
+  }
     
   // Check if we've already sent this specific trigger point
   if (existingWarnings && existingWarnings.length > 0) {
@@ -96,13 +101,18 @@ export const createGoalCompletedNotification = async (
     const message = `Congratulations! You've successfully completed your goal with your partner in "${teamName}"! 🎉`;
     
     // Check if we've already sent a goal completion notification for this team recently
-    const { data: existingNotifications } = await supabase
+    const { data: existingNotifications, error } = await supabase
       .from('notifications')
       .select('id')
       .eq('related_id', teamId)
       .eq('related_to', 'goal_completed' as NotificationType)
       .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
       .limit(1);
+      
+    if (error) {
+      console.error("Error checking for existing goal completion notifications:", error);
+      return [null, null];
+    }
       
     // If we already sent a notification recently, don't send another one
     if (existingNotifications && existingNotifications.length > 0) {
