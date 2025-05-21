@@ -1,17 +1,34 @@
+
 import React from "react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 interface NameStepProps {
   teamName: string;
   setTeamName: (name: string) => void;
 }
+
 export const NameStep: React.FC<NameStepProps> = ({
   teamName,
   setTeamName
 }) => {
-  return <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-1">Team Name</label>
-        <Input type="text" value={teamName} onChange={e => setTeamName(e.target.value)} placeholder="Name your TagTeam" required className="w-full border border-[rgba(130,122,255,0.41)] rounded-xl py-0 my-[8px]" />
+  return (
+    <div className="space-y-4">
+      <div className="form-group">
+        <Label htmlFor="teamName" className="block text-sm font-medium mb-1.5">Team Name</Label>
+        <Input 
+          id="teamName"
+          type="text" 
+          value={teamName} 
+          onChange={e => setTeamName(e.target.value)} 
+          placeholder="Name your TagTeam" 
+          required 
+          className="w-full rounded-xl py-2.5 px-4 border border-[rgba(130,122,255,0.41)]" 
+        />
+        <p className="text-xs text-muted-foreground mt-1.5">
+          Choose a name that represents your shared goal
+        </p>
       </div>
-    </div>;
+    </div>
+  );
 };
