@@ -1,24 +1,19 @@
-
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Check, X, Bell, UserCheck, Clock, AlertCircle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { hasActiveTeamForInterest } from "@/services/teamService";
-import { formatDistanceToNow } from "date-fns";
 import { 
   fetchNotifications, 
   markNotificationsAsRead, 
   deleteNotification,
-  getNotificationStyles,
   Notification,
-  subscribeToNotifications
 } from "@/services/notificationService";
+import { hasActiveTeamForInterest } from "@/services/teamService";
+import { TeamRequestsList } from "@/components/notifications/TeamRequestsList";
+import { NotificationsList } from "@/components/notifications/NotificationsList";
+import { NotificationSkeleton } from "@/components/notifications/NotificationSkeleton";
+import { EmptyNotifications } from "@/components/notifications/EmptyNotifications";
 
 interface TeamRequest {
   id: string;
@@ -246,60 +241,6 @@ const NotificationsPage: React.FC = () => {
     }
   };
 
-  // Get notification icon based on type
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'activity_status_update':
-        return <UserCheck className="h-5 w-5 text-blue-500" />;
-      case 'timer_warning':
-        return <Clock className="h-5 w-5 text-amber-500" />;
-      case 'team_request_accepted':
-        return <Check className="h-5 w-5 text-green-500" />;
-      default:
-        return <Bell className="h-5 w-5 text-gray-500" />;
-    }
-  };
-
-  // Format notification time
-  const formatNotificationTime = (timestamp: string) => {
-    return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
-  };
-
-  const NotificationSkeleton = () => (
-    <div className="animate-pulse space-y-4">
-      {[1, 2].map((i) => (
-        <Card key={i} className="border-[rgba(130,122,255,0.41)]">
-          <CardHeader className="pb-2">
-            <Skeleton className="h-6 w-3/4" />
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-4 w-full mb-2" />
-            <div className="flex gap-2 mt-2">
-              <Skeleton className="h-6 w-16 rounded-full" />
-              <Skeleton className="h-6 w-16 rounded-full" />
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-end gap-2">
-            <Skeleton className="h-9 w-20" />
-            <Skeleton className="h-9 w-20" />
-          </CardFooter>
-        </Card>
-      ))}
-    </div>
-  );
-
-  const EmptyNotifications = () => (
-    <div className="flex flex-col items-center justify-center py-12">
-      <div className="bg-gray-100 p-6 rounded-full mb-4">
-        <Bell className="h-10 w-10 text-gray-400" />
-      </div>
-      <h3 className="text-lg font-medium mb-2">No notifications</h3>
-      <p className="text-sm text-gray-500 text-center max-w-xs">
-        You're all caught up! We'll notify you when there's activity or requests from other users.
-      </p>
-    </div>
-  );
-
   return (
     <main className="bg-white max-w-[480px] w-full mx-auto pb-16">
       <AppHeader />
@@ -311,84 +252,18 @@ const NotificationsPage: React.FC = () => {
         ) : (
           <div className="space-y-4">
             {/* Team Requests Section */}
-            {requests.length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-lg font-medium mb-3">Tag Team Requests</h2>
-                <div className="space-y-4">
-                  {requests.map((request) => (
-                    <Card key={request.id} className="border-[rgba(130,122,255,0.41)]">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">{request.name}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm mb-1">
-                          <span className="font-medium">{request.sender_name}</span> invited you to join their TagTeam
-                        </p>
-                        <div className="flex gap-2 mt-2">
-                          <Badge className="bg-[rgba(130,122,255,1)]">{request.category}</Badge>
-                          <Badge variant="outline">{request.frequency}</Badge>
-                        </div>
-                      </CardContent>
-                      <CardFooter className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          className="border-red-500 text-red-500 hover:bg-red-50"
-                          onClick={() => handleReject(request.id, request.name)}
-                        >
-                          <X className="w-4 h-4 mr-1" />
-                          Reject
-                        </Button>
-                        <Button
-                          className="bg-[#827AFF] hover:bg-[#827AFF]/90"
-                          onClick={() => handleAccept(request.id, request.name, request.category)}
-                        >
-                          <Check className="w-4 h-4 mr-1" />
-                          Accept
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
+            <TeamRequestsList 
+              requests={requests} 
+              onAccept={handleAccept} 
+              onReject={handleReject} 
+            />
             
             {/* Other Notifications Section */}
-            {notifications.length > 0 && (
-              <div>
-                {requests.length > 0 && <h2 className="text-lg font-medium mb-3">Activity Updates</h2>}
-                <div className="space-y-3">
-                  {notifications.map((notification) => {
-                    const styles = getNotificationStyles(notification.related_to);
-                    return (
-                      <Card 
-                        key={notification.id} 
-                        className={`border-l-4 ${styles.borderColor}`}
-                      >
-                        <CardHeader className="py-3 px-4 flex flex-row items-center justify-between">
-                          <div className="flex items-center">
-                            {getNotificationIcon(notification.related_to)}
-                            <span className="ml-2 text-sm text-gray-500">
-                              {formatNotificationTime(notification.created_at)}
-                            </span>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onClick={() => handleDismissNotification(notification.id)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </CardHeader>
-                        <CardContent className="py-2 px-4">
-                          <p className="text-sm">{notification.message}</p>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            <NotificationsList 
+              notifications={notifications} 
+              onDismiss={handleDismissNotification} 
+              showHeading={requests.length > 0} 
+            />
             
             {/* Empty state when no notifications */}
             {notifications.length === 0 && requests.length === 0 && (
@@ -401,40 +276,5 @@ const NotificationsPage: React.FC = () => {
     </main>
   );
 };
-
-const NotificationSkeleton = () => (
-  <div className="animate-pulse space-y-4">
-    {[1, 2].map((i) => (
-      <Card key={i} className="border-[rgba(130,122,255,0.41)]">
-        <CardHeader className="pb-2">
-          <Skeleton className="h-6 w-3/4" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-4 w-full mb-2" />
-          <div className="flex gap-2 mt-2">
-            <Skeleton className="h-6 w-16 rounded-full" />
-            <Skeleton className="h-6 w-16 rounded-full" />
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-end gap-2">
-          <Skeleton className="h-9 w-20" />
-          <Skeleton className="h-9 w-20" />
-        </CardFooter>
-      </Card>
-    ))}
-  </div>
-);
-
-const EmptyNotifications = () => (
-  <div className="flex flex-col items-center justify-center py-12">
-    <div className="bg-gray-100 p-6 rounded-full mb-4">
-      <Bell className="h-10 w-10 text-gray-400" />
-    </div>
-    <h3 className="text-lg font-medium mb-2">No notifications</h3>
-    <p className="text-sm text-gray-500 text-center max-w-xs">
-      You're all caught up! We'll notify you when there's activity or requests from other users.
-    </p>
-  </div>
-);
 
 export default NotificationsPage;
