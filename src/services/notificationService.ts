@@ -20,6 +20,7 @@ export {
   createActivityStatusNotification,
   createTimerWarningNotification,
   createGoalCompletedNotification,
+  checkUnreadGoalCompletionNotification,
 } from './notifications/notificationEvents';
 
 // Re-export real-time functions
