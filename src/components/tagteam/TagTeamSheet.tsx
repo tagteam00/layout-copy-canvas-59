@@ -62,8 +62,14 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
     isFirstUser ? tagTeam.secondUser.status : tagTeam.firstUser.status
   );
   
-  // Use the enhanced timer hook
-  const { timer, timerColorClass, hasResetOccurred, acknowledgeReset } = useTagTeamTimer(tagTeam.frequency, tagTeam.resetDay);
+  // Use the enhanced timer hook with team info for notifications
+  const { timer, timerColorClass, hasResetOccurred, acknowledgeReset } = useTagTeamTimer(
+    tagTeam.frequency, 
+    tagTeam.resetDay,
+    tagTeam.id,
+    currentUserId,
+    tagTeam.name
+  );
   
   const currentUser = {...(isFirstUser ? tagTeam.firstUser : tagTeam.secondUser), goal: currentUserGoal};
   const partnerUser = {...(isFirstUser ? tagTeam.secondUser : tagTeam.firstUser), goal: partnerUserGoal};

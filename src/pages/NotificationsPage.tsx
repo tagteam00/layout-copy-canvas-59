@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -6,10 +5,12 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Check, X, Bell } from "lucide-react";
+import { Check, X, Bell, AlertCircle, Clock, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { hasActiveTeamForInterest } from "@/services/teamService";
+import { markNotificationsAsRead } from "@/services/goalService";
+import { formatDistanceToNow } from "date-fns";
 
 interface TeamRequest {
   id: string;
@@ -28,7 +29,7 @@ interface Notification {
   user_id: string;
   message: string;
   related_to: string;
-  related_id: string;
+  related_id: string | null;
   read: boolean;
   created_at: string;
 }
@@ -40,7 +41,45 @@ const NotificationsPage: React.FC = () => {
 
   useEffect(() => {
     fetchNotifications();
-    // eslint-disable-next-line
+    
+    // Set up real-time listener for new notifications
+    const channel = supabase
+      .channel('notifications-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications'
+        },
+        (payload) => {
+          // Check if the notification is for the current user
+          const notification = payload.new as Notification;
+          if (notification) {
+            supabase.auth.getUser().then(({ data }) => {
+              if (data?.user && notification.user_id === data.user.id) {
+                fetchNotifications();
+              }
+            });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'team_requests'
+        },
+        () => {
+          fetchNotifications();
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchNotifications = async () => {
@@ -56,14 +95,35 @@ const NotificationsPage: React.FC = () => {
 
       // Fetch team requests
       await fetchTeamRequests(user.id);
+      
+      // Fetch regular notifications
+      await fetchUserNotifications(user.id);
 
       // Set all notifications as read when visiting the page
-      markNotificationsAsRead(user.id);
+      await markNotificationsAsRead(user.id);
     } catch (error) {
       console.error('Error fetching notifications:', error);
       toast.error("Failed to load notifications");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserNotifications = async (userId: string) => {
+    try {
+      const { data: notificationsData, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      
+      if (error) throw error;
+      
+      setNotifications(notificationsData || []);
+    } catch (error) {
+      console.error('Error fetching user notifications:', error);
+      toast.error("Failed to load notifications");
     }
   };
 
@@ -99,11 +159,6 @@ const NotificationsPage: React.FC = () => {
     );
 
     setRequests(requestsWithSenderNames);
-  };
-
-  const markNotificationsAsRead = async (userId: string) => {
-    // Future implementation if we add a notifications table
-    // For now, we're just using team_requests table for notifications
   };
 
   const handleAccept = async (requestId: string, teamName: string, category: string) => {
@@ -156,7 +211,7 @@ const NotificationsPage: React.FC = () => {
           .from('notifications')
           .insert({
             user_id: requestToAccept.sender_id,
-            message: `${requestToAccept.sender_name} has accepted your TagTeam request for ${teamName}`,
+            message: `${requestToAccept.receiver_id} has accepted your TagTeam request for ${teamName}`,
             related_to: 'team_request_accepted',
             related_id: requestId,
             read: false
@@ -192,6 +247,58 @@ const NotificationsPage: React.FC = () => {
       console.error('Error rejecting team request:', error);
       toast.error("Failed to reject the request");
     }
+  };
+
+  const handleDismissNotification = async (notificationId: string) => {
+    try {
+      // Delete the notification
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId);
+
+      if (error) throw error;
+
+      // Remove the notification from the UI
+      setNotifications(notifications.filter(n => n.id !== notificationId));
+      toast.success("Notification dismissed");
+    } catch (error) {
+      console.error('Error dismissing notification:', error);
+      toast.error("Failed to dismiss notification");
+    }
+  };
+
+  // Get notification icon based on type
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'activity_status_update':
+        return <UserCheck className="h-5 w-5 text-blue-500" />;
+      case 'timer_warning':
+        return <Clock className="h-5 w-5 text-amber-500" />;
+      case 'team_request_accepted':
+        return <Check className="h-5 w-5 text-green-500" />;
+      default:
+        return <Bell className="h-5 w-5 text-gray-500" />;
+    }
+  };
+
+  // Get notification style based on type
+  const getNotificationStyle = (type: string) => {
+    switch (type) {
+      case 'activity_status_update':
+        return "border-blue-100";
+      case 'timer_warning':
+        return "border-amber-100";
+      case 'team_request_accepted':
+        return "border-green-100";
+      default:
+        return "border-gray-100";
+    }
+  };
+
+  // Format notification time
+  const formatNotificationTime = (timestamp: string) => {
+    return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
   };
 
   const NotificationSkeleton = () => (
@@ -237,44 +344,90 @@ const NotificationsPage: React.FC = () => {
 
         {loading ? (
           <NotificationSkeleton />
-        ) : requests.length > 0 ? (
-          <div className="space-y-4">
-            {requests.map((request) => (
-              <Card key={request.id} className="border-[rgba(130,122,255,0.41)]">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">{request.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm mb-1">
-                    <span className="font-medium">{request.sender_name}</span> invited you to join their TagTeam
-                  </p>
-                  <div className="flex gap-2 mt-2">
-                    <Badge className="bg-[rgba(130,122,255,1)]">{request.category}</Badge>
-                    <Badge variant="outline">{request.frequency}</Badge>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    className="border-red-500 text-red-500 hover:bg-red-50"
-                    onClick={() => handleReject(request.id, request.name)}
-                  >
-                    <X className="w-4 h-4 mr-1" />
-                    Reject
-                  </Button>
-                  <Button
-                    className="bg-[#827AFF] hover:bg-[#827AFF]/90"
-                    onClick={() => handleAccept(request.id, request.name, request.category)}
-                  >
-                    <Check className="w-4 h-4 mr-1" />
-                    Accept
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
         ) : (
-          <EmptyNotifications />
+          <div className="space-y-4">
+            {/* Team Requests Section */}
+            {requests.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-lg font-medium mb-3">Tag Team Requests</h2>
+                <div className="space-y-4">
+                  {requests.map((request) => (
+                    <Card key={request.id} className="border-[rgba(130,122,255,0.41)]">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">{request.name}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm mb-1">
+                          <span className="font-medium">{request.sender_name}</span> invited you to join their TagTeam
+                        </p>
+                        <div className="flex gap-2 mt-2">
+                          <Badge className="bg-[rgba(130,122,255,1)]">{request.category}</Badge>
+                          <Badge variant="outline">{request.frequency}</Badge>
+                        </div>
+                      </CardContent>
+                      <CardFooter className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          className="border-red-500 text-red-500 hover:bg-red-50"
+                          onClick={() => handleReject(request.id, request.name)}
+                        >
+                          <X className="w-4 h-4 mr-1" />
+                          Reject
+                        </Button>
+                        <Button
+                          className="bg-[#827AFF] hover:bg-[#827AFF]/90"
+                          onClick={() => handleAccept(request.id, request.name, request.category)}
+                        >
+                          <Check className="w-4 h-4 mr-1" />
+                          Accept
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Other Notifications Section */}
+            {notifications.length > 0 && (
+              <div>
+                {requests.length > 0 && <h2 className="text-lg font-medium mb-3">Activity Updates</h2>}
+                <div className="space-y-3">
+                  {notifications.map((notification) => (
+                    <Card 
+                      key={notification.id} 
+                      className={`border-l-4 ${getNotificationStyle(notification.related_to)}`}
+                    >
+                      <CardHeader className="py-3 px-4 flex flex-row items-center justify-between">
+                        <div className="flex items-center">
+                          {getNotificationIcon(notification.related_to)}
+                          <span className="ml-2 text-sm text-gray-500">
+                            {formatNotificationTime(notification.created_at)}
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => handleDismissNotification(notification.id)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </CardHeader>
+                      <CardContent className="py-2 px-4">
+                        <p className="text-sm">{notification.message}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Empty state when no notifications */}
+            {notifications.length === 0 && requests.length === 0 && (
+              <EmptyNotifications />
+            )}
+          </div>
         )}
       </div>
       <BottomNavigation />

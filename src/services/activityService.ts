@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { createNotification } from './goalService';
 
 export interface TeamActivity {
   id: string;
@@ -33,9 +34,12 @@ export const logPartnerActivity = async (
   teamId: string,
   loggedByUserId: string,
   verifiedUserId: string,
-  status: 'completed' | 'pending'
+  status: 'completed' | 'pending',
+  teamName?: string,
+  partnerName?: string
 ): Promise<TeamActivity> => {
   try {
+    // Log the activity first
     const { data, error } = await supabase
       .from('team_activities')
       .insert([{
@@ -48,10 +52,67 @@ export const logPartnerActivity = async (
       .single();
       
     if (error) throw error;
+    
+    // Once activity is logged, send a notification to the verified user
+    if (teamName && partnerName) {
+      const statusText = status === 'completed' ? 'completed' : 'pending';
+      const message = `${partnerName} has marked your activity as ${statusText} in "${teamName}"`;
+      
+      await createNotification(
+        verifiedUserId, 
+        message, 
+        'activity_status_update', 
+        teamId
+      );
+    }
+    
     return data as TeamActivity;
   } catch (error) {
     console.error('Error logging partner activity:', error);
     throw error;
+  }
+};
+
+// Function to check if a user needs a timer reset warning notification
+export const checkAndSendTimerWarning = async (
+  teamId: string,
+  userId: string,
+  teamName: string,
+  timeRemaining: string,
+  urgency: 'normal' | 'warning' | 'urgent'
+): Promise<boolean> => {
+  try {
+    // Only send warnings for warning or urgent timers
+    if (urgency === 'normal') return false;
+    
+    // Check if we've already sent a warning notification recently for this team
+    const { data: existingWarnings } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('related_id', teamId)
+      .eq('related_to', 'timer_warning')
+      .gt('created_at', new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()) // Last 12 hours
+      .limit(1);
+      
+    // If we already sent a warning recently, don't send another one
+    if (existingWarnings && existingWarnings.length > 0) return false;
+    
+    // Send a warning notification
+    const urgencyText = urgency === 'urgent' ? 'urgently ' : '';
+    const message = `Your TagTeam "${teamName}" timer is ${urgencyText}about to reset (${timeRemaining} remaining). Don't forget to log your activity!`;
+    
+    await createNotification(
+      userId,
+      message,
+      'timer_warning',
+      teamId
+    );
+    
+    return true;
+  } catch (error) {
+    console.error('Error checking/sending timer warning:', error);
+    return false;
   }
 };
 
@@ -96,4 +157,3 @@ export const hasActiveActivityLog = async (
     return false;
   }
 };
-

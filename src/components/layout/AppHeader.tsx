@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchUnreadNotificationsCount } from "@/services/goalService";
 
 export const AppHeader = () => {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ export const AppHeader = () => {
   useEffect(() => {
     fetchUnreadNotifications();
     
-    // Set up real-time subscription for notifications
+    // Set up real-time subscription for notifications and team requests
     const channel = supabase
       .channel('notification-changes')
       .on(
@@ -20,8 +21,30 @@ export const AppHeader = () => {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'team_requests',
-          filter: `receiver_id=eq.${supabase.auth.getUser().then(({ data }) => data?.user?.id)}`
+          table: 'team_requests'
+        },
+        () => {
+          fetchUnreadNotifications();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications'
+        },
+        () => {
+          fetchUnreadNotifications();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: 'read=eq.true'
         },
         () => {
           fetchUnreadNotifications();
@@ -40,16 +63,9 @@ export const AppHeader = () => {
       
       if (!user) return;
       
-      // Get count of pending team requests
-      const { data, error } = await supabase
-        .from('team_requests')
-        .select('id', { count: 'exact' })
-        .eq('receiver_id', user.id)
-        .eq('status', 'pending');
-        
-      if (error) throw error;
-      
-      setUnreadCount(data?.length || 0);
+      // Get combined count from notifications and team requests
+      const count = await fetchUnreadNotificationsCount(user.id);
+      setUnreadCount(count);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     }

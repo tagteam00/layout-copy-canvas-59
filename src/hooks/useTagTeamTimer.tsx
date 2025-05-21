@@ -1,8 +1,16 @@
+
 import { useState, useEffect, useRef } from "react";
 import { calculateAdaptiveTimer, getUrgencyColor } from "@/utils/timerUtils";
 import { TimerDisplay } from "@/types/tagteam";
+import { checkAndSendTimerWarning } from "@/services/activityService";
 
-export const useTagTeamTimer = (frequency: string, resetDay?: string) => {
+export const useTagTeamTimer = (
+  frequency: string, 
+  resetDay?: string, 
+  teamId?: string,
+  userId?: string,
+  teamName?: string
+) => {
   const [timer, setTimer] = useState<TimerDisplay>({
     timeString: "00:00:00",
     urgency: "normal"
@@ -13,14 +21,36 @@ export const useTagTeamTimer = (frequency: string, resetDay?: string) => {
   
   // Keep track of last check time
   const lastCheckRef = useRef<Date>(new Date());
+  const lastWarningRef = useRef<Date | null>(null);
   
   // Update timer based on frequency
   useEffect(() => {
-    const updateTimer = () => {
+    const updateTimer = async () => {
       const now = new Date();
       const timerDisplay = calculateAdaptiveTimer(frequency, resetDay);
       setTimer(timerDisplay);
       setTimerColorClass(getUrgencyColor(timerDisplay.urgency));
+      
+      // Check if we should send warning notifications
+      if (teamId && userId && teamName && (timerDisplay.urgency === 'warning' || timerDisplay.urgency === 'urgent')) {
+        // Don't send warnings more than once every 4 hours
+        const shouldCheckWarning = !lastWarningRef.current || 
+          (now.getTime() - lastWarningRef.current.getTime() > 4 * 60 * 60 * 1000);
+          
+        if (shouldCheckWarning) {
+          const warningWasSent = await checkAndSendTimerWarning(
+            teamId,
+            userId,
+            teamName,
+            timerDisplay.timeString,
+            timerDisplay.urgency
+          );
+          
+          if (warningWasSent) {
+            lastWarningRef.current = now;
+          }
+        }
+      }
       
       // Check for a reset based on frequency
       const isDaily = frequency.toLowerCase().includes("daily");
@@ -68,7 +98,7 @@ export const useTagTeamTimer = (frequency: string, resetDay?: string) => {
     const interval = setInterval(updateTimer, intervalMs);
     
     return () => clearInterval(interval);
-  }, [frequency, resetDay]);
+  }, [frequency, resetDay, teamId, userId, teamName]);
 
   // Function to acknowledge the reset
   const acknowledgeReset = () => {
