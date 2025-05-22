@@ -1,13 +1,14 @@
 
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { Search, Send } from "lucide-react";
+import { Search } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { UserData } from "@/types/supabase";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PartnerStepProps {
   selectedCategory: string;
@@ -26,38 +27,33 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
     hasActiveTeam?: boolean;
   }>>([]);
   const [loading, setLoading] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  
+  // Use the auth context to get the current user ID reliably
+  const { user } = useAuth();
+  const currentUserId = user?.id || null;
 
   useEffect(() => {
-    const getCurrentUser = async () => {
-      const {
-        data: {
-          user
-        }
-      } = await supabase.auth.getUser();
-      setCurrentUserId(user?.id || null);
-    };
-    getCurrentUser();
-    // Auto-search for users upon interest change
-    if (selectedCategory) {
+    // Auto-search for users upon interest change or when user ID becomes available
+    if (selectedCategory && currentUserId) {
       handleSearch("");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategory]);
+  }, [selectedCategory, currentUserId]);
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
-    if (!selectedCategory) return;
+    if (!selectedCategory || !currentUserId) return;
+    
     setLoading(true);
     try {
-      // Query for profiles containing selectedCategory in their interests,
-      // and exclude current user
+      // Query for profiles containing selectedCategory in their interests
       let {
         data: profiles,
         error
       } = await supabase.from("profiles").select("*").contains("interests", [selectedCategory]);
+      
       if (error) throw error;
-      // Exclude self
+      
+      // Explicitly exclude current user
       profiles = profiles?.filter(profile => profile.id !== currentUserId);
 
       // Filter by query
@@ -91,7 +87,9 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
         };
       }));
 
-      setSearchResults(profilesWithTeamStatus);
+      // Double-check to ensure current user is never in results
+      const finalResults = profilesWithTeamStatus.filter(profile => profile.id !== currentUserId);
+      setSearchResults(finalResults);
     } catch (error) {
       console.error('Error searching for users:', error);
       toast.error("Failed to search for users");
@@ -101,6 +99,12 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
   };
 
   const handleSelectPartner = (fullName: string, partnerId: string) => {
+    // Extra check to prevent selecting self
+    if (partnerId === currentUserId) {
+      toast.error("You cannot select yourself as a partner");
+      return;
+    }
+    
     onSelectPartner(fullName);
     onSelectPartnerId(partnerId);
     toast.success(`Selected ${fullName} as your TagTeam partner`);
@@ -127,7 +131,7 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
         />
       </div>
 
-      {availableUsers.length === 0 && !loading && searchQuery.length === 0 && (
+      {availableUsers.length === 0 && !loading && (
         <Alert className="bg-amber-50 border-amber-200 mt-4">
           <AlertTitle>No available partners</AlertTitle>
           <AlertDescription>
@@ -196,7 +200,7 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
           </>
         )}
 
-        {availableUsers.length === 0 && unavailableUsers.length === 0 && !loading && (
+        {availableUsers.length === 0 && unavailableUsers.length === 0 && !loading && searchResults.length === 0 && (
           <div className="text-center text-gray-500 py-4">
             {`No users found with interest in ${selectedCategory}`}
           </div>
