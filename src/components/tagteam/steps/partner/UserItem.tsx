@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface UserItemProps {
   user: {
@@ -8,6 +8,7 @@ interface UserItemProps {
     fullName: string;
     username: string;
     hasActiveTeam?: boolean;
+    avatarUrl?: string | null;
   };
   onSelectPartner?: (fullName: string, partnerId: string) => void;
   isAvailable: boolean;
@@ -23,6 +24,13 @@ export const UserItem: React.FC<UserItemProps> = ({ user, onSelectPartner, isAva
     >
       <div className="flex items-center space-x-3">
         <Avatar className="h-10 w-10">
+          {user.avatarUrl && (
+            <AvatarImage 
+              src={user.avatarUrl} 
+              alt={user.fullName || user.username}
+              className="object-cover"
+            />
+          )}
           <AvatarFallback>
             {user.fullName?.charAt(0) || user.username?.charAt(0)}
           </AvatarFallback>

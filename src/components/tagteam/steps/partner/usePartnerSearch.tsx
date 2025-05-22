@@ -13,6 +13,7 @@ interface UserWithTeamStatus {
   interests: string[];
   commitmentLevel: string;
   hasActiveTeam?: boolean;
+  avatarUrl?: string | null;
 }
 
 export const usePartnerSearch = (selectedCategory: string) => {
@@ -85,6 +86,7 @@ export const usePartnerSearch = (selectedCategory: string) => {
           gender: profile.gender || '',
           interests: profile.interests || [],
           commitmentLevel: profile.commitment_level || '',
+          avatarUrl: profile.avatar_url,
           hasActiveTeam: (teams?.length || 0) > 0
         };
       }));

@@ -10,6 +10,11 @@ describe("UserItem", () => {
     username: "johndoe",
   };
 
+  const mockUserWithAvatar = {
+    ...mockUser,
+    avatarUrl: "https://example.com/avatar.jpg"
+  };
+
   const mockOnSelectPartner = jest.fn();
 
   it("renders user information correctly", () => {
@@ -61,5 +66,19 @@ describe("UserItem", () => {
     fireEvent.click(screen.getByText("Select"));
     
     expect(mockOnSelectPartner).toHaveBeenCalledWith("John Doe", "123");
+  });
+
+  it("renders avatar image when avatarUrl is provided", () => {
+    render(
+      <UserItem 
+        user={mockUserWithAvatar} 
+        onSelectPartner={mockOnSelectPartner} 
+        isAvailable={true} 
+      />
+    );
+    
+    const avatarImg = screen.getByAltText("John Doe");
+    expect(avatarImg).toBeInTheDocument();
+    expect(avatarImg).toHaveAttribute("src", "https://example.com/avatar.jpg");
   });
 });
