@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { 
   calculateAdaptiveTimer, 
@@ -9,7 +8,7 @@ import {
 } from "@/utils/timerUtils";
 import { TimerDisplay } from "@/types/tagteam";
 import { createTimerWarningNotification } from "@/services/notificationService";
-import { checkTeamGoalCompletion } from "@/services/activityService";
+import { checkTeamGoalCompletion } from "@/services/activities";
 
 export const useTagTeamTimer = (
   frequency: string, 

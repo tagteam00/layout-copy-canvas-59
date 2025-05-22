@@ -4,7 +4,7 @@ import {
   logPartnerActivity, 
   hasActiveActivityLog,
   checkTeamGoalCompletion 
-} from "@/services/activityService";
+} from "@/services/activities";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { createGoalCompletedNotification } from "@/services/notificationService";
