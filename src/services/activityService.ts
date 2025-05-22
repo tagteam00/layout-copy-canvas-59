@@ -77,12 +77,14 @@ export const logPartnerActivity = async (
     
     // Create a notification for the partner
     if (status === "completed") {
+      // Fixed: The order of arguments in createActivityStatusNotification is different
+      // from what we were passing. Using the correct parameter order:
       await createActivityStatusNotification(
         verifiedUserId,  // Send to the partner
-        loggedByUserId,  // From the current user
-        `${partnerName} marked your goal in ${teamName} as completed!`,
-        teamId,
-        'activity_status'  // Added the missing argument - notification type
+        partnerName,    // Partner's name
+        "completed",    // Status as a string literal, not a template string
+        teamName,       // Team name
+        teamId          // Team ID
       );
     }
     
