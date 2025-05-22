@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { ProfileInfo } from "@/components/profile/ProfileInfo";
@@ -27,34 +27,52 @@ const UserProfilePage: React.FC = () => {
     avatarUrl: null
   });
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!userId) {
-        toast.error("User ID is missing");
-        navigate(-1);
-        return;
-      }
+  // Use useCallback to memoize the fetchUserData function
+  const fetchUserData = useCallback(async () => {
+    if (!userId) {
+      toast.error("User ID is missing");
+      navigate(-1);
+      return;
+    }
 
-      setLoading(true);
-      try {
-        const userData = await getUserDataById(userId);
-        if (userData) {
-          setUserProfile(userData);
-        } else {
-          toast.error("User profile not found");
-          navigate(-1);
-        }
-      } catch (error) {
-        console.error("Error fetching user profile:", error);
-        toast.error("Failed to load user profile");
+    setLoading(true);
+    try {
+      const userData = await getUserDataById(userId);
+      if (userData) {
+        setUserProfile(userData);
+      } else {
+        toast.error("User profile not found");
         navigate(-1);
-      } finally {
-        setLoading(false);
       }
-    };
-
-    fetchUserData();
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      toast.error("Failed to load user profile");
+      navigate(-1);
+    } finally {
+      setLoading(false);
+    }
   }, [userId, getUserDataById, navigate]);
+
+  useEffect(() => {
+    // Create abort controller for cleanup
+    const abortController = new AbortController();
+    
+    // Set a timeout to handle cases where the request takes too long
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        toast.error("Loading took too long. Please try again.");
+        navigate(-1);
+      }
+    }, 10000); // 10 second timeout
+    
+    fetchUserData();
+    
+    // Cleanup function
+    return () => {
+      abortController.abort();
+      clearTimeout(timeoutId);
+    };
+  }, [fetchUserData]); // Only depend on the memoized function
 
   const goBack = () => {
     navigate(-1);

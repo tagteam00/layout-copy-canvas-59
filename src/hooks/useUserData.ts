@@ -1,6 +1,7 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { UserData, profileToUserData, userDataToProfile } from '@/types/supabase';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 
 export type { UserData };
@@ -9,7 +10,7 @@ export const useUserData = () => {
   const [loading, setLoading] = useState(false);
 
   // Upload profile image to Supabase storage
-  const uploadProfileImage = async (file: File, userId: string): Promise<string | null> => {
+  const uploadProfileImage = useCallback(async (file: File, userId: string): Promise<string | null> => {
     try {
       const fileExt = file.name.split('.').pop();
       const filePath = `${userId}/${Date.now()}.${fileExt}`;
@@ -32,9 +33,9 @@ export const useUserData = () => {
       console.error('Error uploading profile image:', error.message);
       return null;
     }
-  };
+  }, []);
 
-  const saveUserData = async (data: UserData, profileImage?: File | null) => {
+  const saveUserData = useCallback(async (data: UserData, profileImage?: File | null) => {
     setLoading(true);
     
     try {
@@ -72,9 +73,9 @@ export const useUserData = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [uploadProfileImage]);
 
-  const getUserData = async (): Promise<UserData | null> => {
+  const getUserData = useCallback(async (): Promise<UserData | null> => {
     try {
       const { data: authData } = await supabase.auth.getUser();
       
@@ -98,9 +99,9 @@ export const useUserData = () => {
       console.error('Error getting user data:', error);
       return null;
     }
-  };
+  }, []);
 
-  const getUserDataById = async (userId: string): Promise<UserData | null> => {
+  const getUserDataById = useCallback(async (userId: string): Promise<UserData | null> => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -118,9 +119,9 @@ export const useUserData = () => {
       console.error('Error getting user data by ID:', error);
       return null;
     }
-  };
+  }, []);
 
-  const getAllUsers = async (): Promise<UserData[]> => {
+  const getAllUsers = useCallback(async (): Promise<UserData[]> => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -135,7 +136,14 @@ export const useUserData = () => {
       console.error('Error getting all users:', error);
       return [];
     }
-  };
+  }, []);
 
-  return { saveUserData, getUserData, getUserDataById, getAllUsers, uploadProfileImage, loading };
+  return { 
+    saveUserData, 
+    getUserData, 
+    getUserDataById, 
+    getAllUsers, 
+    uploadProfileImage, 
+    loading 
+  };
 };
