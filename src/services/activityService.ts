@@ -81,7 +81,8 @@ export const logPartnerActivity = async (
         verifiedUserId,  // Send to the partner
         loggedByUserId,  // From the current user
         `${partnerName} marked your goal in ${teamName} as completed!`,
-        teamId
+        teamId,
+        'activity_status'  // Added the missing argument - notification type
       );
     }
     
@@ -179,7 +180,17 @@ export const getLatestTeamActivities = async (teamId: string): Promise<TeamActiv
       
     if (error) throw error;
     
-    return data || [];
+    // Cast the data to ensure it matches the TeamActivity type
+    return (data || []).map(item => ({
+      id: item.id,
+      team_id: item.team_id,
+      logged_by_user_id: item.logged_by_user_id,
+      verified_user_id: item.verified_user_id,
+      status: item.status as "pending" | "completed", // Type assertion to handle the status
+      created_at: item.created_at,
+      cycle_start: item.cycle_start,
+      cycle_end: item.cycle_end
+    })) as TeamActivity[];
   } catch (error) {
     console.error('Error fetching latest team activities:', error);
     return [];
