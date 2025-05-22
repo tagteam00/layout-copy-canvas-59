@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Drawer, DrawerContent, DrawerOverlay } from "@/components/ui/drawer";
 import { TagTeam } from "@/types/tagteam";
@@ -56,13 +55,20 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
   
   const partnerId = isFirstUser ? tagTeam.secondUser.id : tagTeam.firstUser.id;
 
-  // Use the enhanced timer hook with team info for notifications
+  // Use the enhanced timer hook with team info for notifications and pass partnerId
   const {
     timer,
     timerColorClass,
     hasResetOccurred,
     acknowledgeReset
-  } = useTagTeamTimer(tagTeam.frequency, tagTeam.resetDay, tagTeam.id, currentUserId, tagTeam.name);
+  } = useTagTeamTimer(
+    tagTeam.frequency, 
+    tagTeam.resetDay, 
+    tagTeam.id, 
+    currentUserId, 
+    tagTeam.name,
+    partnerId // Pass the partnerId to check team goal completion
+  );
 
   // Use the notification management hook
   const { 

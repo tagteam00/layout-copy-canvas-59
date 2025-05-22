@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { 
   calculateAdaptiveTimer, 
@@ -8,13 +9,15 @@ import {
 } from "@/utils/timerUtils";
 import { TimerDisplay } from "@/types/tagteam";
 import { createTimerWarningNotification } from "@/services/notificationService";
+import { checkTeamGoalCompletion } from "@/services/activityService";
 
 export const useTagTeamTimer = (
   frequency: string, 
   resetDay?: string, 
   teamId?: string,
   userId?: string,
-  teamName?: string
+  teamName?: string,
+  partnerId?: string  // Add partnerId parameter to check activity status
 ) => {
   const [timer, setTimer] = useState<TimerDisplay>({
     timeString: "00:00:00",
@@ -39,27 +42,38 @@ export const useTagTeamTimer = (
       setTimerColorClass(getUrgencyColor(timerDisplay.urgency));
       
       // Check if we're at a specific notification trigger point
-      if (teamId && userId && teamName) {
+      if (teamId && userId && teamName && partnerId) {
         const triggerPoint = checkNotificationTriggerPoint(frequency, resetDay);
         
         // Only send notification if we're at a trigger point and haven't sent this one yet
         if (triggerPoint && !triggeredNotificationsRef.current.has(triggerPoint)) {
-          console.log(`Timer notification trigger point: ${triggerPoint}`);
+          console.log(`Timer notification trigger point detected: ${triggerPoint}`);
           
-          // Format the time remaining for the notification
-          const timeRemaining = formatTimeRemainingForNotification(triggerPoint);
+          // IMPORTANT: Check if both users have already completed their activities
+          // Only proceed with notification if activity is NOT completed
+          const isGoalCompleted = await checkTeamGoalCompletion(teamId, userId, partnerId);
           
-          const notificationSent = await createTimerWarningNotification(
-            userId,
-            teamName,
-            timeRemaining,
-            triggerPoint,
-            teamId
-          );
-          
-          // If notification was sent successfully, mark this trigger point as done
-          if (notificationSent) {
-            console.log(`Sent ${triggerPoint} notification for ${teamName}`);
+          if (!isGoalCompleted) {
+            // Format the time remaining for the notification
+            const timeRemaining = formatTimeRemainingForNotification(triggerPoint);
+            
+            console.log(`Sending notification as activity is not yet completed by both users`);
+            const notificationSent = await createTimerWarningNotification(
+              userId,
+              teamName,
+              timeRemaining,
+              triggerPoint,
+              teamId
+            );
+            
+            // If notification was sent successfully, mark this trigger point as done
+            if (notificationSent) {
+              console.log(`Sent ${triggerPoint} notification for ${teamName}`);
+              triggeredNotificationsRef.current.add(triggerPoint);
+            }
+          } else {
+            console.log(`Skipping notification as both users have completed their activities`);
+            // Still mark as triggered so we don't check again
             triggeredNotificationsRef.current.add(triggerPoint);
           }
         }
@@ -117,7 +131,7 @@ export const useTagTeamTimer = (
     const interval = setInterval(updateTimer, intervalMs);
     
     return () => clearInterval(interval);
-  }, [frequency, resetDay, teamId, userId, teamName]);
+  }, [frequency, resetDay, teamId, userId, teamName, partnerId]);
 
   // Function to acknowledge the reset
   const acknowledgeReset = () => {
