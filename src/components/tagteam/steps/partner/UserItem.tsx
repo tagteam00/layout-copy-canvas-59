@@ -1,6 +1,9 @@
 
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface UserItemProps {
   user: {
@@ -15,6 +18,13 @@ interface UserItemProps {
 }
 
 export const UserItem: React.FC<UserItemProps> = ({ user, onSelectPartner, isAvailable }) => {
+  const navigate = useNavigate();
+  
+  const handleViewProfile = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    navigate(`/user/${user.id}`);
+  };
+  
   return (
     <div 
       className={`p-4 border ${isAvailable 
@@ -41,18 +51,33 @@ export const UserItem: React.FC<UserItemProps> = ({ user, onSelectPartner, isAva
         </div>
       </div>
       
-      {isAvailable ? (
-        <button 
-          onClick={() => onSelectPartner && onSelectPartner(user.fullName, user.id)} 
-          className="flex items-center space-x-1 text-white px-3 py-1.5 rounded-lg transition-colors bg-gray-950 hover:bg-gray-800"
+      <div className="flex gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-gray-600 p-2"
+          onClick={handleViewProfile}
         >
-          <span>Select</span>
-        </button>
-      ) : (
-        <span className="text-xs text-gray-500 py-1 px-2 bg-gray-100 rounded">
-          Has active team
-        </span>
-      )}
+          <User className="h-4 w-4 mr-1" />
+          <span className="text-xs">Profile</span>
+        </Button>
+        
+        {isAvailable ? (
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectPartner && onSelectPartner(user.fullName, user.id);
+            }} 
+            className="flex items-center space-x-1 text-white px-3 py-1.5 rounded-lg transition-colors bg-gray-950 hover:bg-gray-800"
+          >
+            <span>Select</span>
+          </button>
+        ) : (
+          <span className="text-xs text-gray-500 py-1 px-2 bg-gray-100 rounded">
+            Has active team
+          </span>
+        )}
+      </div>
     </div>
   );
 };

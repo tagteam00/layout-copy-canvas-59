@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { UserData, profileToUserData, userDataToProfile } from '@/types/supabase';
 import { useState } from 'react';
@@ -101,6 +100,26 @@ export const useUserData = () => {
     }
   };
 
+  const getUserDataById = async (userId: string): Promise<UserData | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select()
+        .eq('id', userId)
+        .single();
+      
+      if (error || !data) {
+        console.error('Error fetching user profile by ID:', error?.message);
+        return null;
+      }
+      
+      return profileToUserData(data);
+    } catch (error) {
+      console.error('Error getting user data by ID:', error);
+      return null;
+    }
+  };
+
   const getAllUsers = async (): Promise<UserData[]> => {
     try {
       const { data, error } = await supabase
@@ -118,5 +137,5 @@ export const useUserData = () => {
     }
   };
 
-  return { saveUserData, getUserData, getAllUsers, uploadProfileImage, loading };
+  return { saveUserData, getUserData, getUserDataById, getAllUsers, uploadProfileImage, loading };
 };

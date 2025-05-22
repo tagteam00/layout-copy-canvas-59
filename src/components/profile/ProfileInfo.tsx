@@ -21,13 +21,16 @@ interface ProfileInfoProps {
     avatarUrl?: string | null;
   };
   onProfileUpdate: () => Promise<void>;
+  isViewOnly?: boolean;
 }
 
 export const ProfileInfo: React.FC<ProfileInfoProps> = ({
   userProfile,
-  onProfileUpdate
+  onProfileUpdate,
+  isViewOnly = false
 }) => {
-  return <div className="p-6 space-y-6 relative bg-white py-[36px]">
+  return (
+    <div className="p-6 space-y-6 relative bg-white py-[36px]">
       <ProfileHeader userProfile={userProfile} />
       <ProfileBio bio={userProfile.bio} />
       
@@ -36,8 +39,11 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({
         <ProfileInterests interests={userProfile.interests} />
       </div>
       
-      <div className="pt-4">
-        <LogoutButton />
-      </div>
-    </div>;
+      {!isViewOnly && (
+        <div className="pt-4">
+          <LogoutButton />
+        </div>
+      )}
+    </div>
+  );
 };
