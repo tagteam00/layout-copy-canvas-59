@@ -5,6 +5,7 @@ import {
   hasActiveActivityLog,
   checkTeamGoalCompletion 
 } from "@/services/activities";
+import { closeTeamActivityCycle } from "@/services/activities/cycleManagement";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { createGoalCompletedNotification } from "@/services/notificationService";
@@ -37,6 +38,9 @@ export const usePartnerVerification = ({
   useEffect(() => {
     const checkExistingActivity = async () => {
       try {
+        // Close any expired cycles first to ensure fresh status
+        await closeTeamActivityCycle(teamId);
+        
         const hasActivity = await hasActiveActivityLog(teamId, userId, partnerId);
         setHasLoggedActivity(hasActivity);
       } catch (error) {
@@ -90,6 +94,25 @@ export const usePartnerVerification = ({
                 console.error("Error checking goal completion:", err);
               }
             }
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'team_activities',
+          filter: `team_id=eq.${teamId}`
+        },
+        async () => {
+          // When activities are updated (cycle closure), refresh the verification status
+          console.log('Activity cycle updated, refreshing verification status');
+          try {
+            const hasActivity = await hasActiveActivityLog(teamId, userId, partnerId);
+            setHasLoggedActivity(hasActivity);
+          } catch (error) {
+            console.error("Error refreshing verification status:", error);
           }
         }
       )

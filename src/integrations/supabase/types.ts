@@ -264,7 +264,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      close_expired_activity_cycles: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      close_team_activity_cycle: {
+        Args: { team_id_param: string }
+        Returns: number
+      }
     }
     Enums: {
       interest_category: "fitness" | "arts"

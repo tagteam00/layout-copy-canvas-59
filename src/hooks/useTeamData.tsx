@@ -5,6 +5,7 @@ import { Team } from "@/services/teamService";
 import { toast } from "sonner";
 import { TransformedTeam } from "@/types/tagteam";
 import { getLatestTeamActivities, TeamActivity } from "@/services/activityService";
+import { closeAllExpiredActivityCycles } from "@/services/activities/cycleManagement";
 
 export const useTeamData = (userId: string, userFullName: string) => {
   const [tagTeams, setTagTeams] = useState<TransformedTeam[]>([]);
@@ -16,6 +17,9 @@ export const useTeamData = (userId: string, userFullName: string) => {
       if (!userId) return;
       
       console.log('Fetching teams for user:', userId);
+      
+      // Close any expired cycles before fetching team data
+      await closeAllExpiredActivityCycles();
       
       const { data: teamsData, error } = await supabase
         .from('teams')
@@ -129,6 +133,19 @@ export const useTeamData = (userId: string, userFullName: string) => {
         (payload) => {
           console.log('New activity logged:', payload);
           // Refresh the teams data when a new activity is logged
+          fetchUserTeams();
+        }
+      )
+      .on(
+        'postgres_changes', 
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'team_activities',
+        }, 
+        (payload) => {
+          console.log('Activity updated (cycle possibly closed):', payload);
+          // Refresh the teams data when an activity is updated (cycle closure)
           fetchUserTeams();
         }
       )

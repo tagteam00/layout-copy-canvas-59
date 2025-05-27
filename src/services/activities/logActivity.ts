@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { createActivityStatusNotification } from "@/services/notificationService";
+import { closeTeamActivityCycle } from "./cycleManagement";
 
 // Function to log a partner's activity status
 export const logPartnerActivity = async (
@@ -12,6 +13,9 @@ export const logPartnerActivity = async (
   partnerName: string
 ): Promise<boolean> => {
   try {
+    // First, ensure any expired cycles are closed before logging new activity
+    await closeTeamActivityCycle(teamId);
+    
     // Log the activity
     const { data: activityData, error: activityError } = await supabase
       .from('team_activities')
@@ -54,6 +58,9 @@ export const hasActiveActivityLog = async (
   verifiedUserId: string
 ): Promise<boolean> => {
   try {
+    // First, ensure any expired cycles are closed before checking
+    await closeTeamActivityCycle(teamId);
+    
     // Get the most recent activity log for this team, user, and partner
     const { data, error } = await supabase
       .from('team_activities')

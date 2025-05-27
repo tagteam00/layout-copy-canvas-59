@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { 
   calculateAdaptiveTimer, 
@@ -8,7 +9,8 @@ import {
 } from "@/utils/timerUtils";
 import { TimerDisplay } from "@/types/tagteam";
 import { createTimerWarningNotification } from "@/services/notificationService";
-import { checkTeamGoalCompletion } from "@/services/activities";
+import { checkTeamGoalCompletion } from "@/services/activities/completionCheck";
+import { checkAndCloseCycleOnReset } from "@/services/activities/cycleManagement";
 
 export const useTagTeamTimer = (
   frequency: string, 
@@ -80,6 +82,7 @@ export const useTagTeamTimer = (
       
       // Check for a reset based on frequency
       const isDaily = frequency.toLowerCase().includes("daily");
+      let resetDetected = false;
       
       // For daily frequency, check if we've passed midnight since last check
       if (isDaily) {
@@ -90,9 +93,7 @@ export const useTagTeamTimer = (
         // If the date has changed since our last check, a reset occurred
         if (lastDate !== currentDate) {
           console.log("Daily reset detected!");
-          setHasResetOccurred(true);
-          // Clear triggered notifications on reset
-          triggeredNotificationsRef.current.clear();
+          resetDetected = true;
         }
       } 
       // For weekly frequency, check if we've reached the reset day
@@ -109,10 +110,21 @@ export const useTagTeamTimer = (
           if ((lastDayOfWeek !== resetDayIndex && currentDayOfWeek === resetDayIndex) ||
               (lastDayOfWeek === currentDayOfWeek && now.getTime() - lastCheck.getTime() >= 7 * 24 * 60 * 60 * 1000)) {
             console.log("Weekly reset detected!");
-            setHasResetOccurred(true);
-            // Clear triggered notifications on reset
-            triggeredNotificationsRef.current.clear();
+            resetDetected = true;
           }
+        }
+      }
+      
+      // Handle reset detection
+      if (resetDetected) {
+        setHasResetOccurred(true);
+        // Clear triggered notifications on reset
+        triggeredNotificationsRef.current.clear();
+        
+        // Close expired cycles for this team when reset is detected
+        if (teamId) {
+          console.log(`Attempting to close expired cycles for team ${teamId} due to reset`);
+          await checkAndCloseCycleOnReset(teamId, frequency, resetDay);
         }
       }
       
@@ -132,11 +144,17 @@ export const useTagTeamTimer = (
     return () => clearInterval(interval);
   }, [frequency, resetDay, teamId, userId, teamName, partnerId]);
 
-  // Function to acknowledge the reset
-  const acknowledgeReset = () => {
+  // Function to acknowledge the reset and trigger cycle closure
+  const acknowledgeReset = async () => {
     setHasResetOccurred(false);
     // Clear triggered notifications when reset is acknowledged
     triggeredNotificationsRef.current.clear();
+    
+    // Close expired cycles when user acknowledges the reset
+    if (teamId) {
+      console.log(`User acknowledged reset - closing cycles for team ${teamId}`);
+      await checkAndCloseCycleOnReset(teamId, frequency, resetDay);
+    }
   };
 
   return { timer, timerColorClass, hasResetOccurred, acknowledgeReset };
