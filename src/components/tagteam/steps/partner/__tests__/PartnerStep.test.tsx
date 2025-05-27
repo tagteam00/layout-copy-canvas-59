@@ -1,6 +1,9 @@
 
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render } from "@testing-library/react";
+import { screen } from "@testing-library/dom";
+import userEvent from "@testing-library/user-event";
+import { waitFor } from "@testing-library/dom";
 import { PartnerStep } from "../../PartnerStep";
 import { usePartnerSearch } from "../usePartnerSearch";
 import { useAuth } from "@/contexts/AuthContext";
@@ -191,7 +194,8 @@ describe("PartnerStep", () => {
     expect(screen.getByTestId("empty-search")).toBeInTheDocument();
   });
 
-  it("calls handleSearch when search is triggered", () => {
+  it("calls handleSearch when search is triggered", async () => {
+    const user = userEvent.setup();
     render(
       <PartnerStep
         selectedCategory={mockSelectedCategory}
@@ -200,12 +204,13 @@ describe("PartnerStep", () => {
       />
     );
     
-    fireEvent.click(screen.getByText("Search"));
+    await user.click(screen.getByText("Search"));
     
     expect(mockHandleSearch).toHaveBeenCalledWith("test");
   });
 
-  it("calls onSelectPartner and onSelectPartnerId when a partner is selected", () => {
+  it("calls onSelectPartner and onSelectPartnerId when a partner is selected", async () => {
+    const user = userEvent.setup();
     render(
       <PartnerStep
         selectedCategory={mockSelectedCategory}
@@ -214,14 +219,15 @@ describe("PartnerStep", () => {
       />
     );
     
-    fireEvent.click(screen.getByText("Select User One"));
+    await user.click(screen.getByText("Select User One"));
     
     expect(mockOnSelectPartner).toHaveBeenCalledWith("User One");
     expect(mockOnSelectPartnerId).toHaveBeenCalledWith("user1");
     expect(toast.success).toHaveBeenCalledWith("Selected User One as your TagTeam partner");
   });
 
-  it("shows error toast when trying to select self as partner", () => {
+  it("shows error toast when trying to select self as partner", async () => {
+    const user = userEvent.setup();
     // Mock a user that has the same ID as the current user
     const mockUsersWithSelf = [
       { id: mockCurrentUserId, fullName: "Current User", username: "currentuser" },
@@ -245,7 +251,7 @@ describe("PartnerStep", () => {
       />
     );
     
-    fireEvent.click(screen.getByText("Select Current User"));
+    await user.click(screen.getByText("Select Current User"));
     
     expect(toast.error).toHaveBeenCalledWith("You cannot select yourself as a partner");
     expect(mockOnSelectPartner).not.toHaveBeenCalled();

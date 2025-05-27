@@ -1,6 +1,8 @@
 
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render } from "@testing-library/react";
+import { screen } from "@testing-library/dom";
+import userEvent from "@testing-library/user-event";
 import { UserItem } from "../UserItem";
 import { useNavigate } from "react-router-dom";
 
@@ -66,7 +68,8 @@ describe("UserItem", () => {
     expect(screen.queryByText("Select")).not.toBeInTheDocument();
   });
 
-  it("calls onSelectPartner when Select button is clicked", () => {
+  it("calls onSelectPartner when Select button is clicked", async () => {
+    const user = userEvent.setup();
     render(
       <UserItem 
         user={mockUser} 
@@ -75,7 +78,7 @@ describe("UserItem", () => {
       />
     );
     
-    fireEvent.click(screen.getByText("Select"));
+    await user.click(screen.getByText("Select"));
     
     expect(mockOnSelectPartner).toHaveBeenCalledWith("John Doe", "123");
   });
@@ -94,7 +97,8 @@ describe("UserItem", () => {
     expect(avatarImg).toHaveAttribute("src", "https://example.com/avatar.jpg");
   });
 
-  it("navigates to user profile page when Profile button is clicked", () => {
+  it("navigates to user profile page when Profile button is clicked", async () => {
+    const user = userEvent.setup();
     render(
       <UserItem 
         user={mockUser} 
@@ -103,7 +107,7 @@ describe("UserItem", () => {
       />
     );
     
-    fireEvent.click(screen.getByText("Profile"));
+    await user.click(screen.getByText("Profile"));
     
     expect(mockNavigate).toHaveBeenCalledWith("/user/123");
   });

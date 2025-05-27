@@ -1,6 +1,8 @@
 
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render } from "@testing-library/react";
+import { screen } from "@testing-library/dom";
+import userEvent from "@testing-library/user-event";
 import { PartnerSearch } from "../PartnerSearch";
 
 describe("PartnerSearch", () => {
@@ -27,11 +29,12 @@ describe("PartnerSearch", () => {
     expect(screen.getByText("Fitness")).toBeInTheDocument();
   });
 
-  it("calls onSearch when typing in the search input", () => {
+  it("calls onSearch when typing in the search input", async () => {
+    const user = userEvent.setup();
     render(<PartnerSearch {...defaultProps} />);
     
     const searchInput = screen.getByPlaceholderText("Search by name or username");
-    fireEvent.change(searchInput, { target: { value: "test" } });
+    await user.type(searchInput, "test");
     
     expect(mockOnSearch).toHaveBeenCalledWith("test");
   });
