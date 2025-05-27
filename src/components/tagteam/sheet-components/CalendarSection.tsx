@@ -2,30 +2,102 @@
 import React from "react";
 
 interface CalendarSectionProps {
-  daysOfWeek: string[];
-  today: number;
+  frequency: string;
 }
 
 export const CalendarSection: React.FC<CalendarSectionProps> = ({
-  daysOfWeek,
-  today
+  frequency
 }) => {
+  // Helper function to get day abbreviations starting from today
+  const getWeekStartingFromToday = () => {
+    const dayAbbreviations = ["Su", "Mo", "Tu", "W", "Th", "F", "Sa"];
+    const today = new Date().getDay();
+    
+    const reorderedDays = [];
+    for (let i = 0; i < 7; i++) {
+      const dayIndex = (today + i) % 7;
+      reorderedDays.push({
+        abbr: dayAbbreviations[dayIndex],
+        dayIndex: dayIndex,
+        isToday: i === 0,
+        dayOffset: i
+      });
+    }
+    
+    return reorderedDays;
+  };
+
+  // Helper function to determine if a day is an activity day
+  const isActivityDay = (dayIndex: number, dayOffset: number) => {
+    if (frequency.toLowerCase().includes('daily')) {
+      // For daily teams, tomorrow (dayOffset = 1) is the next activity day
+      return dayOffset === 1;
+    } else if (frequency.toLowerCase().includes('weekly')) {
+      // Extract the reset day from frequency string (e.g., "Weekly (Monday)")
+      const resetDayMatch = frequency.match(/\((.+)\)/);
+      if (resetDayMatch) {
+        const resetDayName = resetDayMatch[1].toLowerCase();
+        const resetDayMap: { [key: string]: number } = {
+          'sunday': 0,
+          'monday': 1,
+          'tuesday': 2,
+          'wednesday': 3,
+          'thursday': 4,
+          'friday': 5,
+          'saturday': 6
+        };
+        
+        const resetDayIndex = resetDayMap[resetDayName];
+        return dayIndex === resetDayIndex;
+      }
+    }
+    return false;
+  };
+
+  // Helper function to get styling classes for each day
+  const getDayClasses = (day: any) => {
+    const baseClasses = "w-[36px] h-[36px] flex items-center justify-center rounded-full";
+    
+    if (day.isToday) {
+      return `${baseClasses} bg-[#E5DEFF] font-bold text-black`;
+    } else if (isActivityDay(day.dayIndex, day.dayOffset)) {
+      return `${baseClasses} bg-[#8CFF6E] font-medium text-black`;
+    } else {
+      return `${baseClasses} bg-[#F0F0F0] text-gray-500`;
+    }
+  };
+
+  // Helper function to get upcoming activity text
+  const getUpcomingText = () => {
+    if (frequency.toLowerCase().includes('daily')) {
+      return "Tomorrow";
+    } else if (frequency.toLowerCase().includes('weekly')) {
+      const resetDayMatch = frequency.match(/\((.+)\)/);
+      if (resetDayMatch) {
+        const resetDayName = resetDayMatch[1];
+        return `Next ${resetDayName}`;
+      }
+      return "Next Activity";
+    }
+    return "Next Activity";
+  };
+
+  const weekDays = getWeekStartingFromToday();
+
   return (
     <div className="bg-[#F8F7FC] rounded-xl p-4 mb-6">
       <div className="flex justify-between items-center mb-4">
         <span className="text-[16px] font-bold">Upcoming:</span>
-        <span className="text-[14px] text-gray-600">Tomorrow, {daysOfWeek[today === 6 ? 0 : today + 1]}</span>
+        <span className="text-[14px] text-gray-600">{getUpcomingText()}</span>
       </div>
       
       <div className="flex justify-between items-center">
-        {daysOfWeek.map((day, index) => (
+        {weekDays.map((day, index) => (
           <div 
-            key={day} 
-            className={`w-[36px] h-[36px] flex items-center justify-center rounded-full ${
-              index === today ? "bg-[#E5DEFF] font-bold" : "bg-[#F0F0F0] text-gray-500"
-            }`}
+            key={`${day.abbr}-${index}`}
+            className={getDayClasses(day)}
           >
-            {day}
+            {day.abbr}
           </div>
         ))}
       </div>

@@ -59,10 +59,6 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
   handleTouchMove,
   handleTouchEnd
 }) => {
-  // Days of the week for the calendar section
-  const daysOfWeek = ["Su", "Mo", "Tu", "W", "Th", "F", "Sa"];
-  const today = new Date().getDay();
-  
   // Check if goal button is visible
   const isEditGoalButtonVisible = currentUser.goal && activeGoal === "your";
 
@@ -107,8 +103,7 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
         </div>
         
         <CalendarSection 
-          daysOfWeek={daysOfWeek}
-          today={today}
+          frequency={tagTeam.frequency}
         />
         
         <PartnerVerificationSection 
