@@ -1,9 +1,7 @@
 
 import React from "react";
-import { render } from "@testing-library/react";
-import { screen } from "@testing-library/dom";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { waitFor } from "@testing-library/dom";
 import { PartnerStep } from "../../PartnerStep";
 import { usePartnerSearch } from "../usePartnerSearch";
 import { useAuth } from "@/contexts/AuthContext";
