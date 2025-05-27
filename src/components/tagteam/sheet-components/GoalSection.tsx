@@ -82,7 +82,9 @@ export const GoalSection: React.FC<GoalSectionProps> = ({
           partnerUser.goal ? (
             <p className="text-gray-700">{partnerUser.goal}</p>
           ) : (
-            <p className="text-gray-500 italic text-center">No goal set yet</p>
+            <p className="text-gray-500 italic text-center">
+              {needsNewGoal ? "Partner hasn't set their goal yet" : "No goal set yet"}
+            </p>
           )
         )}
       </div>

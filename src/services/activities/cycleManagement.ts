@@ -33,6 +33,38 @@ export const closeAllExpiredActivityCycles = async (): Promise<number> => {
   }
 };
 
+// Function to close expired goal cycles for a specific team
+export const closeTeamGoalCycle = async (teamId: string): Promise<number> => {
+  try {
+    const { data, error } = await supabase.rpc('close_team_goal_cycle', {
+      team_id_param: teamId
+    });
+    
+    if (error) throw error;
+    
+    console.log(`Closed ${data || 0} expired goal cycles for team ${teamId}`);
+    return data || 0;
+  } catch (error) {
+    console.error('Error closing team goal cycle:', error);
+    return 0;
+  }
+};
+
+// Function to close all expired goal cycles across all teams
+export const closeAllExpiredGoalCycles = async (): Promise<number> => {
+  try {
+    const { data, error } = await supabase.rpc('close_expired_goal_cycles');
+    
+    if (error) throw error;
+    
+    console.log(`Closed ${data || 0} expired goal cycles across all teams`);
+    return data || 0;
+  } catch (error) {
+    console.error('Error closing expired goal cycles:', error);
+    return 0;
+  }
+};
+
 // Function to check if a team needs cycle closure based on timer reset
 export const checkAndCloseCycleOnReset = async (
   teamId: string,
@@ -40,11 +72,11 @@ export const checkAndCloseCycleOnReset = async (
   resetDay?: string
 ): Promise<boolean> => {
   try {
-    // Close any expired cycles for this team
+    // Close any expired cycles for this team (both activities and goals)
     const cyclesClosed = await closeTeamActivityCycle(teamId);
     
     if (cyclesClosed > 0) {
-      console.log(`Reset detected: Closed ${cyclesClosed} cycles for team ${teamId}`);
+      console.log(`Reset detected: Closed ${cyclesClosed} cycles (activities + goals) for team ${teamId}`);
       return true;
     }
     

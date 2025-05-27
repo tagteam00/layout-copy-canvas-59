@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
-import { fetchTeamGoal, createTeamGoal, updateTeamGoal, closeAllActiveGoals } from "@/services/goalService";
+import { fetchTeamGoal, createTeamGoal, updateTeamGoal } from "@/services/goalService";
+import { closeTeamGoalCycle } from "@/services/activities/cycleManagement";
 import { toast } from "sonner";
 
 export const useTagTeamGoals = (
@@ -23,25 +24,35 @@ export const useTagTeamGoals = (
 
   const handleResetGoals = async () => {
     try {
-      // Close current goal cycle
-      if (goalId) {
-        await closeAllActiveGoals(teamId, userId);
+      console.log(`Timer reset detected - closing goal cycles for team ${teamId}`);
+      
+      // Close expired goal cycles for this team
+      const goalsClosed = await closeTeamGoalCycle(teamId);
+      
+      if (goalsClosed > 0) {
+        console.log(`Closed ${goalsClosed} expired goal cycles`);
+        // Reset local goal state
         setCurrentUserGoal(undefined);
         setGoalId(null);
         setNeedsNewGoal(true);
         toast.info("A new cycle has started! Set your new goal for this cycle.");
       }
 
-      // Acknowledge the reset
+      // Acknowledge the timer reset
       acknowledgeReset();
     } catch (error) {
       console.error("Error handling goal reset:", error);
+      // Still acknowledge reset even if goal closure fails
+      acknowledgeReset();
     }
   };
 
   const loadGoals = async () => {
     setLoadingGoals(true);
     try {
+      // First, check and close any expired goal cycles before loading
+      await closeTeamGoalCycle(teamId);
+      
       // Fetch current user's goal
       const userGoal = await fetchTeamGoal(teamId, userId);
       if (userGoal) {
@@ -107,13 +118,13 @@ export const useTagTeamGoals = (
     }
   }, [isOpen, teamId]);
 
-  // Check for timer resets when the component renders or when hasResetOccurred changes
+  // Handle timer resets - this is the key integration point
   useEffect(() => {
-    if (isOpen && hasResetOccurred && goalId) {
-      // Timer has reset, prompt for a new goal
+    if (isOpen && hasResetOccurred) {
+      console.log("Timer reset detected in useTagTeamGoals - handling goal reset");
       handleResetGoals();
     }
-  }, [isOpen, hasResetOccurred, goalId]);
+  }, [isOpen, hasResetOccurred, teamId]);
 
   // Check if a goal needs to be set - either it's a new cycle or there's no goal yet
   useEffect(() => {
@@ -124,14 +135,14 @@ export const useTagTeamGoals = (
 
   // Auto-open goal dialog if user needs to set a new goal
   useEffect(() => {
-    if (isOpen && needsNewGoal && !isSettingGoal) {
+    if (isOpen && needsNewGoal && !isSettingGoal && !loadingGoals) {
       // Slight delay to ensure the sheet is visible first
       const timer = setTimeout(() => {
         openGoalDialog();
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, needsNewGoal, isSettingGoal]);
+  }, [isOpen, needsNewGoal, isSettingGoal, loadingGoals]);
 
   return {
     activeGoal,

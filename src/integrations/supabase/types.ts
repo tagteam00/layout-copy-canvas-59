@@ -268,7 +268,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      close_expired_goal_cycles: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       close_team_activity_cycle: {
+        Args: { team_id_param: string }
+        Returns: number
+      }
+      close_team_goal_cycle: {
         Args: { team_id_param: string }
         Returns: number
       }
