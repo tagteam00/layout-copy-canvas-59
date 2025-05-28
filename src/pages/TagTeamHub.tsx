@@ -12,10 +12,12 @@ import { TeamList } from "@/components/tagteam/hub/TeamList";
 import { TagTeamSheetWrapper } from "@/components/tagteam/hub/TagTeamSheetWrapper";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useTeamData } from "@/hooks/useTeamData";
+import { useAppLoadCount } from "@/hooks/useAppLoadCount";
 import { TransformedTeam } from "@/types/tagteam";
 
 const TagTeamHub: React.FC = () => {
   const { userProfile } = useUserProfile();
+  const { shouldShowConfetti } = useAppLoadCount();
   
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isTagTeamSheetOpen, setIsTagTeamSheetOpen] = useState(false);
@@ -63,7 +65,7 @@ const TagTeamHub: React.FC = () => {
         {loading ? (
           <LoadingState />
         ) : tagTeams.length > 0 ? (
-          <TeamList teams={tagTeams} onTeamClick={handleLogActivity} />
+          <TeamList teams={tagTeams} onTeamClick={handleLogActivity} showConfetti={shouldShowConfetti} />
         ) : (
           <EmptyTeamState 
             onAddTeam={() => setIsSheetOpen(true)} 

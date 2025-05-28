@@ -1,14 +1,20 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Confetti } from "@/components/ui/confetti";
 
 interface CelebrationStripProps {
   className?: string;
+  showConfetti?: boolean;
 }
 
-export const CelebrationStrip: React.FC<CelebrationStripProps> = ({ className = "" }) => {
+export const CelebrationStrip: React.FC<CelebrationStripProps> = ({ 
+  className = "",
+  showConfetti = false
+}) => {
   const messages = ["Congratulations", "You have Crushed your goal"];
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+  const [confettiActive, setConfettiActive] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -17,6 +23,19 @@ export const CelebrationStrip: React.FC<CelebrationStripProps> = ({ className = 
 
     return () => clearInterval(interval);
   }, [messages.length]);
+
+  // Trigger confetti when celebration strip appears and should show confetti
+  useEffect(() => {
+    if (showConfetti) {
+      setConfettiActive(true);
+      // Turn off confetti after 6 seconds to match duration
+      const timeout = setTimeout(() => {
+        setConfettiActive(false);
+      }, 6000);
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [showConfetti]);
 
   const stripVariants = {
     initial: { opacity: 0, height: 0 },
@@ -65,25 +84,35 @@ export const CelebrationStrip: React.FC<CelebrationStripProps> = ({ className = 
   };
 
   return (
-    <motion.div
-      className={`w-full h-10 bg-gradient-to-r from-[#8CFF6E] to-[#827AFF] flex items-center justify-center overflow-hidden ${className}`}
-      variants={stripVariants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-    >
-      <AnimatePresence mode="wait">
-        <motion.span
-          key={currentMessageIndex}
-          className="text-white font-bold text-sm text-center px-4"
-          variants={textVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-        >
-          {messages[currentMessageIndex]}
-        </motion.span>
-      </AnimatePresence>
-    </motion.div>
+    <>
+      {/* Confetti behind the celebration strip */}
+      {showConfetti && (
+        <Confetti 
+          active={confettiActive} 
+          duration={6}
+        />
+      )}
+      
+      <motion.div
+        className={`w-full h-10 bg-gradient-to-r from-[#8CFF6E] to-[#827AFF] flex items-center justify-center overflow-hidden relative z-10 ${className}`}
+        variants={stripVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+      >
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={currentMessageIndex}
+            className="text-white font-bold text-sm text-center px-4"
+            variants={textVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+          >
+            {messages[currentMessageIndex]}
+          </motion.span>
+        </AnimatePresence>
+      </motion.div>
+    </>
   );
 };

@@ -8,9 +8,12 @@ import { HomeContent } from "@/components/home/HomeContent";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTeamData } from "@/hooks/useTeamData";
+import { useAppLoadCount } from "@/hooks/useAppLoadCount";
 
 const Index: React.FC = () => {
   const { getUserData, getAllUsers } = useUserData();
+  const { shouldShowConfetti } = useAppLoadCount();
+  
   const [userProfile, setUserProfile] = useState({
     fullName: "",
     username: "",
@@ -79,6 +82,7 @@ const Index: React.FC = () => {
           tagTeams={tagTeams}
           onAddTeam={() => setIsSheetOpen(true)}
           allUsers={allUsers}
+          shouldShowConfetti={shouldShowConfetti}
         />
       </div>
       
