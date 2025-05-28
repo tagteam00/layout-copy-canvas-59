@@ -70,15 +70,15 @@ export const PartnerVerificationSection: React.FC<PartnerVerificationSectionProp
   }, [hasLoggedActivity, teamId, userId, partnerId]);
 
   const handleMarkPending = async () => {
-    const status = await handleStatusChange("pending");
+    await handleStatusChange("pending");
     setUserLoggedStatus("pending");
-    onStatusUpdate(status);
+    onStatusUpdate("pending");
   };
 
   const handleMarkCompleted = async () => {
-    const status = await handleStatusChange("completed");
+    await handleStatusChange("completed");
     setUserLoggedStatus("completed");
-    onStatusUpdate(status);
+    onStatusUpdate("completed");
   };
 
   const getFrequencyText = () => {
