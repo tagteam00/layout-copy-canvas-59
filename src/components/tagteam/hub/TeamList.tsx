@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge";
 interface TeamListProps {
   teams: TransformedTeam[];
   onTeamClick: (teamId: string) => void;
+  showConfetti?: boolean;
 }
 
-export const TeamList: React.FC<TeamListProps> = ({ teams, onTeamClick }) => {
+export const TeamList: React.FC<TeamListProps> = ({ teams, onTeamClick, showConfetti = false }) => {
   // Filter out any teams that have ended before rendering
   const activeTeams = teams.filter(team => !team.ended_at);
   
@@ -32,6 +33,7 @@ export const TeamList: React.FC<TeamListProps> = ({ teams, onTeamClick }) => {
             interest={team.interest}
             frequency={team.frequency}
             resetDay={team.resetDay}
+            showConfetti={showConfetti}
           />
         </div>
       ))}
