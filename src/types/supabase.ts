@@ -1,4 +1,5 @@
 
+
 import { Tables } from "@/integrations/supabase/types";
 
 export interface UserData {
@@ -33,7 +34,7 @@ export const userDataToProfile = (userData: UserData, userId: string): ProfileIn
     commitment_level: userData.commitmentLevel,
     city: userData.city,
     country: userData.country,
-    coordinates: userData.coordinates ? `POINT(${userData.coordinates.lng} ${userData.coordinates.lat})` as any : null,
+    coordinates: userData.coordinates ? `(${userData.coordinates.lng},${userData.coordinates.lat})` as any : null,
     full_address: userData.fullAddress,
     occupation: userData.occupation,
     bio: userData.bio,
@@ -50,9 +51,15 @@ export const profileToUserData = (profile: Profile): UserData => {
   if (profile.coordinates) {
     try {
       const coordString = profile.coordinates.toString();
-      const match = coordString.match(/POINT\(([^)]+)\)/);
-      if (match) {
-        const [lng, lat] = match[1].split(' ').map(Number);
+      // Handle both POINT(lng lat) and (lng,lat) formats
+      const pointMatch = coordString.match(/POINT\(([^)]+)\)/);
+      const parenMatch = coordString.match(/\(([^)]+)\)/);
+      
+      if (pointMatch) {
+        const [lng, lat] = pointMatch[1].split(' ').map(Number);
+        coordinates = { lat, lng };
+      } else if (parenMatch) {
+        const [lng, lat] = parenMatch[1].split(',').map(Number);
         coordinates = { lat, lng };
       }
     } catch (error) {
@@ -76,3 +83,4 @@ export const profileToUserData = (profile: Profile): UserData => {
     avatarUrl: profile.avatar_url
   };
 };
+
