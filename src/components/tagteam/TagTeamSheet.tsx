@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Drawer, DrawerContent, DrawerOverlay } from "@/components/ui/drawer";
 import { TagTeam } from "@/types/tagteam";
@@ -146,32 +145,30 @@ export const TagTeamSheet: React.FC<TagTeamSheetProps> = ({
         <DrawerOverlay />
         <DrawerContent 
           ref={drawerRef} 
-          className="bg-white rounded-t-[20px] p-0 transition-all duration-300 ease-in-out w-full max-w-none mx-0" 
+          className="bg-white rounded-t-[20px] p-0 transition-all duration-300 ease-in-out" 
           style={{ height: sheetHeight }}
         >
           {/* Drag handle indicator */}
           <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto my-2" />
           
-          <div className="w-full max-w-[480px] mx-auto px-0">
-            <TagTeamSheetContent
-              tagTeam={tagTeam}
-              currentUserId={currentUserId}
-              timer={timer}
-              timerColorClass={timerColorClass}
-              currentUser={currentUserWithGoal}
-              partnerUser={partnerUserWithGoal}
-              activeGoal={activeGoal}
-              setActiveGoal={setActiveGoal}
-              loadingGoals={loadingGoals}
-              needsNewGoal={needsNewGoal}
-              onSetGoal={openGoalDialog}
-              onStatusUpdate={handleStatusUpdate}
-              onClose={onClose}
-              handleTouchStart={handleTouchStart}
-              handleTouchMove={handleTouchMove}
-              handleTouchEnd={handleTouchEnd}
-            />
-          </div>
+          <TagTeamSheetContent
+            tagTeam={tagTeam}
+            currentUserId={currentUserId}
+            timer={timer}
+            timerColorClass={timerColorClass}
+            currentUser={currentUserWithGoal}
+            partnerUser={partnerUserWithGoal}
+            activeGoal={activeGoal}
+            setActiveGoal={setActiveGoal}
+            loadingGoals={loadingGoals}
+            needsNewGoal={needsNewGoal}
+            onSetGoal={openGoalDialog}
+            onStatusUpdate={handleStatusUpdate}
+            onClose={onClose}
+            handleTouchStart={handleTouchStart}
+            handleTouchMove={handleTouchMove}
+            handleTouchEnd={handleTouchEnd}
+          />
         </DrawerContent>
       </Drawer>
       
