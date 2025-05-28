@@ -10,6 +10,8 @@ export interface UserData {
   commitmentLevel: string;
   city?: string;
   country?: string;
+  coordinates?: { lat: number; lng: number };
+  fullAddress?: string;
   occupation?: string;
   bio?: string;
   avatarUrl?: string | null;
@@ -31,15 +33,33 @@ export const userDataToProfile = (userData: UserData, userId: string): ProfileIn
     commitment_level: userData.commitmentLevel,
     city: userData.city,
     country: userData.country,
+    coordinates: userData.coordinates ? `POINT(${userData.coordinates.lng} ${userData.coordinates.lat})` as any : null,
+    full_address: userData.fullAddress,
     occupation: userData.occupation,
     bio: userData.bio,
     avatar_url: userData.avatarUrl,
-    created_at: new Date().toISOString(), // Add current timestamp
-    updated_at: new Date().toISOString()  // Add current timestamp
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   };
 };
 
 export const profileToUserData = (profile: Profile): UserData => {
+  let coordinates: { lat: number; lng: number } | undefined = undefined;
+  
+  // Parse coordinates from POINT format if available
+  if (profile.coordinates) {
+    try {
+      const coordString = profile.coordinates.toString();
+      const match = coordString.match(/POINT\(([^)]+)\)/);
+      if (match) {
+        const [lng, lat] = match[1].split(' ').map(Number);
+        coordinates = { lat, lng };
+      }
+    } catch (error) {
+      console.warn('Failed to parse coordinates:', error);
+    }
+  }
+
   return {
     fullName: profile.full_name || '',
     username: profile.username || '',
@@ -49,6 +69,8 @@ export const profileToUserData = (profile: Profile): UserData => {
     commitmentLevel: profile.commitment_level || '',
     city: profile.city || '',
     country: profile.country || '',
+    coordinates,
+    fullAddress: profile.full_address || '',
     occupation: profile.occupation || '',
     bio: profile.bio || '',
     avatarUrl: profile.avatar_url
