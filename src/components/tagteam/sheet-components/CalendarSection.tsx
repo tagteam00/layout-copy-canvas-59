@@ -1,4 +1,3 @@
-
 import React from "react";
 
 interface CalendarSectionProps {
@@ -27,8 +26,35 @@ export const CalendarSection: React.FC<CalendarSectionProps> = ({
     return reorderedDays;
   };
 
-  // Helper function to determine if a day is an activity day
-  const isActivityDay = (dayIndex: number, dayOffset: number) => {
+  // Helper function to determine if a day is a scheduled activity day
+  const isScheduledActivityDay = (dayIndex: number, dayOffset: number) => {
+    if (frequency.toLowerCase().includes('daily')) {
+      // For daily teams, all days are scheduled activity days
+      return true;
+    } else if (frequency.toLowerCase().includes('weekly')) {
+      // Extract the reset day from frequency string (e.g., "Weekly (Monday)")
+      const resetDayMatch = frequency.match(/\((.+)\)/);
+      if (resetDayMatch) {
+        const resetDayName = resetDayMatch[1].toLowerCase();
+        const resetDayMap: { [key: string]: number } = {
+          'sunday': 0,
+          'monday': 1,
+          'tuesday': 2,
+          'wednesday': 3,
+          'thursday': 4,
+          'friday': 5,
+          'saturday': 6
+        };
+        
+        const resetDayIndex = resetDayMap[resetDayName];
+        return dayIndex === resetDayIndex;
+      }
+    }
+    return false;
+  };
+
+  // Helper function to determine if a day is the immediate next activity day
+  const isImmediateNextActivityDay = (dayIndex: number, dayOffset: number) => {
     if (frequency.toLowerCase().includes('daily')) {
       // For daily teams, tomorrow (dayOffset = 1) is the next activity day
       return dayOffset === 1;
@@ -59,10 +85,16 @@ export const CalendarSection: React.FC<CalendarSectionProps> = ({
     const baseClasses = "w-[32px] h-[32px] flex items-center justify-center rounded-full text-xs font-medium";
     
     if (day.isToday) {
+      // Current day styling (purple background)
       return `${baseClasses} bg-[#E5DEFF] font-bold text-black`;
-    } else if (isActivityDay(day.dayIndex, day.dayOffset)) {
+    } else if (isImmediateNextActivityDay(day.dayIndex, day.dayOffset)) {
+      // Immediate next activity day (filled green)
       return `${baseClasses} bg-[#8CFF6E] font-medium text-black`;
+    } else if (isScheduledActivityDay(day.dayIndex, day.dayOffset)) {
+      // Other scheduled activity days (green border)
+      return `${baseClasses} border-2 border-[#8CFF6E] bg-white text-black font-medium`;
     } else {
+      // Regular days
       return `${baseClasses} bg-[#F0F0F0] text-gray-500`;
     }
   };
