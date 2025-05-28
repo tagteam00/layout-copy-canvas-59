@@ -10,8 +10,6 @@ export interface UserData {
   commitmentLevel: string;
   city?: string;
   country?: string;
-  coordinates?: [number, number];
-  fullAddress?: string;
   occupation?: string;
   bio?: string;
   avatarUrl?: string | null;
@@ -33,8 +31,6 @@ export const userDataToProfile = (userData: UserData, userId: string): ProfileIn
     commitment_level: userData.commitmentLevel,
     city: userData.city,
     country: userData.country,
-    coordinates: userData.coordinates,
-    full_address: userData.fullAddress,
     occupation: userData.occupation,
     bio: userData.bio,
     avatar_url: userData.avatarUrl,
@@ -53,8 +49,6 @@ export const profileToUserData = (profile: Profile): UserData => {
     commitmentLevel: profile.commitment_level || '',
     city: profile.city || '',
     country: profile.country || '',
-    coordinates: profile.coordinates as [number, number] | undefined,
-    fullAddress: profile.full_address || '',
     occupation: profile.occupation || '',
     bio: profile.bio || '',
     avatarUrl: profile.avatar_url

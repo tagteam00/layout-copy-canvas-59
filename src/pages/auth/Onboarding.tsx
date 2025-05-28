@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -67,19 +68,8 @@ const Onboarding: React.FC = () => {
     setStep(4);
   };
 
-  const handleLocationSubmit = (data: { 
-    city: string; 
-    country: string; 
-    coordinates?: [number, number]; 
-    fullAddress?: string; 
-  }) => {
-    setFormData({ 
-      ...formData, 
-      city: data.city,
-      country: data.country,
-      coordinates: data.coordinates,
-      fullAddress: data.fullAddress
-    });
+  const handleLocationSubmit = (data: { city: string; country: string }) => {
+    setFormData({ ...formData, ...data });
     setStep(5);
   };
 
