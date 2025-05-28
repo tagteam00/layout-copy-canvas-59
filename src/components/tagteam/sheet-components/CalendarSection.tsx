@@ -56,7 +56,7 @@ export const CalendarSection: React.FC<CalendarSectionProps> = ({
 
   // Helper function to get styling classes for each day
   const getDayClasses = (day: any) => {
-    const baseClasses = "w-[36px] h-[36px] flex items-center justify-center rounded-full";
+    const baseClasses = "w-[32px] h-[32px] flex items-center justify-center rounded-full text-xs font-medium";
     
     if (day.isToday) {
       return `${baseClasses} bg-[#E5DEFF] font-bold text-black`;
@@ -91,7 +91,7 @@ export const CalendarSection: React.FC<CalendarSectionProps> = ({
         <span className="text-[14px] text-gray-600">{getUpcomingText()}</span>
       </div>
       
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center gap-1 px-1">
         {weekDays.map((day, index) => (
           <div 
             key={`${day.abbr}-${index}`}
