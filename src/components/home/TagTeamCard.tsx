@@ -14,7 +14,6 @@ interface TagTeamCardProps {
   partnerName?: string;
   isLogged?: boolean;
   partnerLogged?: boolean;
-  showConfetti?: boolean;
 }
 
 export const TagTeamCard: React.FC<TagTeamCardProps> = ({
@@ -26,7 +25,6 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
   partnerName,
   isLogged = false,
   partnerLogged = false,
-  showConfetti = false,
 }) => {
   // Check if both users have completed their goals
   const bothCompleted = isLogged && partnerLogged;
@@ -63,7 +61,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
         {/* Celebration Strip */}
         <AnimatePresence>
           {bothCompleted && (
-            <CelebrationStrip showConfetti={showConfetti} />
+            <CelebrationStrip />
           )}
         </AnimatePresence>
 

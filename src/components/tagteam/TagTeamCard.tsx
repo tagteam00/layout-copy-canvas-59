@@ -19,7 +19,6 @@ interface TagTeamCardProps {
   frequency: string;
   resetDay?: string;
   onClick?: () => void;
-  showConfetti?: boolean;
 }
 
 export const TagTeamCard: React.FC<TagTeamCardProps> = ({
@@ -29,8 +28,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
   interest,
   frequency,
   resetDay,
-  onClick,
-  showConfetti = false
+  onClick
 }) => {
   // Function to get first name
   const getFirstName = (fullName: string): string => {
@@ -76,7 +74,7 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
         {/* Celebration Strip */}
         <AnimatePresence>
           {bothCompleted && (
-            <CelebrationStrip showConfetti={showConfetti} />
+            <CelebrationStrip />
           )}
         </AnimatePresence>
 

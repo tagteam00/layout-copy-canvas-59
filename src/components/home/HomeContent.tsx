@@ -15,7 +15,6 @@ interface HomeContentProps {
   tagTeams: any[];
   onAddTeam: () => void;
   allUsers: UserData[];
-  shouldShowConfetti?: boolean;
 }
 
 export const HomeContent: React.FC<HomeContentProps> = ({
@@ -23,8 +22,7 @@ export const HomeContent: React.FC<HomeContentProps> = ({
   loading,
   tagTeams,
   onAddTeam,
-  allUsers,
-  shouldShowConfetti = false
+  allUsers
 }) => {
   return (
     <div className="flex-1 overflow-y-auto">
@@ -37,7 +35,6 @@ export const HomeContent: React.FC<HomeContentProps> = ({
         userName={userProfile.fullName} 
         loading={loading}
         currentUserId={userProfile.id}
-        shouldShowConfetti={shouldShowConfetti}
       />
       <div>
         <UsersList users={allUsers} loading={loading} />
