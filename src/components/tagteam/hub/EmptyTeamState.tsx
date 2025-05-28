@@ -1,8 +1,17 @@
 
 import React from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Button } from "@/components/ui/button";
 
-export const EmptyTeamState: React.FC = () => {
+interface EmptyTeamStateProps {
+  onAddTeam?: () => void;
+  userName?: string;
+}
+
+export const EmptyTeamState: React.FC<EmptyTeamStateProps> = ({ 
+  onAddTeam, 
+  userName 
+}) => {
   return (
     <div className="flex flex-col items-center justify-center py-8">
       <div className="w-full max-w-[280px] mx-auto">
@@ -14,10 +23,27 @@ export const EmptyTeamState: React.FC = () => {
           />
         </AspectRatio>
       </div>
-      <p className="text-center text-gray-600 mt-6 italic my-0">
-        You don't seem to be in any tagteam,
-        Your next tagteam is just a click away.
-      </p>
+      <div
+        style={{
+          fontFamily: "Hanken Grotesk, sans-serif"
+        }}
+        className="text-base text-gray-700 text-center mt-6 mb-6 px-4"
+      >
+        {userName
+          ? `${userName}, people are out-there to team up with you`
+          : `People are out-there to team up with you`}
+      </div>
+      <Button
+        style={{
+          height: 56,
+          fontSize: 18
+        }}
+        onClick={onAddTeam}
+        size="lg"
+        className="w-full max-w-[448px] text-base font-semibold bg-black text-white rounded-xl"
+      >
+        Start your first tagteam
+      </Button>
     </div>
   );
 };

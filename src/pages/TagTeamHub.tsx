@@ -65,7 +65,10 @@ const TagTeamHub: React.FC = () => {
         ) : tagTeams.length > 0 ? (
           <TeamList teams={tagTeams} onTeamClick={handleLogActivity} />
         ) : (
-          <EmptyTeamState />
+          <EmptyTeamState 
+            onAddTeam={() => setIsSheetOpen(true)} 
+            userName={userProfile.fullName}
+          />
         )}
       </HubContainer>
 
