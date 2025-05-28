@@ -73,7 +73,7 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
       
       <ScrollArea className="flex-1 px-4 pb-8">
         {/* User Status Section */}
-        <div className="rounded-xl p-4 mb-4 mt-4 bg-[#f3f3f3]/[0.48]">
+        <div className="rounded-xl p-4 mb-4 mt-4 bg-[#f3f3f3]/[0.48] mx-0">
           <UserStatusSection 
             firstUser={tagTeam.firstUser}
             secondUser={tagTeam.secondUser}
@@ -102,30 +102,34 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
           )}
         </div>
         
-        <CalendarSection 
-          frequency={tagTeam.frequency}
-        />
-        
-        <PartnerVerificationSection 
-          partnerName={partnerUser.name}
-          partnerId={partnerUser.id}
-          userId={currentUserId}
-          teamId={tagTeam.id}
-          teamName={tagTeam.name}
-          onStatusUpdate={onStatusUpdate}
-        />
+        <div className="mx-0">
+          <CalendarSection 
+            frequency={tagTeam.frequency}
+          />
+          
+          <PartnerVerificationSection 
+            partnerName={partnerUser.name}
+            partnerId={partnerUser.id}
+            userId={currentUserId}
+            teamId={tagTeam.id}
+            teamName={tagTeam.name}
+            onStatusUpdate={onStatusUpdate}
+          />
+        </div>
         
         {/* Add a subtle divider before the leave button */}
-        <div className="mt-8 mb-4 border-t border-gray-100"></div>
+        <div className="mt-8 mb-4 border-t border-gray-100 mx-0"></div>
         
         {/* Leave Tag Team Button */}
-        <LeaveTagTeamButton
-          tagTeamId={tagTeam.id}
-          tagTeamName={tagTeam.name}
-          partnerName={partnerUser.name}
-          currentUserId={currentUserId}
-          onLeaveComplete={onClose}
-        />
+        <div className="mx-0">
+          <LeaveTagTeamButton
+            tagTeamId={tagTeam.id}
+            tagTeamName={tagTeam.name}
+            partnerName={partnerUser.name}
+            currentUserId={currentUserId}
+            onLeaveComplete={onClose}
+          />
+        </div>
       </ScrollArea>
       
       {/* Edit goal button positioned at bottom right */}
