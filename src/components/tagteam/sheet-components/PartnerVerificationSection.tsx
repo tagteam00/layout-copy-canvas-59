@@ -57,7 +57,10 @@ export const PartnerVerificationSection: React.FC<PartnerVerificationSectionProp
             .single();
 
           if (error) throw error;
-          setUserLoggedStatus(data.status);
+          
+          // Ensure the status is properly typed
+          const status = data.status as "completed" | "pending";
+          setUserLoggedStatus(status);
         } catch (error) {
           console.error('Error fetching user logged status:', error);
         }
