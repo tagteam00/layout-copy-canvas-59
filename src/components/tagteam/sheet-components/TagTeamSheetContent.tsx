@@ -62,14 +62,58 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
   // Check if goal button is visible
   const isEditGoalButtonVisible = currentUser.goal && activeGoal === "your";
 
+  const handleDragStart = (e: React.TouchEvent) => {
+    // Only allow drag from header area, not from interactive elements
+    const target = e.target as HTMLElement;
+    const isInteractiveElement = target.closest('button') || 
+                                target.closest('[role="button"]') ||
+                                target.closest('input') ||
+                                target.closest('textarea') ||
+                                target.closest('.touch-none');
+    
+    if (!isInteractiveElement) {
+      handleTouchStart(e);
+    }
+  };
+
+  const handleDragMove = (e: React.TouchEvent) => {
+    // Only handle move if we started a drag from a valid area
+    const target = e.target as HTMLElement;
+    const isInteractiveElement = target.closest('button') || 
+                                target.closest('[role="button"]') ||
+                                target.closest('input') ||
+                                target.closest('textarea') ||
+                                target.closest('.touch-none');
+    
+    if (!isInteractiveElement) {
+      handleTouchMove(e);
+    }
+  };
+
+  const handleDragEnd = (e: React.TouchEvent) => {
+    // Only handle end if we started a drag from a valid area
+    const target = e.target as HTMLElement;
+    const isInteractiveElement = target.closest('button') || 
+                                target.closest('[role="button"]') ||
+                                target.closest('input') ||
+                                target.closest('textarea') ||
+                                target.closest('.touch-none');
+    
+    if (!isInteractiveElement) {
+      handleTouchEnd(e);
+    }
+  };
+
   return (
-    <div 
-      className="flex flex-col w-full h-full"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      <SheetHeader title={tagTeam.name} />
+    <div className="flex flex-col w-full h-full">
+      {/* Draggable header area only */}
+      <div
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <SheetHeader title={tagTeam.name} />
+      </div>
       
       <ScrollArea className="flex-1 px-4 pb-8">
         {/* User Status Section */}
@@ -106,26 +150,31 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
           frequency={tagTeam.frequency}
         />
         
-        <PartnerVerificationSection 
-          partnerName={partnerUser.name}
-          partnerId={partnerUser.id}
-          userId={currentUserId}
-          teamId={tagTeam.id}
-          teamName={tagTeam.name}
-          onStatusUpdate={onStatusUpdate}
-        />
+        {/* Wrap verification section to prevent drag interference */}
+        <div className="touch-none">
+          <PartnerVerificationSection 
+            partnerName={partnerUser.name}
+            partnerId={partnerUser.id}
+            userId={currentUserId}
+            teamId={tagTeam.id}
+            teamName={tagTeam.name}
+            onStatusUpdate={onStatusUpdate}
+          />
+        </div>
         
         {/* Add a subtle divider before the leave button */}
         <div className="mt-8 mb-4 border-t border-gray-100"></div>
         
         {/* Leave Tag Team Button */}
-        <LeaveTagTeamButton
-          tagTeamId={tagTeam.id}
-          tagTeamName={tagTeam.name}
-          partnerName={partnerUser.name}
-          currentUserId={currentUserId}
-          onLeaveComplete={onClose}
-        />
+        <div className="touch-none">
+          <LeaveTagTeamButton
+            tagTeamId={tagTeam.id}
+            tagTeamName={tagTeam.name}
+            partnerName={partnerUser.name}
+            currentUserId={currentUserId}
+            onLeaveComplete={onClose}
+          />
+        </div>
       </ScrollArea>
       
       {/* Edit goal button positioned at bottom right */}
