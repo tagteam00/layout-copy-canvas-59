@@ -48,6 +48,9 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
           placeholder="Enter your city"
           className="w-full border border-[rgba(130,122,255,0.41)] rounded-xl"
         />
+        <p className="text-xs text-gray-500 mt-1">
+          Note: Location was selected using map during onboarding. You can update it here manually.
+        </p>
       </div>
       <div>
         <Label className="text-sm font-medium mb-2 block">Country</Label>
