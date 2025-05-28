@@ -4,16 +4,69 @@ import { Link, useNavigate } from "react-router-dom";
 import { Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchUnreadNotificationsCount } from "@/services/notificationService";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const AppHeader = () => {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Fetch notification count when component mounts
+  // Function to fetch notifications with better error handling
+  const fetchUnreadNotifications = async (retryCount = 0) => {
+    try {
+      console.log('Fetching unread notifications...');
+      
+      if (!user) {
+        console.log('No user found, skipping notification fetch');
+        setUnreadCount(0);
+        return;
+      }
+      
+      const count = await fetchUnreadNotificationsCount(user.id);
+      console.log('Unread notifications count:', count);
+      setUnreadCount(count);
+      setIsInitialized(true);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      
+      // Retry logic - try up to 3 times with increasing delay
+      if (retryCount < 3) {
+        console.log(`Retrying notification fetch (attempt ${retryCount + 1})`);
+        setTimeout(() => {
+          fetchUnreadNotifications(retryCount + 1);
+        }, 1000 * (retryCount + 1)); // 1s, 2s, 3s delays
+      } else {
+        setIsInitialized(true);
+      }
+    }
+  };
+
+  // Monitor authentication state and fetch notifications when user is available
   useEffect(() => {
-    fetchUnreadNotifications();
+    console.log('AppHeader: Auth state changed', { user: !!user, authLoading });
     
-    // Set up real-time subscription for notifications and team requests
+    if (authLoading) {
+      console.log('Auth still loading, waiting...');
+      return;
+    }
+    
+    if (user && !isInitialized) {
+      console.log('User authenticated, fetching notifications');
+      fetchUnreadNotifications();
+    } else if (!user) {
+      console.log('User not authenticated, resetting notification count');
+      setUnreadCount(0);
+      setIsInitialized(true);
+    }
+  }, [user, authLoading, isInitialized]);
+
+  // Set up real-time subscription for notifications and team requests
+  useEffect(() => {
+    if (!user) return;
+
+    console.log('Setting up real-time subscription for notifications');
+    
     const channel = supabase
       .channel('notification-changes')
       .on(
@@ -24,6 +77,7 @@ export const AppHeader = () => {
           table: 'team_requests'
         },
         () => {
+          console.log('New team request received, refreshing count');
           fetchUnreadNotifications();
         }
       )
@@ -35,6 +89,7 @@ export const AppHeader = () => {
           table: 'notifications'
         },
         () => {
+          console.log('New notification received, refreshing count');
           fetchUnreadNotifications();
         }
       )
@@ -47,29 +102,17 @@ export const AppHeader = () => {
           filter: 'read=eq.true'
         },
         () => {
+          console.log('Notification marked as read, refreshing count');
           fetchUnreadNotifications();
         }
       )
       .subscribe();
 
     return () => {
+      console.log('Cleaning up notification subscription');
       supabase.removeChannel(channel);
     };
-  }, []);
-
-  const fetchUnreadNotifications = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) return;
-      
-      // Get combined count from notifications and team requests
-      const count = await fetchUnreadNotificationsCount(user.id);
-      setUnreadCount(count);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    }
-  };
+  }, [user]);
 
   return (
     <div className="pt-[20px] pb-[11px] px-[15px] border-b py-[21px]">
