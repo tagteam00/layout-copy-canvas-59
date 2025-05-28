@@ -66,7 +66,7 @@ export const CelebrationStrip: React.FC<CelebrationStripProps> = ({ className = 
 
   return (
     <motion.div
-      className={`w-full h-10 bg-gradient-to-r from-[#8CFF6E] to-[#827AFF] rounded-t-2xl flex items-center justify-center overflow-hidden ${className}`}
+      className={`w-full h-10 bg-gradient-to-r from-[#8CFF6E] to-[#827AFF] flex items-center justify-center overflow-hidden ${className}`}
       variants={stripVariants}
       initial="initial"
       animate="animate"
@@ -75,7 +75,7 @@ export const CelebrationStrip: React.FC<CelebrationStripProps> = ({ className = 
       <AnimatePresence mode="wait">
         <motion.span
           key={currentMessageIndex}
-          className="text-white font-bold text-sm text-center"
+          className="text-white font-bold text-sm text-center px-4"
           variants={textVariants}
           initial="initial"
           animate="animate"
