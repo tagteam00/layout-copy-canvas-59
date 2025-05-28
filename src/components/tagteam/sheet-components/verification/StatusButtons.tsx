@@ -7,14 +7,20 @@ interface StatusButtonsProps {
   onMarkCompleted: () => void;
   isSubmitting: boolean;
   isDisabled: boolean;
+  showButtons: boolean;
 }
 
 export const StatusButtons: React.FC<StatusButtonsProps> = ({
   onMarkPending,
   onMarkCompleted,
   isSubmitting,
-  isDisabled
+  isDisabled,
+  showButtons
 }) => {
+  if (!showButtons) {
+    return null;
+  }
+
   return (
     <div className="flex justify-between gap-4">
       <Button 
