@@ -73,10 +73,16 @@ export const checkAndCloseCycleOnReset = async (
 ): Promise<boolean> => {
   try {
     // Close any expired cycles for this team (both activities and goals)
-    const cyclesClosed = await closeTeamActivityCycle(teamId);
+    // First close activity cycles to reset status
+    const activityCyclesClosed = await closeTeamActivityCycle(teamId);
     
-    if (cyclesClosed > 0) {
-      console.log(`Reset detected: Closed ${cyclesClosed} cycles (activities + goals) for team ${teamId}`);
+    // Then close goal cycles
+    const goalCyclesClosed = await closeTeamGoalCycle(teamId);
+    
+    const totalCyclesClosed = activityCyclesClosed + goalCyclesClosed;
+    
+    if (totalCyclesClosed > 0) {
+      console.log(`Reset detected: Closed ${activityCyclesClosed} activity cycles and ${goalCyclesClosed} goal cycles for team ${teamId}`);
       return true;
     }
     

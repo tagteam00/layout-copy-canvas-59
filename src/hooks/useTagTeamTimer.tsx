@@ -10,7 +10,7 @@ import {
 import { TimerDisplay } from "@/types/tagteam";
 import { createTimerWarningNotification } from "@/services/notificationService";
 import { checkTeamGoalCompletion } from "@/services/activities/completionCheck";
-import { checkAndCloseCycleOnReset } from "@/services/activities/cycleManagement";
+import { checkAndCloseCycleOnReset, closeTeamActivityCycle } from "@/services/activities/cycleManagement";
 
 export const useTagTeamTimer = (
   frequency: string, 
@@ -122,6 +122,7 @@ export const useTagTeamTimer = (
         triggeredNotificationsRef.current.clear();
         
         // Close expired cycles for this team when reset is detected
+        // This will close BOTH activity and goal cycles
         if (teamId) {
           console.log(`Attempting to close expired cycles for team ${teamId} due to reset`);
           await checkAndCloseCycleOnReset(teamId, frequency, resetDay);
@@ -151,9 +152,13 @@ export const useTagTeamTimer = (
     triggeredNotificationsRef.current.clear();
     
     // Close expired cycles when user acknowledges the reset
+    // This ensures both activity and goal cycles are closed properly
     if (teamId) {
       console.log(`User acknowledged reset - closing cycles for team ${teamId}`);
       await checkAndCloseCycleOnReset(teamId, frequency, resetDay);
+      
+      // Also explicitly close activity cycles to ensure status resets
+      await closeTeamActivityCycle(teamId);
     }
   };
 

@@ -35,19 +35,19 @@ export const usePartnerVerification = ({
   };
 
   // Check if user has already logged an activity for this partner
+  const checkExistingActivity = async () => {
+    try {
+      // Close any expired cycles first to ensure fresh status
+      await closeTeamActivityCycle(teamId);
+      
+      const hasActivity = await hasActiveActivityLog(teamId, userId, partnerId);
+      setHasLoggedActivity(hasActivity);
+    } catch (error) {
+      console.error("Error checking for existing activity log:", error);
+    }
+  };
+
   useEffect(() => {
-    const checkExistingActivity = async () => {
-      try {
-        // Close any expired cycles first to ensure fresh status
-        await closeTeamActivityCycle(teamId);
-        
-        const hasActivity = await hasActiveActivityLog(teamId, userId, partnerId);
-        setHasLoggedActivity(hasActivity);
-      } catch (error) {
-        console.error("Error checking for existing activity log:", error);
-      }
-    };
-    
     if (teamId && userId && partnerId) {
       checkExistingActivity();
     }
@@ -108,12 +108,7 @@ export const usePartnerVerification = ({
         async () => {
           // When activities are updated (cycle closure), refresh the verification status
           console.log('Activity cycle updated, refreshing verification status');
-          try {
-            const hasActivity = await hasActiveActivityLog(teamId, userId, partnerId);
-            setHasLoggedActivity(hasActivity);
-          } catch (error) {
-            console.error("Error refreshing verification status:", error);
-          }
+          await checkExistingActivity();
         }
       )
       .subscribe();
