@@ -19,7 +19,7 @@ export const FrequencyStep: React.FC<FrequencyStepProps> = ({
   const handleFrequencyTypeChange = (value: 'daily' | 'weekly') => {
     setFrequency({ 
       type: value, 
-      day: value === 'weekly' ? frequency.day || 'Monday' : undefined 
+      day: value === 'weekly' ? 'Monday' : undefined // Always set a default day for weekly
     });
   };
 

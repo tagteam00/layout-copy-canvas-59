@@ -120,10 +120,28 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
         return;
       }
 
-      // Format the frequency string to include the reset day for weekly frequency
-      const formattedFrequency = frequency.type === 'daily' 
-        ? 'Daily' 
-        : `Weekly (${frequency.day})`;
+      // Format the frequency string and ensure we have a valid reset day for weekly frequency
+      let formattedFrequency: string;
+      let resetDay: string | undefined;
+
+      if (frequency.type === 'daily') {
+        formattedFrequency = 'Daily';
+        resetDay = undefined;
+      } else {
+        // For weekly frequency, ensure we have a valid day
+        const validDay = frequency.day || 'Monday'; // Default to Monday if no day is set
+        formattedFrequency = `Weekly (${validDay})`;
+        resetDay = validDay;
+      }
+
+      console.log('Creating team request with:', {
+        name: teamName,
+        category: selectedCategory,
+        frequency: formattedFrequency,
+        reset_day: resetDay,
+        sender_id: authData.user.id,
+        receiver_id: partnerId
+      });
 
       const { error } = await supabase
         .from('team_requests')
@@ -134,17 +152,20 @@ export const CreateTeamSheet: React.FC<CreateTeamSheetProps> = ({
           sender_id: authData.user.id,
           receiver_id: partnerId,
           status: 'pending',
-          reset_day: frequency.type === 'weekly' ? frequency.day : undefined
+          reset_day: resetDay
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
 
       toast.success(`Request sent to ${selectedPartner}`);
       resetForm();
       onClose();
     } catch (error: any) {
       console.error("Error sending team request:", error);
-      toast.error("Failed to send team request");
+      toast.error("Failed to send team request. Please try again.");
     } finally {
       setLoading(false);
     }
