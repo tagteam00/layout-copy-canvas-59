@@ -27,13 +27,13 @@ export const UserItem: React.FC<UserItemProps> = ({ user, onSelectPartner, isAva
   
   return (
     <div 
-      className={`p-4 border ${isAvailable 
+      className={`p-3 border ${isAvailable 
         ? 'border-[rgba(130,122,255,0.41)] hover:bg-[rgba(130,122,255,0.1)]' 
         : 'border-gray-200 bg-gray-50 opacity-70'
-      } rounded-xl flex items-center justify-between transition-colors`}
+      } rounded-xl flex items-center justify-between transition-colors min-h-[60px]`}
     >
-      <div className="flex items-center space-x-3">
-        <Avatar className="h-10 w-10">
+      <div className="flex items-center space-x-3 flex-1 min-w-0">
+        <Avatar className="h-8 w-8 flex-shrink-0">
           {user.avatarUrl && (
             <AvatarImage 
               src={user.avatarUrl} 
@@ -41,25 +41,24 @@ export const UserItem: React.FC<UserItemProps> = ({ user, onSelectPartner, isAva
               className="object-cover"
             />
           )}
-          <AvatarFallback>
+          <AvatarFallback className="text-xs">
             {user.fullName?.charAt(0) || user.username?.charAt(0)}
           </AvatarFallback>
         </Avatar>
-        <div>
-          <p className="font-medium">{user.fullName}</p>
-          <p className="text-sm text-gray-500">@{user.username}</p>
+        <div className="min-w-0 flex-1">
+          <p className="font-medium text-sm truncate">{user.fullName}</p>
+          <p className="text-xs text-gray-500 truncate">@{user.username}</p>
         </div>
       </div>
       
-      <div className="flex gap-2">
+      <div className="flex gap-1 flex-shrink-0 ml-2">
         <Button
           variant="ghost"
           size="sm"
-          className="text-gray-600 p-2"
+          className="text-gray-600 p-1.5 h-auto min-w-0"
           onClick={handleViewProfile}
         >
-          <User className="h-4 w-4 mr-1" />
-          <span className="text-xs">Profile</span>
+          <User className="h-3 w-3" />
         </Button>
         
         {isAvailable ? (
@@ -68,13 +67,13 @@ export const UserItem: React.FC<UserItemProps> = ({ user, onSelectPartner, isAva
               e.stopPropagation();
               onSelectPartner && onSelectPartner(user.fullName, user.id);
             }} 
-            className="flex items-center space-x-1 text-white px-3 py-1.5 rounded-lg transition-colors bg-gray-950 hover:bg-gray-800"
+            className="flex items-center space-x-1 text-white px-2 py-1 rounded-lg transition-colors bg-gray-950 hover:bg-gray-800 text-xs whitespace-nowrap"
           >
             <span>Select</span>
           </button>
         ) : (
-          <span className="text-xs text-gray-500 py-1 px-2 bg-gray-100 rounded">
-            Has active team
+          <span className="text-xs text-gray-500 py-1 px-2 bg-gray-100 rounded whitespace-nowrap">
+            Active team
           </span>
         )}
       </div>

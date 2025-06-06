@@ -45,7 +45,7 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 h-full flex flex-col">
       <PartnerSearch 
         searchQuery={searchQuery}
         onSearch={handleSearch}
@@ -56,29 +56,31 @@ export const PartnerStep: React.FC<PartnerStepProps> = ({
         <NoAvailablePartnersAlert selectedCategory={selectedCategory} />
       )}
 
-      <div className="mt-4 space-y-2 max-h-[40vh] overflow-y-auto">
-        {loading ? (
-          <LoadingState />
-        ) : (
-          <>
-            <UsersList
-              users={availableUsers}
-              onSelectPartner={handleSelectPartner}
-              isAvailable={true}
-              title="Available users"
-            />
-            
-            <UsersList
-              users={unavailableUsers}
-              isAvailable={false}
-              title="Users with existing TagTeams"
-            />
+      <div className="flex-1 min-h-0">
+        <div className="max-h-[35vh] overflow-y-auto scrollbar-none space-y-1">
+          {loading ? (
+            <LoadingState />
+          ) : (
+            <>
+              <UsersList
+                users={availableUsers}
+                onSelectPartner={handleSelectPartner}
+                isAvailable={true}
+                title="Available users"
+              />
+              
+              <UsersList
+                users={unavailableUsers}
+                isAvailable={false}
+                title="Users with existing TagTeams"
+              />
 
-            {availableUsers.length === 0 && unavailableUsers.length === 0 && searchResults.length === 0 && (
-              <EmptySearchState selectedCategory={selectedCategory} />
-            )}
-          </>
-        )}
+              {availableUsers.length === 0 && unavailableUsers.length === 0 && searchResults.length === 0 && (
+                <EmptySearchState selectedCategory={selectedCategory} />
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -25,16 +25,18 @@ export const UsersList: React.FC<UsersListProps> = ({
   }
 
   return (
-    <>
-      <h3 className="text-sm font-medium text-gray-700 mt-6">{title}</h3>
-      {users.map(user => (
-        <UserItem 
-          key={user.id} 
-          user={user} 
-          onSelectPartner={onSelectPartner}
-          isAvailable={isAvailable} 
-        />
-      ))}
-    </>
+    <div className="space-y-2">
+      <h3 className="text-sm font-medium text-gray-700 mt-4 mb-2">{title}</h3>
+      <div className="space-y-2">
+        {users.map(user => (
+          <UserItem 
+            key={user.id} 
+            user={user} 
+            onSelectPartner={onSelectPartner}
+            isAvailable={isAvailable} 
+          />
+        ))}
+      </div>
+    </div>
   );
 };
