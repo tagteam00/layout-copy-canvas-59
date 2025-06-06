@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { CreateTeamStep } from "@/types/tagteam";
 import { toast } from "sonner";
@@ -40,14 +39,14 @@ export const useCreateTeamForm = ({ isOpen, categories, onClose }: UseCreateTeam
     setCurrentStep("interest");
   };
 
-  const canProceed = () => {
+  const canProceed = (): boolean => {
     switch (currentStep) {
       case "interest":
         return selectedCategory.length > 0;
       case "partner":
         return selectedPartner.length > 0 && partnerId.length > 0;
       case "frequency":
-        return frequency.type === 'daily' || (frequency.type === 'weekly' && frequency.day);
+        return frequency.type === 'daily' || (frequency.type === 'weekly' && Boolean(frequency.day));
       case "name":
         return teamName.trim().length > 0;
       default:
