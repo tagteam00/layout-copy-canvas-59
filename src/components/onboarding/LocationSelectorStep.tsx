@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 interface LocationData {
   city: string;
+  state?: string;
   country: string;
   coordinates?: { lat: number; lng: number };
   fullAddress?: string;
@@ -150,19 +151,49 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
       async (position) => {
         const { latitude, longitude } = position.coords;
         
-        // In a real implementation, you would reverse geocode these coordinates
-        // For now, we'll use a mock response
-        const mockLocation: LocationData = {
-          city: "Your City", // Would be resolved from coordinates
-          country: "Your Country", // Would be resolved from coordinates
-          coordinates: { lat: latitude, lng: longitude },
-          fullAddress: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
-        };
+        try {
+          // Call our Supabase Edge Function for reverse geocoding
+          const { supabase } = await import("@/integrations/supabase/client");
+          const { data, error } = await supabase.functions.invoke('reverse-geocode', {
+            body: { lat: latitude, lng: longitude }
+          });
 
-        setSelectedLocation(mockLocation);
-        setSearchValue(mockLocation.fullAddress!);
+          if (error) {
+            throw new Error(error.message);
+          }
+
+          if (data.error && data.fallback) {
+            // Fallback to coordinates if reverse geocoding fails
+            const fallbackLocation: LocationData = {
+              city: "Current Location",
+              country: "Unknown",
+              coordinates: { lat: latitude, lng: longitude },
+              fullAddress: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
+            };
+            setSelectedLocation(fallbackLocation);
+            setSearchValue(fallbackLocation.fullAddress!);
+            toast.success("Location detected (coordinates only)");
+          } else {
+            // Use the reverse geocoded data
+            setSelectedLocation(data);
+            setSearchValue(data.fullAddress);
+            toast.success("Current location detected!");
+          }
+        } catch (error) {
+          console.error("Reverse geocoding error:", error);
+          // Fallback to coordinates
+          const fallbackLocation: LocationData = {
+            city: "Current Location",
+            country: "Unknown",
+            coordinates: { lat: latitude, lng: longitude },
+            fullAddress: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
+          };
+          setSelectedLocation(fallbackLocation);
+          setSearchValue(fallbackLocation.fullAddress!);
+          toast.success("Location detected (coordinates only)");
+        }
+        
         setIsLoading(false);
-        toast.success("Current location detected!");
       },
       (error) => {
         setIsLoading(false);
@@ -228,7 +259,9 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
               <MapPin className="h-5 w-5 text-green-600 mr-2" />
               <div>
                 <p className="font-medium text-green-800">
-                  {selectedLocation.city}, {selectedLocation.country}
+                  {selectedLocation.state 
+                    ? `${selectedLocation.city}, ${selectedLocation.state}, ${selectedLocation.country}`
+                    : `${selectedLocation.city}, ${selectedLocation.country}`}
                 </p>
                 {selectedLocation.fullAddress && (
                   <p className="text-sm text-green-600">{selectedLocation.fullAddress}</p>
