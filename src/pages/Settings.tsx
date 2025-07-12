@@ -21,18 +21,25 @@ const Settings = () => {
     }
   };
   const handleDeactivateAccount = async () => {
-    const confirm = window.confirm("Are you sure you want to deactivate your account? This action cannot be undone.");
+    const confirm = window.confirm("Are you sure you want to permanently delete your account? This will remove all your data including teams, activities, and profile information. This action cannot be undone.");
     if (confirm) {
-      try {
-        const {
-          error
-        } = await supabase.auth.signOut();
-        if (error) throw error;
-        toast.success("Account deactivated successfully");
-        navigate("/signin");
-      } catch (error) {
-        console.error("Error deactivating account:", error);
-        toast.error("Failed to deactivate account");
+      const doubleConfirm = window.confirm("This is your final warning. Are you absolutely sure you want to delete your account forever?");
+      if (doubleConfirm) {
+        try {
+          const { error } = await supabase.functions.invoke('delete-account', {
+            body: { confirm: true }
+          });
+          
+          if (error) throw error;
+          
+          // Sign out after successful deletion
+          await supabase.auth.signOut();
+          toast.success("Account deleted successfully");
+          navigate("/signin");
+        } catch (error) {
+          console.error("Error deleting account:", error);
+          toast.error("Failed to delete account");
+        }
       }
     }
   };

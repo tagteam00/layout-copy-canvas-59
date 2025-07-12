@@ -1,0 +1,2 @@
+-- Create edge function for complete account deletion
+-- This will be implemented as an edge function to properly delete auth user
