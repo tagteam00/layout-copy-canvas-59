@@ -1,142 +1,86 @@
 
 import React, { useState, useEffect, useRef } from "react";
-import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MapPin, Search, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-
-interface LocationData {
-  city: string;
-  country: string;
-  coordinates?: { lat: number; lng: number };
-  fullAddress?: string;
-}
+import { geolocationService, LocationData } from "@/services/geolocationService";
 
 interface LocationSelectorStepProps {
   onSubmit: (data: LocationData) => void;
   onBack: () => void;
 }
 
-declare global {
-  interface Window {
-    google: any;
-    initGooglePlaces: () => void;
-  }
-}
-
 export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSubmit, onBack }) => {
   const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
-  const autocompleteRef = useRef<any>(null);
+  const [searchResults, setSearchResults] = useState<LocationData[]>([]);
+  const [showResults, setShowResults] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Load Google Places API
-  useEffect(() => {
-    if (window.google && window.google.maps && window.google.maps.places) {
-      setIsGoogleLoaded(true);
-      initializeAutocomplete();
+  const handleLocationSearch = async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setShowResults(false);
       return;
     }
 
-    // For development, we'll create a fallback without requiring API key
-    window.initGooglePlaces = () => {
-      setIsGoogleLoaded(true);
-      initializeAutocomplete();
-    };
-
-    // Load Google Places API script (commented out for now to avoid API key requirement)
-    // const script = document.createElement('script');
-    // script.src = `https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initGooglePlaces`;
-    // script.async = true;
-    // script.defer = true;
-    // document.head.appendChild(script);
-
-    // For development, simulate API loading
-    setTimeout(() => {
-      setIsGoogleLoaded(true);
-    }, 1000);
-  }, []);
-
-  const initializeAutocomplete = () => {
-    if (!inputRef.current || !window.google) return;
-
-    autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
-      types: ['(cities)'],
-      fields: ['place_id', 'geometry', 'name', 'address_components', 'formatted_address']
-    });
-
-    autocompleteRef.current.addListener('place_changed', handlePlaceSelect);
-  };
-
-  const handlePlaceSelect = () => {
-    if (!autocompleteRef.current) return;
-
-    const place = autocompleteRef.current.getPlace();
-    if (!place.geometry) return;
-
-    const addressComponents = place.address_components || [];
-    let city = "";
-    let country = "";
-
-    addressComponents.forEach((component: any) => {
-      const types = component.types;
-      if (types.includes('locality') || types.includes('administrative_area_level_1')) {
-        city = component.long_name;
-      }
-      if (types.includes('country')) {
-        country = component.long_name;
-      }
-    });
-
-    const locationData: LocationData = {
-      city: city || place.name,
-      country,
-      coordinates: {
-        lat: place.geometry.location.lat(),
-        lng: place.geometry.location.lng()
-      },
-      fullAddress: place.formatted_address
-    };
-
-    setSelectedLocation(locationData);
-    setSearchValue(place.formatted_address || `${city}, ${country}`);
-  };
-
-  // Fallback search for development (simulated)
-  const handleFallbackSearch = async (query: string) => {
-    if (!query.trim()) return;
-
     setIsLoading(true);
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Mock some popular cities for development
-    const mockCities = [
-      { city: "New York", country: "United States", fullAddress: "New York, NY, USA" },
-      { city: "London", country: "United Kingdom", fullAddress: "London, UK" },
-      { city: "Paris", country: "France", fullAddress: "Paris, France" },
-      { city: "Tokyo", country: "Japan", fullAddress: "Tokyo, Japan" },
-      { city: "Sydney", country: "Australia", fullAddress: "Sydney, NSW, Australia" }
-    ];
-
-    const matchedCity = mockCities.find(city => 
-      city.city.toLowerCase().includes(query.toLowerCase()) ||
-      city.country.toLowerCase().includes(query.toLowerCase())
-    );
-
-    if (matchedCity) {
-      setSelectedLocation(matchedCity);
-      setSearchValue(matchedCity.fullAddress);
-      toast.success("Location selected!");
-    } else {
-      toast.error("Location not found. Please try a different search.");
+    try {
+      const results = await geolocationService.searchLocation(query);
+      
+      if (results.length > 0) {
+        setSearchResults(results);
+        setShowResults(true);
+      } else {
+        // Fallback to local city database
+        const fallbackCities = geolocationService.getFallbackCities();
+        const matchedCities = fallbackCities.filter(city => 
+          city.city.toLowerCase().includes(query.toLowerCase()) ||
+          city.country.toLowerCase().includes(query.toLowerCase())
+        );
+        
+        setSearchResults(matchedCities);
+        setShowResults(true);
+        
+        if (matchedCities.length === 0) {
+          toast.error("Location not found. Please try a different search.");
+        }
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      toast.error("Search failed. Please try again.");
+      setSearchResults([]);
+      setShowResults(false);
     }
-
+    
     setIsLoading(false);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchValue(value);
+    
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // Debounce search
+    searchTimeoutRef.current = setTimeout(() => {
+      handleLocationSearch(value);
+    }, 300);
+  };
+
+  const selectLocation = (location: LocationData) => {
+    setSelectedLocation(location);
+    setSearchValue(`${location.city}, ${location.state ? location.state + ', ' : ''}${location.country}`);
+    setShowResults(false);
+    setSearchResults([]);
+    toast.success("Location selected!");
   };
 
   const getCurrentLocation = () => {
@@ -150,19 +94,22 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
       async (position) => {
         const { latitude, longitude } = position.coords;
         
-        // In a real implementation, you would reverse geocode these coordinates
-        // For now, we'll use a mock response
-        const mockLocation: LocationData = {
-          city: "Your City", // Would be resolved from coordinates
-          country: "Your Country", // Would be resolved from coordinates
-          coordinates: { lat: latitude, lng: longitude },
-          fullAddress: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
-        };
-
-        setSelectedLocation(mockLocation);
-        setSearchValue(mockLocation.fullAddress!);
+        try {
+          const locationData = await geolocationService.reverseGeocode(latitude, longitude);
+          
+          if (locationData) {
+            setSelectedLocation(locationData);
+            setSearchValue(`${locationData.city}, ${locationData.state ? locationData.state + ', ' : ''}${locationData.country}`);
+            toast.success("Current location detected!");
+          } else {
+            throw new Error("Could not determine location");
+          }
+        } catch (error) {
+          console.error('Reverse geocoding error:', error);
+          toast.error("Could not determine your location. Please search manually.");
+        }
+        
         setIsLoading(false);
-        toast.success("Current location detected!");
       },
       (error) => {
         setIsLoading(false);
@@ -179,12 +126,27 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
     onSubmit(selectedLocation);
   };
 
-  const handleSearch = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !isGoogleLoaded) {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && searchResults.length > 0) {
       e.preventDefault();
-      handleFallbackSearch(searchValue);
+      selectLocation(searchResults[0]);
+    }
+    if (e.key === 'Escape') {
+      setShowResults(false);
     }
   };
+
+  // Close results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -201,13 +163,31 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
             type="text"
             placeholder="Search for your city..."
             value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            onKeyDown={handleSearch}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
             className="pl-10 border border-[rgba(130,122,255,0.41)] rounded-xl"
             disabled={isLoading}
           />
           {isLoading && (
             <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 animate-spin" />
+          )}
+          
+          {/* Search Results Dropdown */}
+          {showResults && searchResults.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+              {searchResults.map((location, index) => (
+                <button
+                  key={index}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                  onClick={() => selectLocation(location)}
+                >
+                  <div className="font-medium text-gray-900">
+                    {location.city}{location.state && `, ${location.state}`}
+                  </div>
+                  <div className="text-sm text-gray-500">{location.country}</div>
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
@@ -228,20 +208,16 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
               <MapPin className="h-5 w-5 text-green-600 mr-2" />
               <div>
                 <p className="font-medium text-green-800">
-                  {selectedLocation.city}, {selectedLocation.country}
+                  {selectedLocation.city}{selectedLocation.state && `, ${selectedLocation.state}`}, {selectedLocation.country}
                 </p>
-                {selectedLocation.fullAddress && (
-                  <p className="text-sm text-green-600">{selectedLocation.fullAddress}</p>
+                {selectedLocation.coordinates && (
+                  <p className="text-sm text-green-600">
+                    Lat: {selectedLocation.coordinates.lat.toFixed(4)}, Lng: {selectedLocation.coordinates.lng.toFixed(4)}
+                  </p>
                 )}
               </div>
             </div>
           </div>
-        )}
-
-        {!isGoogleLoaded && (
-          <p className="text-xs text-gray-500 text-center">
-            Development mode: Enter a city name and press Enter to search
-          </p>
         )}
       </div>
 
