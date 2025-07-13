@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { useSanitizedInput } from "@/utils/sanitization";
 
 interface PersonalInfoFormProps {
   onSubmit: (data: any) => void;
@@ -12,9 +13,19 @@ interface PersonalInfoFormProps {
 
 export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ onSubmit }) => {
   const { register, handleSubmit, formState: { errors } } = useForm();
+  const { sanitizeText, validateProfile } = useSanitizedInput();
+
+  const handleFormSubmit = (data: any) => {
+    const result = validateProfile(data);
+    if (result.success) {
+      onSubmit(result.data);
+    } else {
+      console.error('Validation errors:', result.error.errors);
+    }
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       <h2 className="text-lg font-semibold mb-4">Personal Information</h2>
       
       <div>

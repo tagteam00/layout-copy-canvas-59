@@ -2,6 +2,7 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useSanitizedInput } from "@/utils/sanitization";
 
 interface NameStepProps {
   teamName: string;
@@ -12,6 +13,7 @@ export const NameStep: React.FC<NameStepProps> = ({
   teamName,
   setTeamName
 }) => {
+  const { sanitizeText } = useSanitizedInput();
   return (
     <div className="space-y-4">
       <div className="form-group">
@@ -20,7 +22,7 @@ export const NameStep: React.FC<NameStepProps> = ({
           id="teamName"
           type="text" 
           value={teamName} 
-          onChange={e => setTeamName(e.target.value)} 
+          onChange={e => setTeamName(sanitizeText(e.target.value))} 
           placeholder="Name your TagTeam" 
           required 
           className="w-full rounded-xl py-2.5 px-4 border border-[rgba(130,122,255,0.41)]" 

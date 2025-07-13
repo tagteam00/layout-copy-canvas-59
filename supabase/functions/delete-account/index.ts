@@ -60,79 +60,174 @@ Deno.serve(async (req) => {
 
     console.log(`Starting account deletion for user: ${user.id}`);
 
-    // Delete user data in the correct order (respecting foreign key constraints)
-    
-    // 1. Delete team activities (no foreign key dependencies)
-    const { error: activitiesError } = await supabaseAdmin
-      .from('team_activities')
-      .delete()
-      .or(`logged_by_user_id.eq.${user.id},verified_user_id.eq.${user.id}`);
-    
-    if (activitiesError) console.error('Error deleting activities:', activitiesError);
+    // Enhanced deletion with storage cleanup and verification
+    try {
+      // 1. Delete user's avatar from storage first
+      const { data: avatarFiles } = await supabaseAdmin.storage
+        .from('avatars')
+        .list(user.id);
 
-    // 2. Delete team goals
-    const { error: goalsError } = await supabaseAdmin
-      .from('team_goals')
-      .delete()
-      .eq('user_id', user.id);
-    
-    if (goalsError) console.error('Error deleting goals:', goalsError);
-
-    // 3. Delete team requests
-    const { error: requestsError } = await supabaseAdmin
-      .from('team_requests')
-      .delete()
-      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
-    
-    if (requestsError) console.error('Error deleting requests:', requestsError);
-
-    // 4. Get teams where user is a member
-    const { data: userTeams } = await supabaseAdmin
-      .from('teams')
-      .select('id, members')
-      .contains('members', [user.id]);
-
-    // Update teams to remove user from members array, or delete if user is the only member
-    if (userTeams) {
-      for (const team of userTeams) {
-        const updatedMembers = team.members.filter((memberId: string) => memberId !== user.id);
+      if (avatarFiles && avatarFiles.length > 0) {
+        const filePaths = avatarFiles.map(file => `${user.id}/${file.name}`);
+        const { error: storageError } = await supabaseAdmin.storage
+          .from('avatars')
+          .remove(filePaths);
         
-        if (updatedMembers.length === 0) {
-          // Delete team if no members left
-          await supabaseAdmin.from('teams').delete().eq('id', team.id);
+        if (storageError) {
+          console.error('Error deleting storage files:', storageError);
+          // Don't fail the entire deletion for storage errors, but log them
         } else {
-          // Update team to remove user
-          await supabaseAdmin
-            .from('teams')
-            .update({ members: updatedMembers })
-            .eq('id', team.id);
+          console.log(`Deleted ${filePaths.length} storage files for user ${user.id}`);
         }
       }
-    }
 
-    // 5. Delete notifications
-    const { error: notificationsError } = await supabaseAdmin
-      .from('notifications')
-      .delete()
-      .eq('user_id', user.id);
-    
-    if (notificationsError) console.error('Error deleting notifications:', notificationsError);
+      // 2. Delete team activities (no foreign key dependencies)
+      const { error: activitiesError } = await supabaseAdmin
+        .from('team_activities')
+        .delete()
+        .or(`logged_by_user_id.eq.${user.id},verified_user_id.eq.${user.id}`);
+      
+      if (activitiesError) {
+        console.error('Error deleting activities:', activitiesError);
+        throw new Error(`Failed to delete team activities: ${activitiesError.message}`);
+      }
 
-    // 6. Delete user profile
-    const { error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .delete()
-      .eq('id', user.id);
-    
-    if (profileError) console.error('Error deleting profile:', profileError);
+      // 3. Delete team goals
+      const { error: goalsError } = await supabaseAdmin
+        .from('team_goals')
+        .delete()
+        .eq('user_id', user.id);
+      
+      if (goalsError) {
+        console.error('Error deleting goals:', goalsError);
+        throw new Error(`Failed to delete team goals: ${goalsError.message}`);
+      }
 
-    // 7. Delete user from Supabase Auth (this must be last)
-    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
-    
-    if (authError) {
-      console.error('Error deleting auth user:', authError);
+      // 4. Delete team requests
+      const { error: requestsError } = await supabaseAdmin
+        .from('team_requests')
+        .delete()
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
+      
+      if (requestsError) {
+        console.error('Error deleting requests:', requestsError);
+        throw new Error(`Failed to delete team requests: ${requestsError.message}`);
+      }
+
+      // 5. Get teams where user is a member
+      const { data: userTeams, error: teamsQueryError } = await supabaseAdmin
+        .from('teams')
+        .select('id, members')
+        .contains('members', [user.id]);
+
+      if (teamsQueryError) {
+        console.error('Error querying user teams:', teamsQueryError);
+        throw new Error(`Failed to query user teams: ${teamsQueryError.message}`);
+      }
+
+      // Update teams to remove user from members array, or delete if user is the only member
+      if (userTeams) {
+        for (const team of userTeams) {
+          const updatedMembers = team.members.filter((memberId: string) => memberId !== user.id);
+          
+          if (updatedMembers.length === 0) {
+            // Delete team if no members left
+            const { error: deleteTeamError } = await supabaseAdmin
+              .from('teams')
+              .delete()
+              .eq('id', team.id);
+            
+            if (deleteTeamError) {
+              console.error('Error deleting team:', deleteTeamError);
+              throw new Error(`Failed to delete team: ${deleteTeamError.message}`);
+            }
+          } else {
+            // Update team to remove user and mark as ended by this user
+            const { error: updateTeamError } = await supabaseAdmin
+              .from('teams')
+              .update({ 
+                members: updatedMembers,
+                ended_by: user.id,
+                ended_at: new Date().toISOString()
+              })
+              .eq('id', team.id);
+            
+            if (updateTeamError) {
+              console.error('Error updating team:', updateTeamError);
+              throw new Error(`Failed to update team: ${updateTeamError.message}`);
+            }
+          }
+        }
+      }
+
+      // 6. Delete notifications
+      const { error: notificationsError } = await supabaseAdmin
+        .from('notifications')
+        .delete()
+        .eq('user_id', user.id);
+      
+      if (notificationsError) {
+        console.error('Error deleting notifications:', notificationsError);
+        throw new Error(`Failed to delete notifications: ${notificationsError.message}`);
+      }
+
+      // 7. Delete user profile
+      const { error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .delete()
+        .eq('id', user.id);
+      
+      if (profileError) {
+        console.error('Error deleting profile:', profileError);
+        throw new Error(`Failed to delete profile: ${profileError.message}`);
+      }
+
+      // 8. Verify critical data deletion
+      const { data: remainingActivities } = await supabaseAdmin
+        .from('team_activities')
+        .select('id')
+        .or(`logged_by_user_id.eq.${user.id},verified_user_id.eq.${user.id}`)
+        .limit(1);
+
+      const { data: remainingGoals } = await supabaseAdmin
+        .from('team_goals')
+        .select('id')
+        .eq('user_id', user.id)
+        .limit(1);
+
+      const { data: remainingProfile } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .limit(1);
+
+      if (remainingActivities?.length || remainingGoals?.length || remainingProfile?.length) {
+        throw new Error('Data deletion verification failed - some user data remains');
+      }
+
+      // 9. Delete user from Supabase Auth (this must be last)
+      const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
+      
+      if (authError) {
+        console.error('Error deleting auth user:', authError);
+        throw new Error(`Failed to delete user from auth: ${authError.message}`);
+      }
+
+    } catch (deletionError) {
+      // If any step fails, log the error and still attempt to delete the auth user as fallback
+      console.error('Error during data deletion:', deletionError);
+      
+      // Attempt to delete auth user as fallback to prevent orphaned accounts
+      const { error: fallbackDeleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
+      if (fallbackDeleteError) {
+        console.error('Fallback auth deletion also failed:', fallbackDeleteError);
+      }
+      
       return new Response(
-        JSON.stringify({ error: 'Failed to delete account' }),
+        JSON.stringify({ 
+          error: 'Account deletion failed', 
+          details: deletionError instanceof Error ? deletionError.message : 'Unknown error' 
+        }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
