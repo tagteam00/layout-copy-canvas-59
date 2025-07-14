@@ -30,6 +30,14 @@ export const profileValidationSchema = z.object({
     .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens')
     .transform(sanitizeText),
   
+  dateOfBirth: z.string()
+    .min(1, 'Date of birth is required')
+    .transform(sanitizeText),
+  
+  gender: z.string()
+    .min(1, 'Gender is required')
+    .transform(sanitizeText),
+  
   bio: z.string()
     .max(500, 'Bio must be less than 500 characters')
     .optional()
