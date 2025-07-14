@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ProfileImageUploader } from "@/components/profile/ProfileImageUploader";
 import { Card } from "@/components/ui/card";
-import { useSanitizedInput } from "@/utils/sanitization";
 
 interface BioStepProps {
   onSubmit: (data: { bio: string, profileImage?: File | null }) => void;
@@ -16,15 +15,9 @@ interface BioStepProps {
 export const BioStep: React.FC<BioStepProps> = ({ onSubmit, onBack, loading = false }) => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const [profileImage, setProfileImage] = useState<File | null>(null);
-  const { sanitizeText } = useSanitizedInput();
 
   const handleFormSubmit = (data: any) => {
-    const sanitizedData = {
-      ...data,
-      bio: data.bio ? sanitizeText(data.bio) : data.bio,
-      profileImage
-    };
-    onSubmit(sanitizedData);
+    onSubmit({ ...data, profileImage });
   };
 
   return (
