@@ -21,6 +21,10 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ onSubmit }) 
       onSubmit(result.data);
     } else {
       console.error('Validation errors:', result.error.errors);
+      // Show validation errors to user
+      result.error.errors.forEach((error) => {
+        console.log(`Validation error: ${error.path.join('.')}: ${error.message}`);
+      });
     }
   };
 
