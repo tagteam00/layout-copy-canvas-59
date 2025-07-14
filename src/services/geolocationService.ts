@@ -50,25 +50,16 @@ class GeolocationService {
 
   async reverseGeocode(lat: number, lng: number): Promise<LocationData | null> {
     try {
-      console.log('Starting reverse geocoding for:', { lat, lng });
       const url = `${this.BASE_URL}/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`;
-      console.log('Reverse geocoding URL:', url);
-      
       const response = await this.rateLimitedFetch(url);
-      console.log('Reverse geocoding response status:', response.status);
       
       if (!response.ok) {
-        console.error('Reverse geocoding failed with status:', response.status, response.statusText);
-        throw new Error(`Reverse geocoding failed: ${response.status} ${response.statusText}`);
+        throw new Error('Reverse geocoding failed');
       }
       
       const data: NominatimResult = await response.json();
-      console.log('Reverse geocoding data received:', data);
       
-      const result = this.parseLocationData(data);
-      console.log('Parsed location data:', result);
-      
-      return result;
+      return this.parseLocationData(data);
     } catch (error) {
       console.error('Reverse geocoding error:', error);
       return null;

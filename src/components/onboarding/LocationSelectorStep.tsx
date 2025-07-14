@@ -89,24 +89,19 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
       return;
     }
 
-    console.log('Starting geolocation request...');
     setIsLoading(true);
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        console.log('Geolocation success:', position.coords);
         const { latitude, longitude } = position.coords;
         
         try {
-          console.log('Calling reverse geocoding for:', { latitude, longitude });
           const locationData = await geolocationService.reverseGeocode(latitude, longitude);
-          console.log('Reverse geocoding result:', locationData);
           
           if (locationData) {
             setSelectedLocation(locationData);
             setSearchValue(`${locationData.city}, ${locationData.state ? locationData.state + ', ' : ''}${locationData.country}`);
             toast.success("Current location detected!");
           } else {
-            console.error('Reverse geocoding returned null');
             throw new Error("Could not determine location");
           }
         } catch (error) {
@@ -117,7 +112,6 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
         setIsLoading(false);
       },
       (error) => {
-        console.error('Geolocation error:', error);
         setIsLoading(false);
         toast.error("Unable to retrieve your location. Please search manually.");
       }
