@@ -85,23 +85,29 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
+      console.error('Geolocation is not supported by this browser.');
       toast.error("Geolocation is not supported by this browser.");
       return;
     }
 
+    console.log('Requesting current location...');
     setIsLoading(true);
+    
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
+        console.log('Got position:', { latitude, longitude });
         
         try {
           const locationData = await geolocationService.reverseGeocode(latitude, longitude);
+          console.log('Reverse geocoding result:', locationData);
           
           if (locationData) {
             setSelectedLocation(locationData);
             setSearchValue(`${locationData.city}, ${locationData.state ? locationData.state + ', ' : ''}${locationData.country}`);
             toast.success("Current location detected!");
           } else {
+            console.error('Reverse geocoding returned null');
             throw new Error("Could not determine location");
           }
         } catch (error) {
@@ -112,8 +118,29 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
         setIsLoading(false);
       },
       (error) => {
+        console.error('Geolocation error:', error);
         setIsLoading(false);
-        toast.error("Unable to retrieve your location. Please search manually.");
+        
+        let errorMessage = "Unable to retrieve your location. Please search manually.";
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "Location access denied. Please enable location permissions and try again.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Location information is unavailable. Please search manually.";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Location request timed out. Please try again.";
+            break;
+        }
+        
+        toast.error(errorMessage);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000
       }
     );
   };

@@ -41,25 +41,42 @@ class GeolocationService {
     
     this.lastRequestTime = Date.now();
     
-    return fetch(url, {
-      headers: {
-        'User-Agent': 'TagTeamApp/1.0'
-      }
-    });
+    try {
+      console.log('Making fetch request to:', url);
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'TagTeamApp/1.0'
+        }
+      });
+      console.log('Fetch response:', response.status, response.statusText);
+      return response;
+    } catch (error) {
+      console.error('Fetch error:', error);
+      throw error;
+    }
   }
 
   async reverseGeocode(lat: number, lng: number): Promise<LocationData | null> {
     try {
+      console.log('Starting reverse geocode for:', { lat, lng });
       const url = `${this.BASE_URL}/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`;
+      console.log('Making request to:', url);
+      
       const response = await this.rateLimitedFetch(url);
+      console.log('Response status:', response.status, response.statusText);
       
       if (!response.ok) {
-        throw new Error('Reverse geocoding failed');
+        console.error('Reverse geocoding failed with status:', response.status, response.statusText);
+        throw new Error(`Reverse geocoding failed: ${response.status} ${response.statusText}`);
       }
       
       const data: NominatimResult = await response.json();
+      console.log('Reverse geocoding data:', data);
       
-      return this.parseLocationData(data);
+      const locationData = this.parseLocationData(data);
+      console.log('Parsed location data:', locationData);
+      
+      return locationData;
     } catch (error) {
       console.error('Reverse geocoding error:', error);
       return null;
