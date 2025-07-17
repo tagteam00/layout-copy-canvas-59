@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { PersonalInfoForm } from "@/components/onboarding/PersonalInfoForm";
 import { InterestsSelector } from "@/components/onboarding/InterestsSelector";
 import { CommitmentSelector } from "@/components/onboarding/CommitmentSelector";
@@ -12,6 +13,18 @@ import { useUserData } from "@/hooks/useUserData";
 import type { UserData } from "@/hooks/useUserData";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { X } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const commitmentLevels = [
   { value: "casual", label: "Casual", description: "Relaxed approach with flexible schedules" },
@@ -27,6 +40,7 @@ const Onboarding: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const { user, updateOnboardingStatus } = useAuth();
   const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
   
   const [formData, setFormData] = useState<UserData>({
     fullName: "",
@@ -112,10 +126,40 @@ const Onboarding: React.FC = () => {
     }
   };
 
+  const handleCancelSignup = () => {
+    navigate("/signup", { replace: true });
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-white p-4">
       <div className="w-full max-w-md">
-        <div className="mb-6 text-center">
+        <div className="mb-6 text-center relative">
+          <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-0 right-0 h-8 w-8 hover:bg-gray-100"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Cancel Sign Up?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to cancel the sign-up process? Your progress will be lost and you'll return to the sign-up options.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Continue Setup</AlertDialogCancel>
+                <AlertDialogAction onClick={handleCancelSignup}>
+                  Cancel Sign Up
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          
           <h1 className="text-2xl font-bold text-black">Let's set up your profile</h1>
           <StepIndicator currentStep={step} totalSteps={5} />
         </div>
