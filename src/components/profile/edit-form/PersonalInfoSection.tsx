@@ -11,6 +11,7 @@ interface PersonalInfoSectionProps {
   country: string;
   occupation: string;
   fullAddress?: string;
+  instagramHandle?: string;
   onInputChange: (field: string, value: string) => void;
 }
 
@@ -21,6 +22,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
   country,
   occupation,
   fullAddress,
+  instagramHandle,
   onInputChange,
 }) => {
   return (
@@ -85,6 +87,16 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
           value={occupation}
           onChange={(e) => onInputChange("occupation", e.target.value)}
           placeholder="Enter your occupation"
+          className="w-full border border-[rgba(130,122,255,0.41)] rounded-xl"
+        />
+      </div>
+      
+      <div>
+        <Label className="text-sm font-medium mb-2 block">Instagram Handle</Label>
+        <Input
+          value={instagramHandle}
+          onChange={(e) => onInputChange("instagramHandle", e.target.value)}
+          placeholder="Enter your Instagram handle (without @)"
           className="w-full border border-[rgba(130,122,255,0.41)] rounded-xl"
         />
       </div>

@@ -9,10 +9,12 @@ interface TagTeamCardProps {
   firstUser: {
     name: string;
     status: "completed" | "pending";
+    instagramHandle?: string;
   };
   secondUser: {
     name: string;
     status: "completed" | "pending";
+    instagramHandle?: string;
   };
   resetTime?: string;
   interest: string;
@@ -92,6 +94,17 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
               <span className="text-[16px] font-medium text-gray-800 text-left truncate w-full">
                 {getFirstName(firstUser.name)}
               </span>
+              {firstUser.instagramHandle && (
+                <a
+                  href={`https://instagram.com/${firstUser.instagramHandle}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-full hover:from-purple-600 hover:to-pink-600 transition-all duration-200"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  @{firstUser.instagramHandle}
+                </a>
+              )}
               <span className={`py-1 px-3 rounded-full text-xs font-medium ${
                 firstUser.status === "completed" 
                   ? "bg-[#DCFFDC] text-green-700" 
@@ -116,6 +129,17 @@ export const TagTeamCard: React.FC<TagTeamCardProps> = ({
               <span className="text-[16px] font-medium text-gray-800 text-right truncate w-full">
                 {getFirstName(secondUser.name)}
               </span>
+              {secondUser.instagramHandle && (
+                <a
+                  href={`https://instagram.com/${secondUser.instagramHandle}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-full hover:from-purple-600 hover:to-pink-600 transition-all duration-200"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  @{secondUser.instagramHandle}
+                </a>
+              )}
               <span className={`py-1 px-3 rounded-full text-xs font-medium ${
                 secondUser.status === "completed" 
                   ? "bg-[#DCFFDC] text-green-700" 

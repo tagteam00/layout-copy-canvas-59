@@ -22,12 +22,14 @@ interface TagTeamSheetContentProps {
     status: "completed" | "pending";
     goal?: string;
     id: string;
+    instagramHandle?: string;
   };
   partnerUser: {
     name: string;
     status: "completed" | "pending";
     goal?: string;
     id: string;
+    instagramHandle?: string;
   };
   activeGoal: string;
   setActiveGoal: (goal: string) => void;
