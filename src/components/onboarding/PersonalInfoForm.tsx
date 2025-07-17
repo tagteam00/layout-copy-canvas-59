@@ -12,8 +12,10 @@ interface PersonalInfoFormProps {
 }
 
 export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ onSubmit }) => {
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm();
   const { sanitizeText, validateProfile } = useSanitizedInput();
+  
+  const selectedGender = watch("gender");
 
   const handleFormSubmit = (data: any) => {
     const result = validateProfile(data);
@@ -67,20 +69,25 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ onSubmit }) 
 
       <div>
         <label className="block text-sm font-medium mb-1">Gender</label>
-        <RadioGroup defaultValue="" className="space-y-2">
+        <RadioGroup 
+          value={selectedGender} 
+          onValueChange={(value) => setValue("gender", value)}
+          className="space-y-2"
+        >
           <div className="flex items-center space-x-2">
-            <RadioGroupItem value="male" id="male" {...register("gender", { required: "Gender is required" })} />
+            <RadioGroupItem value="male" id="male" />
             <Label htmlFor="male">Male</Label>
           </div>
           <div className="flex items-center space-x-2">
-            <RadioGroupItem value="female" id="female" {...register("gender")} />
+            <RadioGroupItem value="female" id="female" />
             <Label htmlFor="female">Female</Label>
           </div>
           <div className="flex items-center space-x-2">
-            <RadioGroupItem value="other" id="other" {...register("gender")} />
+            <RadioGroupItem value="other" id="other" />
             <Label htmlFor="other">Other</Label>
           </div>
         </RadioGroup>
+        <input type="hidden" {...register("gender", { required: "Gender is required" })} />
         {errors.gender && <p className="text-red-500 text-xs mt-1">{errors.gender.message as string}</p>}
       </div>
 
