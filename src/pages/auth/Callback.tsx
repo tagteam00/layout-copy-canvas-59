@@ -11,8 +11,9 @@ const AuthCallback: React.FC = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Process authentication without accessing window.location directly
-        console.log('Processing auth callback...');
+        // Get the auth code from the URL
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const queryParams = new URLSearchParams(window.location.search);
 
         // Process the authentication response
         const { data, error } = await supabase.auth.getSession();

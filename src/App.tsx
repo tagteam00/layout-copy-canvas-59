@@ -22,7 +22,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { lazy, Suspense } from "react";
 import { toast } from "sonner";
 import AuthCallback from "./pages/auth/Callback";
-
+import { getSecurityContext } from "@/utils/securityUtils";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -61,7 +61,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     
     // Log security context for debugging
     if (this.state.isSecurityError) {
-      console.error("Security error occurred, continuing without security context.");
+      console.error("Security context:", getSecurityContext());
     }
   }
   
