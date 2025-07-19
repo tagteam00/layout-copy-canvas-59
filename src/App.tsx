@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import PageTransition from "./components/layout/PageTransition";
@@ -33,7 +32,7 @@ const queryClient = new QueryClient({
   }
 });
 
-// Simplified error boundary without security context checks
+// Simplified error boundary without browser API calls
 interface ErrorBoundaryProps {
   children: React.ReactNode;
 }
@@ -69,11 +68,9 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
               className="px-4 py-2 rounded-md transition-colors bg-red-600 text-white hover:bg-red-700"
               onClick={() => {
                 this.setState({ hasError: false, error: null });
-                // Simple page reload without window.location
-                document.location.href = "/";
               }}
             >
-              Return Home
+              Try Again
             </button>
           </div>
         </div>
@@ -122,7 +119,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return children;
 };
 
-// Onboarding route with improved handling
 const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, hasCompletedOnboarding, authError } = useAuth();
   const [attemptCount, setAttemptCount] = useState(0);
@@ -155,7 +151,6 @@ const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
   return children;
 };
 
-// Public route with auth route handling
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, hasCompletedOnboarding, authError } = useAuth();
   const [transitionTime, setTransitionTime] = useState(Date.now());

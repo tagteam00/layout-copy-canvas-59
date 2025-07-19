@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,7 +37,14 @@ export const InstagramConnect: React.FC<InstagramConnectProps> = ({
 
   const handleConnect = () => {
     const instagramUrl = getInstagramUrl(partnerInstagramHandle);
-    window.open(instagramUrl, '_blank', 'noopener,noreferrer');
+    // Create a link element and click it - safer for iOS
+    const link = document.createElement('a');
+    link.href = instagramUrl;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (

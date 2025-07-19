@@ -1,19 +1,32 @@
+
 import * as React from "react"
 
-const MOBILE_BREAKPOINT = 768
-
 export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
+  const [isMobile, setIsMobile] = React.useState<boolean>(false)
 
   React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
-    const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    }
-    mql.addEventListener("change", onChange)
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    return () => mql.removeEventListener("change", onChange)
-  }, [])
+    // Use CSS media query approach that's safer for iOS
+    const checkIsMobile = () => {
+      // Simple viewport width check without window APIs
+      const viewportWidth = document.documentElement.clientWidth;
+      setIsMobile(viewportWidth < 768);
+    };
 
-  return !!isMobile
+    // Initial check
+    checkIsMobile();
+
+    // Create ResizeObserver for safer resize detection
+    const resizeObserver = new ResizeObserver(() => {
+      checkIsMobile();
+    });
+
+    // Observe the document element
+    resizeObserver.observe(document.documentElement);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  return isMobile;
 }
