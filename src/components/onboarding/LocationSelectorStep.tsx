@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MapPin, Search, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { geolocationService, LocationData } from "@/services/geolocationService";
+import { locationSearchService, LocationData } from "@/services/locationSearchService";
 
 interface LocationSelectorStepProps {
   onSubmit: (data: LocationData) => void;
@@ -53,7 +53,7 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
     setState(prev => ({ ...prev, isSearching: true, error: null }));
     
     try {
-      const results = await geolocationService.searchLocation(query);
+      const results = await locationSearchService.searchLocation(query);
       console.log('[LocationSelectorStep] Search results received:', results);
       
       if (results.length > 0) {
@@ -66,7 +66,7 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
         }));
       } else {
         console.log('[LocationSelectorStep] No API results, trying fallback cities');
-        const fallbackCities = geolocationService.getFallbackCities();
+        const fallbackCities = locationSearchService.getFallbackCities();
         const matchedCities = fallbackCities.filter(city => 
           city.city.toLowerCase().includes(query.toLowerCase()) ||
           city.country.toLowerCase().includes(query.toLowerCase()) ||
@@ -129,7 +129,6 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
     toast.success("Location selected!");
   };
 
-
   const handleSubmit = () => {
     if (!state.selectedLocation) {
       toast.error("Please select a location first.");
@@ -152,7 +151,7 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
 
   const retryService = () => {
     console.log('[LocationSelectorStep] Retrying service...');
-    geolocationService.resetCircuitBreaker();
+    locationSearchService.resetCircuitBreaker();
     setState(prev => ({ ...prev, error: null }));
     toast.success("Service reset. You can try again now.");
   };
@@ -184,7 +183,7 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
               <AlertCircle className="h-4 w-4 text-red-600 mr-2" />
               <span className="text-red-800 text-sm">{state.error}</span>
             </div>
-            {!geolocationService.isServiceHealthy() && (
+            {!locationSearchService.isServiceHealthy() && (
               <Button variant="outline" size="sm" onClick={retryService}>
                 <RefreshCw className="h-3 w-3 mr-1" />
                 Reset
@@ -229,7 +228,6 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
             </div>
           )}
         </div>
-
 
         {state.selectedLocation && (
           <div className="p-4 bg-green-50 border border-green-200 rounded-lg">

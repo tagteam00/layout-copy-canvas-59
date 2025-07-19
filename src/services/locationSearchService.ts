@@ -1,0 +1,193 @@
+
+interface NominatimResult {
+  place_id: number;
+  licence: string;
+  osm_type: string;
+  osm_id: number;
+  lat: string;
+  lon: string;
+  display_name: string;
+  address: {
+    city?: string;
+    town?: string;
+    village?: string;
+    state?: string;
+    country?: string;
+    country_code?: string;
+  };
+}
+
+interface LocationData {
+  city: string;
+  country: string;
+  state?: string;
+  coordinates?: { lat: number; lng: number };
+  fullAddress?: string;
+}
+
+class LocationSearchService {
+  private readonly BASE_URL = 'https://nominatim.openstreetmap.org';
+  private lastRequestTime = 0;
+  private readonly RATE_LIMIT_MS = 1000;
+  private readonly MAX_RETRIES = 3;
+  private readonly RETRY_DELAY_MS = 2000;
+  private failureCount = 0;
+  private readonly CIRCUIT_BREAKER_THRESHOLD = 5;
+
+  // Enhanced rate limiting with exponential backoff
+  private async rateLimitedFetch(url: string, retryCount = 0): Promise<Response> {
+    console.log(`[LocationSearchService] Making API request (attempt ${retryCount + 1}):`, url);
+    
+    const now = Date.now();
+    const timeSinceLastRequest = now - this.lastRequestTime;
+    
+    if (timeSinceLastRequest < this.RATE_LIMIT_MS) {
+      const waitTime = this.RATE_LIMIT_MS - timeSinceLastRequest;
+      console.log(`[LocationSearchService] Rate limiting: waiting ${waitTime}ms`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+    
+    this.lastRequestTime = Date.now();
+    
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'TagTeamApp/1.0'
+        },
+        signal: AbortSignal.timeout(10000)
+      });
+      
+      console.log(`[LocationSearchService] API response:`, response.status, response.statusText);
+      
+      if (!response.ok) {
+        this.failureCount++;
+        
+        if (response.status === 429) {
+          const retryAfter = parseInt(response.headers.get('Retry-After') || '60');
+          console.warn(`[LocationSearchService] Rate limited. Retry after ${retryAfter} seconds`);
+          
+          if (retryCount < this.MAX_RETRIES) {
+            await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+            return this.rateLimitedFetch(url, retryCount + 1);
+          }
+        }
+        
+        if (response.status >= 500 && retryCount < this.MAX_RETRIES) {
+          const delay = this.RETRY_DELAY_MS * Math.pow(2, retryCount);
+          console.warn(`[LocationSearchService] Server error ${response.status}. Retrying in ${delay}ms`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return this.rateLimitedFetch(url, retryCount + 1);
+        }
+        
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      this.failureCount = 0;
+      return response;
+      
+    } catch (error) {
+      this.failureCount++;
+      console.error(`[LocationSearchService] Fetch error (attempt ${retryCount + 1}):`, error);
+      
+      if (this.failureCount >= this.CIRCUIT_BREAKER_THRESHOLD) {
+        console.error(`[LocationSearchService] Circuit breaker activated after ${this.failureCount} failures`);
+        throw new Error('Service temporarily unavailable due to repeated failures');
+      }
+      
+      if (retryCount < this.MAX_RETRIES && (error instanceof TypeError || error.name === 'NetworkError')) {
+        const delay = this.RETRY_DELAY_MS * Math.pow(2, retryCount);
+        console.warn(`[LocationSearchService] Network error. Retrying in ${delay}ms`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return this.rateLimitedFetch(url, retryCount + 1);
+      }
+      
+      throw error;
+    }
+  }
+
+  async searchLocation(query: string): Promise<LocationData[]> {
+    try {
+      console.log(`[LocationSearchService] Searching for location:`, query);
+      
+      const url = `${this.BASE_URL}/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`;
+      const response = await this.rateLimitedFetch(url);
+      
+      const data: NominatimResult[] = await response.json();
+      console.log(`[LocationSearchService] Search results:`, data);
+      
+      const results = data.map(result => this.parseLocationData(result)).filter(Boolean) as LocationData[];
+      console.log(`[LocationSearchService] Parsed search results:`, results);
+      
+      return results;
+    } catch (error) {
+      console.error('[LocationSearchService] Location search error:', error);
+      return [];
+    }
+  }
+
+  private parseLocationData(result: NominatimResult): LocationData | null {
+    if (!result.address) {
+      console.warn('[LocationSearchService] No address data in result:', result);
+      return null;
+    }
+
+    const address = result.address;
+    const city = address.city || address.town || address.village || '';
+    const country = address.country || '';
+    const state = address.state || '';
+
+    if (!city || !country) {
+      console.warn('[LocationSearchService] Incomplete address data:', { city, country, state });
+      return null;
+    }
+
+    return {
+      city,
+      country,
+      state,
+      coordinates: {
+        lat: parseFloat(result.lat),
+        lng: parseFloat(result.lon)
+      },
+      fullAddress: result.display_name
+    };
+  }
+
+  getFallbackCities(): LocationData[] {
+    return [
+      { city: "New York", country: "United States", state: "New York", fullAddress: "New York, NY, USA" },
+      { city: "Los Angeles", country: "United States", state: "California", fullAddress: "Los Angeles, CA, USA" },
+      { city: "Chicago", country: "United States", state: "Illinois", fullAddress: "Chicago, IL, USA" },
+      { city: "London", country: "United Kingdom", fullAddress: "London, UK" },
+      { city: "Paris", country: "France", fullAddress: "Paris, France" },
+      { city: "Berlin", country: "Germany", fullAddress: "Berlin, Germany" },
+      { city: "Tokyo", country: "Japan", fullAddress: "Tokyo, Japan" },
+      { city: "Seoul", country: "South Korea", fullAddress: "Seoul, South Korea" },
+      { city: "Sydney", country: "Australia", state: "New South Wales", fullAddress: "Sydney, NSW, Australia" },
+      { city: "Melbourne", country: "Australia", state: "Victoria", fullAddress: "Melbourne, VIC, Australia" },
+      { city: "Toronto", country: "Canada", state: "Ontario", fullAddress: "Toronto, ON, Canada" },
+      { city: "Vancouver", country: "Canada", state: "British Columbia", fullAddress: "Vancouver, BC, Canada" },
+      { city: "Mumbai", country: "India", state: "Maharashtra", fullAddress: "Mumbai, Maharashtra, India" },
+      { city: "Delhi", country: "India", fullAddress: "Delhi, India" },
+      { city: "São Paulo", country: "Brazil", state: "São Paulo", fullAddress: "São Paulo, SP, Brazil" },
+      { city: "Rio de Janeiro", country: "Brazil", state: "Rio de Janeiro", fullAddress: "Rio de Janeiro, RJ, Brazil" },
+      { city: "Mexico City", country: "Mexico", fullAddress: "Mexico City, Mexico" },
+      { city: "Singapore", country: "Singapore", fullAddress: "Singapore" },
+      { city: "Hong Kong", country: "Hong Kong", fullAddress: "Hong Kong" },
+      { city: "Dubai", country: "United Arab Emirates", fullAddress: "Dubai, UAE" }
+    ];
+  }
+
+  isServiceHealthy(): boolean {
+    return this.failureCount < this.CIRCUIT_BREAKER_THRESHOLD;
+  }
+
+  resetCircuitBreaker(): void {
+    console.log('[LocationSearchService] Resetting circuit breaker');
+    this.failureCount = 0;
+  }
+}
+
+// Export service instance and types
+export const locationSearchService = new LocationSearchService();
+export type { LocationData };
