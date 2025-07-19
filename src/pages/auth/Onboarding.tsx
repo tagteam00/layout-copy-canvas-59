@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { PersonalInfoForm } from "@/components/onboarding/PersonalInfoForm";
 import { InterestsSelector } from "@/components/onboarding/InterestsSelector";
 import { CommitmentSelector } from "@/components/onboarding/CommitmentSelector";
-import { LocationSelectorStep } from "@/components/onboarding/LocationSelectorStep";
+import LocationSelectorStep from "@/components/onboarding/LocationSelectorStep";
 import { BioStep } from "@/components/onboarding/BioStep";
 import { StepIndicator } from "@/components/onboarding/StepIndicator";
 import { useUserData } from "@/hooks/useUserData";
@@ -198,8 +198,11 @@ const Onboarding: React.FC = () => {
 
             {step === 4 && (
               <LocationSelectorStep
-                onSubmit={handleLocationSubmit}
-                onBack={() => setStep(3)}
+                onNext={() => setStep(5)}
+                onLocationSelect={(location: string) => {
+                  setFormData({ ...formData, city: location });
+                }}
+                selectedLocation={formData.city}
               />
             )}
 
