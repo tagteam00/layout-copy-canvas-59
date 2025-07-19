@@ -1,4 +1,4 @@
-import { getSecurityContext, getGeolocationErrorMessage } from '@/utils/securityUtils';
+// Removed problematic security utils import
 
 interface NominatimResult {
   place_id: number;
@@ -48,51 +48,37 @@ class GeolocationService {
     // Security context will be initialized lazily when needed
   }
 
-  // Lazy initialize security context
-  private getSecurityContext() {
-    if (!this.securityContext) {
-      try {
-        // Only check security context when actually needed
-        if (typeof window !== 'undefined') {
-          this.securityContext = getSecurityContext();
-        } else {
-          // Fallback for server-side rendering or tests
-          this.securityContext = {
-            isHttps: false,
-            isSecureContext: false,
-            isLocalhost: false,
-            isDevelopment: false,
-            canUseGeolocation: false
-          };
-        }
-      } catch (error) {
-        console.warn('[GeolocationService] Failed to get security context:', error);
-        // Fallback security context
-        this.securityContext = {
-          isHttps: false,
-          isSecureContext: false,
-          isLocalhost: false,
-          isDevelopment: false,
-          canUseGeolocation: false
-        };
-      }
-    }
-    return this.securityContext;
-  }
-
-  // Check if geolocation is available and secure
+  // Simple geolocation availability check without problematic security context
   canUseGeolocation(): boolean {
-    const context = this.getSecurityContext();
-    return context.canUseGeolocation && 'geolocation' in navigator;
+    if (typeof window === 'undefined') return false;
+    
+    const hasGeolocation = 'geolocation' in navigator;
+    const isHttps = window.location.protocol === 'https:';
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1';
+    
+    return hasGeolocation && (isHttps || isLocalhost);
   }
 
   // Get appropriate error message for geolocation unavailability
   getGeolocationUnavailableMessage(): string {
+    if (typeof window === 'undefined') {
+      return "Location detection is not available.";
+    }
+    
     if (!('geolocation' in navigator)) {
       return "Your browser doesn't support location detection.";
     }
-    const context = this.getSecurityContext();
-    return getGeolocationErrorMessage(context);
+    
+    const isHttps = window.location.protocol === 'https:';
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1';
+    
+    if (!isHttps && !isLocalhost) {
+      return "Location detection requires a secure connection. Please use the search function instead.";
+    }
+    
+    return "Location detection is not available.";
   }
 
   // Enhanced rate limiting with exponential backoff
@@ -166,14 +152,14 @@ class GeolocationService {
     }
   }
 
-  // Enhanced geolocation with security context checking
+  // Simple geolocation with basic availability checking
   async getCurrentPosition(): Promise<{ lat: number; lng: number } | null> {
     console.log('[GeolocationService] Starting getCurrentPosition');
     
-    // Check security context first
+    // Simple availability check
     if (!this.canUseGeolocation()) {
       const errorMessage = this.getGeolocationUnavailableMessage();
-      console.error('[GeolocationService] Geolocation blocked due to security context:', errorMessage);
+      console.error('[GeolocationService] Geolocation not available:', errorMessage);
       throw new Error(errorMessage);
     }
 

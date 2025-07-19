@@ -40,30 +40,37 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
   const inputRef = useRef<HTMLInputElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Check geolocation availability on mount
+  // Simple geolocation availability check
   useEffect(() => {
     console.log('[LocationSelectorStep] Component mounted');
     
-    // Safely check geolocation availability
-    try {
-      const canUse = geolocationService.canUseGeolocation();
-      console.log('[LocationSelectorStep] Can use geolocation:', canUse);
-      
-      setState(prev => ({ ...prev, canUseGeolocation: canUse }));
-      
-      if (!canUse) {
-        const message = geolocationService.getGeolocationUnavailableMessage();
-        setState(prev => ({ 
-          ...prev, 
-          error: message
-        }));
+    // Simple feature detection without problematic security context calls
+    const hasGeolocation = 'geolocation' in navigator;
+    const isHttps = window.location.protocol === 'https:';
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1';
+    
+    const canUse = hasGeolocation && (isHttps || isLocalhost);
+    
+    console.log('[LocationSelectorStep] Simple geolocation check:', {
+      hasGeolocation,
+      isHttps,
+      isLocalhost,
+      canUse
+    });
+    
+    setState(prev => ({ ...prev, canUseGeolocation: canUse }));
+    
+    if (!canUse) {
+      let message = "Location detection is not available. ";
+      if (!hasGeolocation) {
+        message += "Your browser doesn't support location detection.";
+      } else {
+        message += "Please use the search function instead.";
       }
-    } catch (error) {
-      console.error('[LocationSelectorStep] Error checking geolocation:', error);
       setState(prev => ({ 
         ...prev, 
-        canUseGeolocation: false,
-        error: "Could not check location availability"
+        error: message
       }));
     }
   }, []);
@@ -161,7 +168,7 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
 
   const getCurrentLocation = async () => {
     if (!state.canUseGeolocation) {
-      toast.error("Location detection is not available in this context.");
+      toast.error("Location detection is not available.");
       return;
     }
 
@@ -257,12 +264,12 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
         <p className="text-gray-600 text-sm">This helps us connect you with nearby partners</p>
       </div>
 
-      {/* Security context warning */}
+      {/* Location unavailable warning */}
       {!state.canUseGeolocation && (
         <Alert>
           <Shield className="h-4 w-4" />
           <AlertDescription>
-            {geolocationService.getGeolocationUnavailableMessage()}
+            Location detection is not available. Please use the search function to find your location.
           </AlertDescription>
         </Alert>
       )}
