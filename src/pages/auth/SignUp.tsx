@@ -15,13 +15,10 @@ const SignUp: React.FC = () => {
       setGoogleLoading(true);
       console.log("Attempting Google sign-up...");
       
-      // Use static redirect URL to avoid iOS window.location issues
-      const redirectTo = "https://tagteam.co.in/auth/callback";
-      
+      // iOS-compatible OAuth flow - no custom redirectTo to avoid cross-origin issues
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
