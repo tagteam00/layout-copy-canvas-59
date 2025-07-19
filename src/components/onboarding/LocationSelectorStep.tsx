@@ -34,7 +34,7 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
     showResults: false,
     error: null,
     permissionDenied: false,
-    canUseGeolocation: geolocationService.canUseGeolocation()
+    canUseGeolocation: false // Will be set in useEffect
   });
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -43,16 +43,30 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
   // Check geolocation availability on mount
   useEffect(() => {
     console.log('[LocationSelectorStep] Component mounted');
-    console.log('[LocationSelectorStep] Can use geolocation:', state.canUseGeolocation);
     
-    if (!state.canUseGeolocation) {
-      const message = geolocationService.getGeolocationUnavailableMessage();
+    // Safely check geolocation availability
+    try {
+      const canUse = geolocationService.canUseGeolocation();
+      console.log('[LocationSelectorStep] Can use geolocation:', canUse);
+      
+      setState(prev => ({ ...prev, canUseGeolocation: canUse }));
+      
+      if (!canUse) {
+        const message = geolocationService.getGeolocationUnavailableMessage();
+        setState(prev => ({ 
+          ...prev, 
+          error: message
+        }));
+      }
+    } catch (error) {
+      console.error('[LocationSelectorStep] Error checking geolocation:', error);
       setState(prev => ({ 
         ...prev, 
-        error: message
+        canUseGeolocation: false,
+        error: "Could not check location availability"
       }));
     }
-  }, [state.canUseGeolocation]);
+  }, []);
 
   const handleLocationSearch = async (query: string) => {
     if (!query.trim()) {
