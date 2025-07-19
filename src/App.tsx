@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -22,87 +23,54 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { lazy, Suspense } from "react";
 import { toast } from "sonner";
 import AuthCallback from "./pages/auth/Callback";
-import { getSecurityContext } from "@/utils/securityUtils";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
+      refetchOnWindowFocus: false, // Improve performance by preventing unnecessary refetches
+      retry: 1, // Limit retries to improve performance
     }
   }
 });
 
-// Enhanced error boundary with security-specific error handling
+// Error boundary component with proper TypeScript interface
 interface ErrorBoundaryProps {
-  children: React.ReactNode;
+  children: React.ReactNode; // Added proper children type
 }
 
 interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
-  isSecurityError: boolean;
 }
 
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  state: ErrorBoundaryState = { hasError: false, error: null, isSecurityError: false };
+  state: ErrorBoundaryState = { hasError: false, error: null };
   
   static getDerivedStateFromError(error: Error) {
-    const isSecurityError = error.message.includes('insecure') || 
-                           error.message.includes('HTTPS') || 
-                           error.message.includes('secure context') ||
-                           error.message.includes('operation is insecure');
-    
-    return { hasError: true, error, isSecurityError };
+    return { hasError: true, error };
   }
   
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error("Error caught by boundary:", error, info);
-    
-    // Log security context for debugging
-    if (this.state.isSecurityError) {
-      console.error("Security context:", getSecurityContext());
-    }
   }
   
   render() {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4">
-          <div className={`p-6 rounded-lg shadow-sm max-w-md ${
-            this.state.isSecurityError ? 'bg-yellow-50 border border-yellow-200' : 'bg-red-50'
-          }`}>
-            <h2 className={`text-xl font-semibold mb-2 ${
-              this.state.isSecurityError ? 'text-yellow-800' : 'text-red-800'
-            }`}>
-              {this.state.isSecurityError ? 'Security Notice' : 'Something went wrong'}
-            </h2>
-            <p className={`mb-4 ${
-              this.state.isSecurityError ? 'text-yellow-700' : 'text-red-700'
-            }`}>
-              {this.state.isSecurityError ? 
-                'Some features require a secure connection (HTTPS). The app will continue to work, but location detection may be unavailable.' :
-                (this.state.error?.message || "An unexpected error occurred")
-              }
+          <div className="bg-red-50 p-6 rounded-lg shadow-sm max-w-md">
+            <h2 className="text-xl font-semibold text-red-800 mb-2">Something went wrong</h2>
+            <p className="text-red-700 mb-4">
+              {this.state.error?.message || "An unexpected error occurred"}
             </p>
             <button 
-              className={`px-4 py-2 rounded-md transition-colors ${
-                this.state.isSecurityError ? 
-                'bg-yellow-600 text-white hover:bg-yellow-700' : 
-                'bg-red-600 text-white hover:bg-red-700'
-              }`}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
               onClick={() => {
-                this.setState({ hasError: false, error: null, isSecurityError: false });
-                if (this.state.isSecurityError) {
-                  // For security errors, just reload the component
-                  window.location.reload();
-                } else {
-                  // For other errors, go home
-                  window.location.href = "/";
-                }
+                this.setState({ hasError: false });
+                window.location.href = "/";
               }}
             >
-              {this.state.isSecurityError ? 'Continue' : 'Return Home'}
+              Return Home
             </button>
           </div>
         </div>
@@ -119,8 +87,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [attemptCount, setAttemptCount] = useState(0);
   
   useEffect(() => {
+    // Increment attempt counter to detect potential infinite loops
     setAttemptCount(prev => prev + 1);
     
+    // If we've tried too many times, something is wrong
     if (attemptCount > 5) {
       console.error("Too many authentication check attempts - breaking potential loop");
       toast.error("Authentication error. Please try signing in again.");
@@ -144,6 +114,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/" replace />;
   }
   
+  // Redirect to onboarding if the user hasn't completed it yet
   if (!hasCompletedOnboarding) {
     return <Navigate to="/onboarding" replace />;
   }
@@ -157,6 +128,7 @@ const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
   const [attemptCount, setAttemptCount] = useState(0);
 
   useEffect(() => {
+    // Increment attempt counter to detect potential infinite loops
     setAttemptCount(prev => prev + 1);
   }, []);
 
@@ -177,6 +149,7 @@ const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/signin" replace />;
   }
   
+  // If the user has already completed onboarding, redirect to home
   if (hasCompletedOnboarding) {
     return <Navigate to="/home" replace />;
   }
@@ -192,9 +165,11 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
 
   useEffect(() => {
+    // Track transition attempts to detect loops
     setRedirectAttempts(prev => prev + 1);
     setTransitionTime(Date.now());
     
+    // If we're stuck in a possible loop, don't redirect
     if (redirectAttempts > 3 && Date.now() - transitionTime < 3000) {
       console.warn("Potential redirect loop detected, staying on current page");
       toast.error("Navigation error detected. Please try signing in again.");
@@ -210,25 +185,31 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (authError) {
+    // Just show the children if there's an auth error on public routes
     return children;
   }
 
+  // Safety check - if we're in a potential loop, just show the current component
   if (redirectAttempts > 3 && Date.now() - transitionTime < 3000) {
     return children;
   }
 
+  // Special case for the welcome screen - don't redirect to home
   if (location.pathname === '/') {
     return children;
   }
   
+  // Special case for auth routes - don't redirect from auth pages
   if (['/signin', '/signup', '/auth/callback'].includes(location.pathname)) {
     return children;
   }
 
+  // If user exists and has completed onboarding, redirect to home
   if (user && hasCompletedOnboarding) {
     return <Navigate to="/home" replace />;
   }
   
+  // If user exists but hasn't completed onboarding, redirect to onboarding
   if (user && !hasCompletedOnboarding) {
     return <Navigate to="/onboarding" replace />;
   }
@@ -242,6 +223,7 @@ const AnimatedRoutes = () => {
   return (
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
+        {/* Public routes - redirect to home if already authenticated */}
         <Route path="/" element={
           <PublicRoute>
             <PageTransition>
@@ -264,6 +246,7 @@ const AnimatedRoutes = () => {
           </PublicRoute>
         } />
         
+        {/* Auth callback route */}
         <Route path="/auth/callback" element={
           <PublicRoute>
             <PageTransition>
@@ -272,6 +255,7 @@ const AnimatedRoutes = () => {
           </PublicRoute>
         } />
         
+        {/* Onboarding route - for authenticated users who haven't completed onboarding */}
         <Route path="/onboarding" element={
           <OnboardingRoute>
             <PageTransition>
@@ -280,6 +264,7 @@ const AnimatedRoutes = () => {
           </OnboardingRoute>
         } />
 
+        {/* Protected routes - require authentication and completed onboarding */}
         <Route path="/home" element={
           <ProtectedRoute>
             <PageTransition>
@@ -301,6 +286,7 @@ const AnimatedRoutes = () => {
             </PageTransition>
           </ProtectedRoute>
         } />
+        {/* New route for viewing other user profiles */}
         <Route path="/user/:userId" element={
           <ProtectedRoute>
             <PageTransition>
