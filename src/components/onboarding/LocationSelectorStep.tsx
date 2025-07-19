@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, Search, Loader2, AlertCircle, RefreshCw, Info } from "lucide-react";
+import { MapPin, Search, Loader2, AlertCircle, RefreshCw, Info, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { geolocationService, LocationData, GeolocationError } from "@/services/geolocationService";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -21,7 +21,7 @@ interface LocationState {
   showResults: boolean;
   error: string | null;
   permissionDenied: boolean;
-  browserSupported: boolean;
+  canUseGeolocation: boolean;
 }
 
 export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSubmit, onBack }) => {
@@ -34,24 +34,25 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
     showResults: false,
     error: null,
     permissionDenied: false,
-    browserSupported: typeof navigator !== 'undefined' && 'geolocation' in navigator
+    canUseGeolocation: geolocationService.canUseGeolocation()
   });
 
   const inputRef = useRef<HTMLInputElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Check browser compatibility on mount
+  // Check geolocation availability on mount
   useEffect(() => {
     console.log('[LocationSelectorStep] Component mounted');
-    console.log('[LocationSelectorStep] Browser geolocation support:', state.browserSupported);
+    console.log('[LocationSelectorStep] Can use geolocation:', state.canUseGeolocation);
     
-    if (!state.browserSupported) {
+    if (!state.canUseGeolocation) {
+      const message = geolocationService.getGeolocationUnavailableMessage();
       setState(prev => ({ 
         ...prev, 
-        error: "Your browser doesn't support location detection. Please search manually." 
+        error: message
       }));
     }
-  }, [state.browserSupported]);
+  }, [state.canUseGeolocation]);
 
   const handleLocationSearch = async (query: string) => {
     if (!query.trim()) {
@@ -80,7 +81,6 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
           error: null
         }));
       } else {
-        // Fallback to local city database
         console.log('[LocationSelectorStep] No API results, trying fallback cities');
         const fallbackCities = geolocationService.getFallbackCities();
         const matchedCities = fallbackCities.filter(city => 
@@ -120,12 +120,10 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
     const value = e.target.value;
     setState(prev => ({ ...prev, searchValue: value, error: null }));
     
-    // Clear previous timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
     
-    // Debounce search
     searchTimeoutRef.current = setTimeout(() => {
       handleLocationSearch(value);
     }, 300);
@@ -148,8 +146,8 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
   };
 
   const getCurrentLocation = async () => {
-    if (!state.browserSupported) {
-      toast.error("Your browser doesn't support location detection.");
+    if (!state.canUseGeolocation) {
+      toast.error("Location detection is not available in this context.");
       return;
     }
 
@@ -163,7 +161,6 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
     }));
     
     try {
-      // First get coordinates
       const coordinates = await geolocationService.getCurrentPosition();
       
       if (!coordinates) {
@@ -172,7 +169,6 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
       
       console.log('[LocationSelectorStep] Coordinates obtained, reverse geocoding...');
       
-      // Then reverse geocode
       const locationData = await geolocationService.reverseGeocode(coordinates.lat, coordinates.lng);
       
       if (locationData) {
@@ -247,12 +243,12 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
         <p className="text-gray-600 text-sm">This helps us connect you with nearby partners</p>
       </div>
 
-      {/* Browser compatibility warning */}
-      {!state.browserSupported && (
+      {/* Security context warning */}
+      {!state.canUseGeolocation && (
         <Alert>
-          <AlertCircle className="h-4 w-4" />
+          <Shield className="h-4 w-4" />
           <AlertDescription>
-            Your browser doesn't support automatic location detection. Please search for your location manually.
+            {geolocationService.getGeolocationUnavailableMessage()}
           </AlertDescription>
         </Alert>
       )}
@@ -268,7 +264,7 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
       )}
 
       {/* Error display */}
-      {state.error && !state.permissionDenied && (
+      {state.error && !state.permissionDenied && !state.error.includes('HTTPS') && !state.error.includes('secure') && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
@@ -319,25 +315,28 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
           )}
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={getCurrentLocation}
-          disabled={state.isDetecting || state.isSearching || !state.browserSupported}
-          className="w-full"
-        >
-          {state.isDetecting ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Detecting Location...
-            </>
-          ) : (
-            <>
-              <MapPin className="h-4 w-4 mr-2" />
-              Use Current Location
-            </>
-          )}
-        </Button>
+        {/* Only show location button if geolocation is available */}
+        {state.canUseGeolocation && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={getCurrentLocation}
+            disabled={state.isDetecting || state.isSearching}
+            className="w-full"
+          >
+            {state.isDetecting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Detecting Location...
+              </>
+            ) : (
+              <>
+                <MapPin className="h-4 w-4 mr-2" />
+                Use Current Location
+              </>
+            )}
+          </Button>
+        )}
 
         {state.selectedLocation && (
           <div className="p-4 bg-green-50 border border-green-200 rounded-lg">

@@ -1,3 +1,4 @@
+import { getSecurityContext, getGeolocationErrorMessage } from '@/utils/securityUtils';
 
 interface NominatimResult {
   place_id: number;
@@ -36,11 +37,30 @@ interface GeolocationError {
 class GeolocationService {
   private readonly BASE_URL = 'https://nominatim.openstreetmap.org';
   private lastRequestTime = 0;
-  private readonly RATE_LIMIT_MS = 1000; // 1 second between requests
+  private readonly RATE_LIMIT_MS = 1000;
   private readonly MAX_RETRIES = 3;
   private readonly RETRY_DELAY_MS = 2000;
   private failureCount = 0;
   private readonly CIRCUIT_BREAKER_THRESHOLD = 5;
+  private securityContext = getSecurityContext();
+
+  constructor() {
+    // Update security context on initialization
+    this.securityContext = getSecurityContext();
+  }
+
+  // Check if geolocation is available and secure
+  canUseGeolocation(): boolean {
+    return this.securityContext.canUseGeolocation && 'geolocation' in navigator;
+  }
+
+  // Get appropriate error message for geolocation unavailability
+  getGeolocationUnavailableMessage(): string {
+    if (!('geolocation' in navigator)) {
+      return "Your browser doesn't support location detection.";
+    }
+    return getGeolocationErrorMessage(this.securityContext);
+  }
 
   // Enhanced rate limiting with exponential backoff
   private async rateLimitedFetch(url: string, retryCount = 0): Promise<Response> {
@@ -62,7 +82,7 @@ class GeolocationService {
         headers: {
           'User-Agent': 'TagTeamApp/1.0'
         },
-        signal: AbortSignal.timeout(10000) // 10 second timeout
+        signal: AbortSignal.timeout(10000)
       });
       
       console.log(`[GeolocationService] API response:`, response.status, response.statusText);
@@ -70,7 +90,6 @@ class GeolocationService {
       if (!response.ok) {
         this.failureCount++;
         
-        // Rate limiting detection
         if (response.status === 429) {
           const retryAfter = parseInt(response.headers.get('Retry-After') || '60');
           console.warn(`[GeolocationService] Rate limited. Retry after ${retryAfter} seconds`);
@@ -81,7 +100,6 @@ class GeolocationService {
           }
         }
         
-        // Server errors - retry with exponential backoff
         if (response.status >= 500 && retryCount < this.MAX_RETRIES) {
           const delay = this.RETRY_DELAY_MS * Math.pow(2, retryCount);
           console.warn(`[GeolocationService] Server error ${response.status}. Retrying in ${delay}ms`);
@@ -92,7 +110,6 @@ class GeolocationService {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
-      // Reset failure count on success
       this.failureCount = 0;
       return response;
       
@@ -100,13 +117,11 @@ class GeolocationService {
       this.failureCount++;
       console.error(`[GeolocationService] Fetch error (attempt ${retryCount + 1}):`, error);
       
-      // Circuit breaker - stop trying if too many failures
       if (this.failureCount >= this.CIRCUIT_BREAKER_THRESHOLD) {
         console.error(`[GeolocationService] Circuit breaker activated after ${this.failureCount} failures`);
         throw new Error('Service temporarily unavailable due to repeated failures');
       }
       
-      // Retry on network errors
       if (retryCount < this.MAX_RETRIES && (error instanceof TypeError || error.name === 'NetworkError')) {
         const delay = this.RETRY_DELAY_MS * Math.pow(2, retryCount);
         console.warn(`[GeolocationService] Network error. Retrying in ${delay}ms`);
@@ -118,27 +133,29 @@ class GeolocationService {
     }
   }
 
-  // Enhanced geolocation with comprehensive error handling
+  // Enhanced geolocation with security context checking
   async getCurrentPosition(): Promise<{ lat: number; lng: number } | null> {
     console.log('[GeolocationService] Starting getCurrentPosition');
     
-    // Check if geolocation is supported
-    if (!navigator.geolocation) {
-      console.error('[GeolocationService] Geolocation not supported by browser');
-      throw new Error('Geolocation is not supported by this browser');
+    // Check security context first
+    if (!this.canUseGeolocation()) {
+      const errorMessage = this.getGeolocationUnavailableMessage();
+      console.error('[GeolocationService] Geolocation blocked due to security context:', errorMessage);
+      throw new Error(errorMessage);
     }
 
     // Check permissions first
     try {
-      const permission = await navigator.permissions.query({ name: 'geolocation' });
-      console.log('[GeolocationService] Geolocation permission status:', permission.state);
-      
-      if (permission.state === 'denied') {
-        throw new Error('Location access has been denied. Please enable location permissions in your browser settings.');
+      if ('permissions' in navigator) {
+        const permission = await navigator.permissions.query({ name: 'geolocation' });
+        console.log('[GeolocationService] Geolocation permission status:', permission.state);
+        
+        if (permission.state === 'denied') {
+          throw new Error('Location access has been denied. Please enable location permissions in your browser settings.');
+        }
       }
     } catch (permissionError) {
       console.warn('[GeolocationService] Could not check permissions:', permissionError);
-      // Continue anyway - some browsers don't support permissions API
     }
 
     return new Promise((resolve, reject) => {
@@ -146,8 +163,8 @@ class GeolocationService {
       
       const options = {
         enableHighAccuracy: true,
-        timeout: 15000, // Increased timeout
-        maximumAge: 300000 // 5 minutes
+        timeout: 15000,
+        maximumAge: 300000
       };
 
       navigator.geolocation.getCurrentPosition(
@@ -163,14 +180,6 @@ class GeolocationService {
         (error) => {
           console.error('[GeolocationService] Geolocation error:', error);
           
-          const geolocationError: GeolocationError = {
-            code: error.code,
-            message: error.message,
-            isPermissionDenied: error.code === error.PERMISSION_DENIED,
-            isPositionUnavailable: error.code === error.POSITION_UNAVAILABLE,
-            isTimeout: error.code === error.TIMEOUT
-          };
-
           let userFriendlyMessage = 'Unable to retrieve your location. ';
           
           switch (error.code) {
@@ -262,10 +271,8 @@ class GeolocationService {
     };
   }
 
-  // Enhanced fallback cities with more global coverage
   getFallbackCities(): LocationData[] {
     return [
-      // Major global cities
       { city: "New York", country: "United States", state: "New York", fullAddress: "New York, NY, USA" },
       { city: "Los Angeles", country: "United States", state: "California", fullAddress: "Los Angeles, CA, USA" },
       { city: "Chicago", country: "United States", state: "Illinois", fullAddress: "Chicago, IL, USA" },
@@ -289,12 +296,10 @@ class GeolocationService {
     ];
   }
 
-  // Check if service is healthy
   isServiceHealthy(): boolean {
     return this.failureCount < this.CIRCUIT_BREAKER_THRESHOLD;
   }
 
-  // Reset circuit breaker manually
   resetCircuitBreaker(): void {
     console.log('[GeolocationService] Resetting circuit breaker');
     this.failureCount = 0;
