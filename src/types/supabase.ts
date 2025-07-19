@@ -1,5 +1,4 @@
 
-
 import { Tables } from "@/integrations/supabase/types";
 
 export interface UserData {
@@ -33,14 +32,14 @@ export const userDataToProfile = (userData: UserData, userId: string): ProfileIn
     gender: userData.gender,
     interests: userData.interests,
     commitment_level: userData.commitmentLevel,
-    city: userData.city,
-    country: userData.country,
+    city: userData.city || null,
+    country: userData.country || null,
     coordinates: userData.coordinates ? `(${userData.coordinates.lng},${userData.coordinates.lat})` as any : null,
-    full_address: userData.fullAddress,
-    occupation: userData.occupation,
-    bio: userData.bio,
+    full_address: userData.fullAddress || null,
+    occupation: userData.occupation || null,
+    bio: userData.bio || null,
     avatar_url: userData.avatarUrl,
-    instagram_handle: userData.instagramHandle,
+    instagram_handle: userData.instagramHandle || null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
@@ -86,4 +85,3 @@ export const profileToUserData = (profile: Profile): UserData => {
     instagramHandle: profile.instagram_handle || ''
   };
 };
-

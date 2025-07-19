@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { PersonalInfoForm } from "@/components/onboarding/PersonalInfoForm";
 import { InterestsSelector } from "@/components/onboarding/InterestsSelector";
 import { CommitmentSelector } from "@/components/onboarding/CommitmentSelector";
-import { LocationSelectorStep } from "@/components/onboarding/LocationSelectorStep";
 import { BioStep } from "@/components/onboarding/BioStep";
 import { StepIndicator } from "@/components/onboarding/StepIndicator";
 import { useUserData } from "@/hooks/useUserData";
@@ -82,17 +81,6 @@ const Onboarding: React.FC = () => {
     setStep(4);
   };
 
-  const handleLocationSubmit = (locationData: any) => {
-    setFormData({ 
-      ...formData, 
-      city: locationData.city,
-      country: locationData.country,
-      coordinates: locationData.coordinates,
-      fullAddress: locationData.fullAddress
-    });
-    setStep(5);
-  };
-
   const handleBioSubmit = async (data: { bio: string, profileImage?: File | null }) => {
     try {
       setLoading(true);
@@ -161,7 +149,7 @@ const Onboarding: React.FC = () => {
           </AlertDialog>
           
           <h1 className="text-2xl font-bold text-black">Let's set up your profile</h1>
-          <StepIndicator currentStep={step} totalSteps={5} />
+          <StepIndicator currentStep={step} totalSteps={4} />
         </div>
 
         <Card>
@@ -190,16 +178,9 @@ const Onboarding: React.FC = () => {
             )}
 
             {step === 4 && (
-              <LocationSelectorStep
-                onSubmit={handleLocationSubmit}
-                onBack={() => setStep(3)}
-              />
-            )}
-
-            {step === 5 && (
               <BioStep
                 onSubmit={handleBioSubmit}
-                onBack={() => setStep(4)}
+                onBack={() => setStep(3)}
                 loading={loading}
               />
             )}
