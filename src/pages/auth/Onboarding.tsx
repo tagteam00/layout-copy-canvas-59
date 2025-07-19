@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { PersonalInfoForm } from "@/components/onboarding/PersonalInfoForm";
 import { InterestsSelector } from "@/components/onboarding/InterestsSelector";
 import { CommitmentSelector } from "@/components/onboarding/CommitmentSelector";
-import LocationSelectorStep from "@/components/onboarding/LocationSelectorStep";
+import { LocationSelectorStep } from "@/components/onboarding/LocationSelectorStep";
 import { BioStep } from "@/components/onboarding/BioStep";
 import { StepIndicator } from "@/components/onboarding/StepIndicator";
 import { useUserData } from "@/hooks/useUserData";
@@ -103,9 +103,9 @@ const Onboarding: React.FC = () => {
         setProfileImage(data.profileImage);
       }
       
-      const result = await saveUserData(finalFormData, data.profileImage || null);
+      const success = await saveUserData(finalFormData, data.profileImage || null);
       
-      if (result.success) {
+      if (success) {
         toast.success("Profile saved successfully!");
         
         // Update onboarding status in the auth context
@@ -116,14 +116,7 @@ const Onboarding: React.FC = () => {
         // Navigate to the home page
         navigate("/home", { replace: true });
       } else {
-        // Handle specific error types
-        if (result.errorType === 'username_taken') {
-          toast.error(result.error || "Username is already taken");
-          // Go back to step 1 to allow username change
-          setStep(1);
-        } else {
-          toast.error(result.error || "Failed to save profile. Please try again.");
-        }
+        toast.error("Failed to save profile. Please try again.");
       }
     } catch (error) {
       console.error("Error saving profile:", error);
@@ -198,11 +191,8 @@ const Onboarding: React.FC = () => {
 
             {step === 4 && (
               <LocationSelectorStep
-                onNext={() => setStep(5)}
-                onLocationSelect={(location: string) => {
-                  setFormData({ ...formData, city: location });
-                }}
-                selectedLocation={formData.city}
+                onSubmit={handleLocationSubmit}
+                onBack={() => setStep(3)}
               />
             )}
 

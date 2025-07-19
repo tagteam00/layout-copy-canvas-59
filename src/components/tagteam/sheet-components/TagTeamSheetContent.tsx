@@ -7,7 +7,6 @@ import { GoalSection } from "./GoalSection";
 import { CalendarSection } from "./CalendarSection";
 import { PartnerVerificationSection } from "./PartnerVerificationSection";
 import { LeaveTagTeamButton } from "./LeaveTagTeamButton";
-
 import { EditGoalButton } from "./EditGoalButton";
 import { SheetHeader } from "./SheetHeader";
 import { TagTeam } from "@/types/tagteam";

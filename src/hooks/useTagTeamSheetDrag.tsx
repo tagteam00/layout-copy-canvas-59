@@ -34,9 +34,8 @@ export const useTagTeamSheetDrag = (
     
     if (!isDragging.current) return;
     
-    // Use container height instead of window height for iOS safety
-    const containerHeight = drawerRef.current.offsetHeight || 600; // fallback to reasonable default
-    const threshold = containerHeight * 0.25; // 25% threshold
+    const windowHeight = window.innerHeight;
+    const threshold = windowHeight * 0.25; // 25% threshold
     
     // Dragging down
     if (deltaY > 0) {
@@ -55,12 +54,12 @@ export const useTagTeamSheetDrag = (
   };
   
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!startY.current || !drawerRef.current) return;
+    if (!startY.current) return;
     
     const currentY = e.changedTouches[0].clientY;
     const deltaY = currentY - startY.current;
-    const containerHeight = drawerRef.current.offsetHeight || 600; // fallback to reasonable default
-    const threshold = containerHeight * 0.25; // 25% threshold
+    const windowHeight = window.innerHeight;
+    const threshold = windowHeight * 0.25; // 25% threshold
     
     // Only close or adjust if we were actually dragging
     if (isDragging.current) {

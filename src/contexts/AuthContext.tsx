@@ -30,10 +30,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Clear corrupted auth cache - iOS-safe version
+  // Clear corrupted auth cache
   const clearAuthCache = async () => {
     try {
-      // Only use Supabase auth clearing - no direct storage access
+      // Clear browser storage
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('sb-tvguxgtpflhubonpxovd-auth-token');
+      sessionStorage.removeItem('supabase.auth.token');
+      sessionStorage.removeItem('sb-tvguxgtpflhubonpxovd-auth-token');
+      
+      // Sign out to clear any server-side session
       await supabase.auth.signOut();
       
       console.log("Auth cache cleared");

@@ -11,7 +11,6 @@ interface PersonalInfoSectionProps {
   country: string;
   occupation: string;
   fullAddress?: string;
-  
   onInputChange: (field: string, value: string) => void;
 }
 

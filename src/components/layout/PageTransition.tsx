@@ -15,7 +15,7 @@ const PageTransition: React.FC<PageTransitionProps> = ({
   const [isTransitionComplete, setIsTransitionComplete] = useState(false);
   const location = useLocation();
   const mountTimeRef = useRef(Date.now());
-  const loadingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loadingTimeoutRef = useRef<number | null>(null);
   const maxLoadingTimeRef = useRef(10000); // 10 seconds max loading time
   
   useEffect(() => {
@@ -29,13 +29,18 @@ const PageTransition: React.FC<PageTransitionProps> = ({
       clearTimeout(loadingTimeoutRef.current);
     }
     
-    // Check if this is an initial load or auth route that requires full loading screen
+    // Check if this is an initial load, auth route, or requires full loading screen
     const requiresFullLoadingScreen = () => {
-      // Initial load tracking using React state instead of sessionStorage
+      // Initial load or auth-related routes that typically take longer
       const authRoutes = ['/signin', '/signup', '/onboarding'];
+      const isInitialLoad = sessionStorage.getItem('initialLoadComplete') !== 'true';
       
       // Check if it's an auth route or initial app load
-      if (authRoutes.some(route => location.pathname.includes(route))) {
+      if (isInitialLoad || authRoutes.some(route => location.pathname.includes(route))) {
+        // Mark initial load as complete
+        if (isInitialLoad) {
+          sessionStorage.setItem('initialLoadComplete', 'true');
+        }
         return true;
       }
       
@@ -49,12 +54,12 @@ const PageTransition: React.FC<PageTransitionProps> = ({
     const loadingDuration = showFullLoadingScreen ? 1800 : 600;
     
     // Set loading timeout - this will ensure loading doesn't get stuck forever
-    loadingTimeoutRef.current = setTimeout(() => {
+    loadingTimeoutRef.current = window.setTimeout(() => {
       setIsLoading(false);
     }, loadingDuration);
     
     // Safety timeout - ensures loading screen never gets stuck
-    const safetyTimeout = setTimeout(() => {
+    const safetyTimeout = window.setTimeout(() => {
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
         loadingTimeoutRef.current = null;

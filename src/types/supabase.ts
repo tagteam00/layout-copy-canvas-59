@@ -16,7 +16,6 @@ export interface UserData {
   occupation?: string;
   bio?: string;
   avatarUrl?: string | null;
-  
 }
 
 // Define the Profile type based on the Supabase profiles table
@@ -40,7 +39,6 @@ export const userDataToProfile = (userData: UserData, userId: string): ProfileIn
     occupation: userData.occupation,
     bio: userData.bio,
     avatar_url: userData.avatarUrl,
-    instagram_handle: null, // Remove Instagram functionality
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
