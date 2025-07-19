@@ -6,10 +6,12 @@ interface UserStatusSectionProps {
   firstUser: {
     name: string;
     status: "completed" | "pending";
+    instagramHandle?: string;
   };
   secondUser: {
     name: string;
     status: "completed" | "pending";
+    instagramHandle?: string;
   };
   timer: {
     timeString: string;

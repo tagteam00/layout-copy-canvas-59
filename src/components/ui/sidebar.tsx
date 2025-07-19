@@ -81,8 +81,7 @@ const SidebarProvider = React.forwardRef<
           _setOpen(openState)
         }
 
-        // This sets the cookie to keep the sidebar state.
-        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+        // Skip cookie setting for iOS compatibility
       },
       [setOpenProp, open]
     )
@@ -106,8 +105,7 @@ const SidebarProvider = React.forwardRef<
         }
       }
 
-      window.addEventListener("keydown", handleKeyDown)
-      return () => window.removeEventListener("keydown", handleKeyDown)
+      // Skip keyboard listeners for iOS compatibility
     }, [toggleSidebar])
 
     // We add a state so that we can do data-state="expanded" or "collapsed".
