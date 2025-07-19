@@ -1,4 +1,3 @@
-// Removed problematic security utils import
 
 interface NominatimResult {
   place_id: number;
@@ -26,14 +25,6 @@ interface LocationData {
   fullAddress?: string;
 }
 
-interface GeolocationError {
-  code: number;
-  message: string;
-  isPermissionDenied: boolean;
-  isPositionUnavailable: boolean;
-  isTimeout: boolean;
-}
-
 class GeolocationService {
   private readonly BASE_URL = 'https://nominatim.openstreetmap.org';
   private lastRequestTime = 0;
@@ -42,44 +33,6 @@ class GeolocationService {
   private readonly RETRY_DELAY_MS = 2000;
   private failureCount = 0;
   private readonly CIRCUIT_BREAKER_THRESHOLD = 5;
-  private securityContext: any = null;
-
-  constructor() {
-    // Security context will be initialized lazily when needed
-  }
-
-  // Simple geolocation availability check without problematic security context
-  canUseGeolocation(): boolean {
-    if (typeof window === 'undefined') return false;
-    
-    const hasGeolocation = 'geolocation' in navigator;
-    const isHttps = window.location.protocol === 'https:';
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                       window.location.hostname === '127.0.0.1';
-    
-    return hasGeolocation && (isHttps || isLocalhost);
-  }
-
-  // Get appropriate error message for geolocation unavailability
-  getGeolocationUnavailableMessage(): string {
-    if (typeof window === 'undefined') {
-      return "Location detection is not available.";
-    }
-    
-    if (!('geolocation' in navigator)) {
-      return "Your browser doesn't support location detection.";
-    }
-    
-    const isHttps = window.location.protocol === 'https:';
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                       window.location.hostname === '127.0.0.1';
-    
-    if (!isHttps && !isLocalhost) {
-      return "Location detection requires a secure connection. Please use the search function instead.";
-    }
-    
-    return "Location detection is not available.";
-  }
 
   // Enhanced rate limiting with exponential backoff
   private async rateLimitedFetch(url: string, retryCount = 0): Promise<Response> {
@@ -149,96 +102,6 @@ class GeolocationService {
       }
       
       throw error;
-    }
-  }
-
-  // Simple geolocation with basic availability checking
-  async getCurrentPosition(): Promise<{ lat: number; lng: number } | null> {
-    console.log('[GeolocationService] Starting getCurrentPosition');
-    
-    // Simple availability check
-    if (!this.canUseGeolocation()) {
-      const errorMessage = this.getGeolocationUnavailableMessage();
-      console.error('[GeolocationService] Geolocation not available:', errorMessage);
-      throw new Error(errorMessage);
-    }
-
-    // Check permissions first
-    try {
-      if ('permissions' in navigator) {
-        const permission = await navigator.permissions.query({ name: 'geolocation' });
-        console.log('[GeolocationService] Geolocation permission status:', permission.state);
-        
-        if (permission.state === 'denied') {
-          throw new Error('Location access has been denied. Please enable location permissions in your browser settings.');
-        }
-      }
-    } catch (permissionError) {
-      console.warn('[GeolocationService] Could not check permissions:', permissionError);
-    }
-
-    return new Promise((resolve, reject) => {
-      console.log('[GeolocationService] Requesting current position...');
-      
-      const options = {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 300000
-      };
-
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          console.log('[GeolocationService] Position obtained:', { 
-            lat: latitude, 
-            lng: longitude,
-            accuracy: position.coords.accuracy 
-          });
-          resolve({ lat: latitude, lng: longitude });
-        },
-        (error) => {
-          console.error('[GeolocationService] Geolocation error:', error);
-          
-          let userFriendlyMessage = 'Unable to retrieve your location. ';
-          
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              userFriendlyMessage += 'Location access was denied. Please enable location permissions in your browser settings and try again.';
-              break;
-            case error.POSITION_UNAVAILABLE:
-              userFriendlyMessage += 'Location information is unavailable. Please check your internet connection or try searching manually.';
-              break;
-            case error.TIMEOUT:
-              userFriendlyMessage += 'Location request timed out. Please try again or search manually.';
-              break;
-            default:
-              userFriendlyMessage += 'Please try again or search manually.';
-          }
-          
-          reject(new Error(userFriendlyMessage));
-        },
-        options
-      );
-    });
-  }
-
-  async reverseGeocode(lat: number, lng: number): Promise<LocationData | null> {
-    try {
-      console.log(`[GeolocationService] Starting reverse geocode for:`, { lat, lng });
-      
-      const url = `${this.BASE_URL}/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`;
-      const response = await this.rateLimitedFetch(url);
-      
-      const data: NominatimResult = await response.json();
-      console.log('[GeolocationService] Reverse geocoding data:', data);
-      
-      const locationData = this.parseLocationData(data);
-      console.log('[GeolocationService] Parsed location data:', locationData);
-      
-      return locationData;
-    } catch (error) {
-      console.error('[GeolocationService] Reverse geocoding error:', error);
-      return null;
     }
   }
 
@@ -336,23 +199,7 @@ export const geolocationService = {
     return geolocationServiceInstance;
   },
   
-  // Proxy all methods to the lazy instance
-  canUseGeolocation(): boolean {
-    return this.instance.canUseGeolocation();
-  },
-  
-  getGeolocationUnavailableMessage(): string {
-    return this.instance.getGeolocationUnavailableMessage();
-  },
-  
-  async getCurrentPosition(): Promise<{ lat: number; lng: number } | null> {
-    return this.instance.getCurrentPosition();
-  },
-  
-  async reverseGeocode(lat: number, lng: number): Promise<LocationData | null> {
-    return this.instance.reverseGeocode(lat, lng);
-  },
-  
+  // Proxy methods to the lazy instance
   async searchLocation(query: string): Promise<LocationData[]> {
     return this.instance.searchLocation(query);
   },
@@ -369,4 +216,5 @@ export const geolocationService = {
     return this.instance.resetCircuitBreaker();
   }
 };
-export type { LocationData, GeolocationError };
+
+export type { LocationData };
