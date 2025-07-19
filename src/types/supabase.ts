@@ -16,7 +16,7 @@ export interface UserData {
   occupation?: string;
   bio?: string;
   avatarUrl?: string | null;
-  instagramHandle?: string;
+  
 }
 
 // Define the Profile type based on the Supabase profiles table
@@ -40,7 +40,7 @@ export const userDataToProfile = (userData: UserData, userId: string): ProfileIn
     occupation: userData.occupation,
     bio: userData.bio,
     avatar_url: userData.avatarUrl,
-    instagram_handle: userData.instagramHandle,
+    instagram_handle: null, // Remove Instagram functionality
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
@@ -82,8 +82,7 @@ export const profileToUserData = (profile: Profile): UserData => {
     fullAddress: profile.full_address || '',
     occupation: profile.occupation || '',
     bio: profile.bio || '',
-    avatarUrl: profile.avatar_url,
-    instagramHandle: profile.instagram_handle || ''
+    avatarUrl: profile.avatar_url
   };
 };
 

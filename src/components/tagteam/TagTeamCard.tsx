@@ -9,12 +9,10 @@ interface TagTeamCardProps {
   firstUser: {
     name: string;
     status: "completed" | "pending";
-    instagramHandle?: string;
   };
   secondUser: {
     name: string;
     status: "completed" | "pending";
-    instagramHandle?: string;
   };
   resetTime?: string;
   interest: string;

@@ -7,7 +7,7 @@ import { GoalSection } from "./GoalSection";
 import { CalendarSection } from "./CalendarSection";
 import { PartnerVerificationSection } from "./PartnerVerificationSection";
 import { LeaveTagTeamButton } from "./LeaveTagTeamButton";
-import { InstagramConnect } from "./InstagramConnect";
+
 import { EditGoalButton } from "./EditGoalButton";
 import { SheetHeader } from "./SheetHeader";
 import { TagTeam } from "@/types/tagteam";
@@ -23,14 +23,12 @@ interface TagTeamSheetContentProps {
     status: "completed" | "pending";
     goal?: string;
     id: string;
-    instagramHandle?: string;
   };
   partnerUser: {
     name: string;
     status: "completed" | "pending";
     goal?: string;
     id: string;
-    instagramHandle?: string;
   };
   activeGoal: string;
   setActiveGoal: (goal: string) => void;
@@ -148,12 +146,6 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
             />
           )}
         </div>
-        
-        <InstagramConnect
-          partnerName={partnerUser.name}
-          partnerInstagramHandle={partnerUser.instagramHandle}
-          currentUserName={currentUser.name}
-        />
         
         <CalendarSection 
           frequency={tagTeam.frequency}

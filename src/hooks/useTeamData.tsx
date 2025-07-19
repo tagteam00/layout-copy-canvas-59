@@ -49,7 +49,7 @@ export const useTeamData = (userId: string, userFullName: string) => {
           // Fetch partner profile
           const { data: partnerData } = await supabase
             .from('profiles')
-            .select('full_name, instagram_handle')
+            .select('full_name')
             .eq('id', partnerId)
             .single();
           
@@ -97,14 +97,14 @@ export const useTeamData = (userId: string, userFullName: string) => {
               name: userFullName,
               status: firstUserStatus,
               goal: "Will do Push pull legs the entire week, and take as much protien as I can", // Example goal
-              instagramHandle: currentUserData?.instagram_handle || ""
+              instagramHandle: ""
             },
             secondUser: {
               id: partnerId || "",
               name: partnerData?.full_name || "Partner",
               status: secondUserStatus,
               goal: "", // Empty goal for example
-              instagramHandle: partnerData?.instagram_handle || ""
+              instagramHandle: ""
             },
             interest: team.category,
             frequency: team.frequency,

@@ -23,7 +23,6 @@ const ProfilePage: React.FC = () => {
     occupation: "",
     bio: "",
     avatarUrl: null as string | null,
-    instagramHandle: ""
   });
   
   const { getUserData } = useUserData();
