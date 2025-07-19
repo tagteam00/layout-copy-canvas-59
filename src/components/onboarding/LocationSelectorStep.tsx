@@ -34,7 +34,7 @@ const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold">Where are you located?</h2>
         <p className="text-gray-600">
-          Help us connect you with nearby accountability partners
+          This helps us connect you with accountability partners in your area
         </p>
       </div>
 

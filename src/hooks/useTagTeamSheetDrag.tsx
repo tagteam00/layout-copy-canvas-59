@@ -9,75 +9,75 @@ export const useTagTeamSheetDrag = (
   const drawerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef<boolean>(false);
   
-  // Touch event handlers for custom drag behavior
+  // iOS-safe touch event handlers
   const handleTouchStart = (e: React.TouchEvent) => {
-    // Only start drag if touch is on header area
-    const target = e.target as HTMLElement;
-    const isHeaderArea = target.closest('[data-drag-handle]') || target.closest('h1, h2, h3');
-    
-    if (isHeaderArea || !target.closest('button, [role="button"], input, textarea')) {
-      startY.current = e.touches[0].clientY;
-      isDragging.current = false;
+    try {
+      const target = e.target as HTMLElement;
+      const isHeaderArea = target.closest('[data-drag-handle]') || target.closest('h1, h2, h3');
+      
+      if (isHeaderArea || !target.closest('button, [role="button"], input, textarea')) {
+        startY.current = e.touches[0].clientY;
+        isDragging.current = false;
+      }
+    } catch (error) {
+      console.warn('Touch start error:', error);
     }
   };
   
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!startY.current || !drawerRef.current) return;
-    
-    const currentY = e.touches[0].clientY;
-    const deltaY = currentY - startY.current;
-    
-    // Only consider it dragging if moved more than 10px
-    if (Math.abs(deltaY) > 10) {
-      isDragging.current = true;
-    }
-    
-    if (!isDragging.current) return;
-    
-    // Use container height instead of window height for iOS safety
-    const containerHeight = drawerRef.current.offsetHeight || 600; // fallback to reasonable default
-    const threshold = containerHeight * 0.25; // 25% threshold
-    
-    // Dragging down
-    if (deltaY > 0) {
-      // If dragged more than threshold, prepare to close
-      if (deltaY > threshold) {
-        setSheetHeight("50%");
-      } else {
-        // Otherwise keep at 75%
-        setSheetHeight("75%");
+    try {
+      if (!startY.current || !drawerRef.current) return;
+      
+      const currentY = e.touches[0].clientY;
+      const deltaY = currentY - startY.current;
+      
+      if (Math.abs(deltaY) > 10) {
+        isDragging.current = true;
       }
-    } 
-    // Dragging up - expand to full screen
-    else if (deltaY < -50) {
-      setSheetHeight("90%");
+      
+      if (!isDragging.current) return;
+      
+      const containerHeight = drawerRef.current.offsetHeight || 600;
+      const threshold = containerHeight * 0.25;
+      
+      if (deltaY > 0) {
+        if (deltaY > threshold) {
+          setSheetHeight("50%");
+        } else {
+          setSheetHeight("75%");
+        }
+      } else if (deltaY < -50) {
+        setSheetHeight("90%");
+      }
+    } catch (error) {
+      console.warn('Touch move error:', error);
     }
   };
   
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!startY.current || !drawerRef.current) return;
-    
-    const currentY = e.changedTouches[0].clientY;
-    const deltaY = currentY - startY.current;
-    const containerHeight = drawerRef.current.offsetHeight || 600; // fallback to reasonable default
-    const threshold = containerHeight * 0.25; // 25% threshold
-    
-    // Only close or adjust if we were actually dragging
-    if (isDragging.current) {
-      // If dragged more than threshold down, close the drawer
-      if (deltaY > threshold) {
-        onClose();
-      } else if (deltaY < -50) {
-        // If dragged significantly upward, expand to full
-        setSheetHeight("90%");
-      } else {
-        // Reset to default height
-        setSheetHeight("75%");
+    try {
+      if (!startY.current || !drawerRef.current) return;
+      
+      const currentY = e.changedTouches[0].clientY;
+      const deltaY = currentY - startY.current;
+      const containerHeight = drawerRef.current.offsetHeight || 600;
+      const threshold = containerHeight * 0.25;
+      
+      if (isDragging.current) {
+        if (deltaY > threshold) {
+          onClose();
+        } else if (deltaY < -50) {
+          setSheetHeight("90%");
+        } else {
+          setSheetHeight("75%");
+        }
       }
+      
+      startY.current = null;
+      isDragging.current = false;
+    } catch (error) {
+      console.warn('Touch end error:', error);
     }
-    
-    startY.current = null;
-    isDragging.current = false;
   };
   
   return {
