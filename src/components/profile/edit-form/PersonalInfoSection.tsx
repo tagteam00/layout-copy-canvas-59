@@ -92,11 +92,11 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
       </div>
       
       <div>
-        <Label className="text-sm font-medium mb-2 block">Instagram Handle</Label>
+        <Label className="text-sm font-medium mb-2 block">Instagram Profile</Label>
         <Input
           value={instagramHandle}
           onChange={(e) => onInputChange("instagramHandle", e.target.value)}
-          placeholder="Enter your Instagram handle (without @)"
+          placeholder="https://instagram.com/yourusername"
           className="w-full border border-[rgba(130,122,255,0.41)] rounded-xl"
         />
       </div>
