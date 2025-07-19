@@ -1,145 +1,115 @@
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, Search, Loader2, AlertCircle, RefreshCw, Info, Shield } from "lucide-react";
+import { MapPin, Search, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import { geolocationService, LocationData, GeolocationError } from "@/services/geolocationService";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+
+interface LocationData {
+  city: string;
+  state?: string;
+  country: string;
+  coordinates?: { lat: number; lng: number };
+  fullAddress?: string;
+}
 
 interface LocationSelectorStepProps {
   onSubmit: (data: LocationData) => void;
   onBack: () => void;
 }
 
-interface LocationState {
-  isDetecting: boolean;
-  isSearching: boolean;
-  searchValue: string;
-  selectedLocation: LocationData | null;
-  searchResults: LocationData[];
-  showResults: boolean;
-  error: string | null;
-  permissionDenied: boolean;
-  canUseGeolocation: boolean;
-}
+// Fallback cities for search
+const fallbackCities: LocationData[] = [
+  { city: "New York", state: "NY", country: "United States" },
+  { city: "Los Angeles", state: "CA", country: "United States" },
+  { city: "Chicago", state: "IL", country: "United States" },
+  { city: "Houston", state: "TX", country: "United States" },
+  { city: "Phoenix", state: "AZ", country: "United States" },
+  { city: "Philadelphia", state: "PA", country: "United States" },
+  { city: "San Antonio", state: "TX", country: "United States" },
+  { city: "San Diego", state: "CA", country: "United States" },
+  { city: "Dallas", state: "TX", country: "United States" },
+  { city: "San Jose", state: "CA", country: "United States" },
+  { city: "London", country: "United Kingdom" },
+  { city: "Manchester", country: "United Kingdom" },
+  { city: "Birmingham", country: "United Kingdom" },
+  { city: "Glasgow", country: "Scotland" },
+  { city: "Toronto", country: "Canada" },
+  { city: "Vancouver", country: "Canada" },
+  { city: "Montreal", country: "Canada" },
+  { city: "Sydney", country: "Australia" },
+  { city: "Melbourne", country: "Australia" },
+  { city: "Brisbane", country: "Australia" },
+  { city: "Mumbai", country: "India" },
+  { city: "Delhi", country: "India" },
+  { city: "Bangalore", country: "India" },
+  { city: "Hyderabad", country: "India" },
+  { city: "Chennai", country: "India" },
+  { city: "Kolkata", country: "India" },
+  { city: "Pune", country: "India" },
+  { city: "Ahmedabad", country: "India" },
+  { city: "Tokyo", country: "Japan" },
+  { city: "Osaka", country: "Japan" },
+  { city: "Berlin", country: "Germany" },
+  { city: "Munich", country: "Germany" },
+  { city: "Paris", country: "France" },
+  { city: "Lyon", country: "France" },
+  { city: "Madrid", country: "Spain" },
+  { city: "Barcelona", country: "Spain" },
+  { city: "Rome", country: "Italy" },
+  { city: "Milan", country: "Italy" }
+];
 
 export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSubmit, onBack }) => {
-  const [state, setState] = useState<LocationState>({
-    isDetecting: false,
-    isSearching: false,
-    searchValue: "",
-    selectedLocation: null,
-    searchResults: [],
-    showResults: false,
-    error: null,
-    permissionDenied: false,
-    canUseGeolocation: false // Will be set in useEffect
-  });
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null);
+  const [searchResults, setSearchResults] = useState<LocationData[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Simple geolocation availability check
-  useEffect(() => {
-    console.log('[LocationSelectorStep] Component mounted');
-    
-    // Simple feature detection without problematic security context calls
-    const hasGeolocation = 'geolocation' in navigator;
-    const isHttps = window.location.protocol === 'https:';
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                       window.location.hostname === '127.0.0.1';
-    
-    const canUse = hasGeolocation && (isHttps || isLocalhost);
-    
-    console.log('[LocationSelectorStep] Simple geolocation check:', {
-      hasGeolocation,
-      isHttps,
-      isLocalhost,
-      canUse
-    });
-    
-    setState(prev => ({ ...prev, canUseGeolocation: canUse }));
-    
-    if (!canUse) {
-      let message = "Location detection is not available. ";
-      if (!hasGeolocation) {
-        message += "Your browser doesn't support location detection.";
-      } else {
-        message += "Please use the search function instead.";
-      }
-      setState(prev => ({ 
-        ...prev, 
-        error: message
-      }));
-    }
-  }, []);
-
-  const handleLocationSearch = async (query: string) => {
+  const handleLocationSearch = (query: string) => {
     if (!query.trim()) {
-      setState(prev => ({ 
-        ...prev, 
-        searchResults: [], 
-        showResults: false,
-        error: null 
-      }));
+      setSearchResults([]);
+      setShowResults(false);
+      setError(null);
       return;
     }
 
-    console.log('[LocationSelectorStep] Starting location search for:', query);
-    setState(prev => ({ ...prev, isSearching: true, error: null }));
+    console.log('[LocationSelectorStep] Searching for:', query);
+    setIsSearching(true);
+    setError(null);
     
-    try {
-      const results = await geolocationService.searchLocation(query);
-      console.log('[LocationSelectorStep] Search results received:', results);
+    // Simple local search through fallback cities
+    const matchedCities = fallbackCities.filter(city => 
+      city.city.toLowerCase().includes(query.toLowerCase()) ||
+      city.country.toLowerCase().includes(query.toLowerCase()) ||
+      (city.state && city.state.toLowerCase().includes(query.toLowerCase()))
+    );
+    
+    setTimeout(() => {
+      console.log('[LocationSelectorStep] Search results:', matchedCities);
       
-      if (results.length > 0) {
-        setState(prev => ({
-          ...prev,
-          searchResults: results,
-          showResults: true,
-          isSearching: false,
-          error: null
-        }));
+      setSearchResults(matchedCities);
+      setShowResults(true);
+      setIsSearching(false);
+      
+      if (matchedCities.length === 0) {
+        setError("No locations found. Try a different search term.");
+        toast.error("Location not found. Please try a different search term.");
       } else {
-        console.log('[LocationSelectorStep] No API results, trying fallback cities');
-        const fallbackCities = geolocationService.getFallbackCities();
-        const matchedCities = fallbackCities.filter(city => 
-          city.city.toLowerCase().includes(query.toLowerCase()) ||
-          city.country.toLowerCase().includes(query.toLowerCase()) ||
-          (city.state && city.state.toLowerCase().includes(query.toLowerCase()))
-        );
-        
-        console.log('[LocationSelectorStep] Fallback cities matched:', matchedCities);
-        
-        setState(prev => ({
-          ...prev,
-          searchResults: matchedCities,
-          showResults: true,
-          isSearching: false,
-          error: matchedCities.length === 0 ? "No locations found. Try a different search term." : null
-        }));
-        
-        if (matchedCities.length === 0) {
-          toast.error("Location not found. Please try a different search term.");
-        }
+        setError(null);
       }
-    } catch (error) {
-      console.error('[LocationSelectorStep] Search error:', error);
-      setState(prev => ({
-        ...prev,
-        isSearching: false,
-        searchResults: [],
-        showResults: false,
-        error: "Search failed. Please try again or check your connection."
-      }));
-      toast.error("Search failed. Please try again.");
-    }
+    }, 300); // Simulate search delay
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setState(prev => ({ ...prev, searchValue: value, error: null }));
+    setSearchValue(value);
+    setError(null);
     
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
@@ -154,102 +124,40 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
     console.log('[LocationSelectorStep] Location selected:', location);
     const displayText = `${location.city}${location.state ? `, ${location.state}` : ''}, ${location.country}`;
     
-    setState(prev => ({
-      ...prev,
-      selectedLocation: location,
-      searchValue: displayText,
-      showResults: false,
-      searchResults: [],
-      error: null
-    }));
+    setSelectedLocation(location);
+    setSearchValue(displayText);
+    setShowResults(false);
+    setSearchResults([]);
+    setError(null);
     
     toast.success("Location selected!");
   };
 
-  const getCurrentLocation = async () => {
-    if (!state.canUseGeolocation) {
-      toast.error("Location detection is not available.");
-      return;
-    }
-
-    console.log('[LocationSelectorStep] Getting current location...');
-    
-    setState(prev => ({ 
-      ...prev, 
-      isDetecting: true, 
-      error: null,
-      permissionDenied: false 
-    }));
-    
-    try {
-      const coordinates = await geolocationService.getCurrentPosition();
-      
-      if (!coordinates) {
-        throw new Error("Could not determine your location");
-      }
-      
-      console.log('[LocationSelectorStep] Coordinates obtained, reverse geocoding...');
-      
-      const locationData = await geolocationService.reverseGeocode(coordinates.lat, coordinates.lng);
-      
-      if (locationData) {
-        console.log('[LocationSelectorStep] Location data obtained:', locationData);
-        selectLocation(locationData);
-        toast.success("Current location detected!");
-      } else {
-        console.error('[LocationSelectorStep] Reverse geocoding failed');
-        throw new Error("Could not determine location details");
-      }
-      
-    } catch (error: any) {
-      console.error('[LocationSelectorStep] Location detection error:', error);
-      
-      const isPermissionError = error.message.includes('denied') || error.message.includes('permissions');
-      
-      setState(prev => ({
-        ...prev,
-        error: error.message,
-        permissionDenied: isPermissionError
-      }));
-      
-      toast.error(error.message);
-    } finally {
-      setState(prev => ({ ...prev, isDetecting: false }));
-    }
-  };
-
   const handleSubmit = () => {
-    if (!state.selectedLocation) {
+    if (!selectedLocation) {
       toast.error("Please select a location first.");
       return;
     }
     
-    console.log('[LocationSelectorStep] Submitting location:', state.selectedLocation);
-    onSubmit(state.selectedLocation);
+    console.log('[LocationSelectorStep] Submitting location:', selectedLocation);
+    onSubmit(selectedLocation);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && state.searchResults.length > 0) {
+    if (e.key === 'Enter' && searchResults.length > 0) {
       e.preventDefault();
-      selectLocation(state.searchResults[0]);
+      selectLocation(searchResults[0]);
     }
     if (e.key === 'Escape') {
-      setState(prev => ({ ...prev, showResults: false }));
+      setShowResults(false);
     }
-  };
-
-  const retryService = () => {
-    console.log('[LocationSelectorStep] Retrying service...');
-    geolocationService.resetCircuitBreaker();
-    setState(prev => ({ ...prev, error: null }));
-    toast.success("Service reset. You can try again now.");
   };
 
   // Close results when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (inputRef.current && !inputRef.current.contains(event.target as Node)) {
-        setState(prev => ({ ...prev, showResults: false }));
+        setShowResults(false);
       }
     };
 
@@ -264,40 +172,12 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
         <p className="text-gray-600 text-sm">This helps us connect you with nearby partners</p>
       </div>
 
-      {/* Location unavailable warning */}
-      {!state.canUseGeolocation && (
-        <Alert>
-          <Shield className="h-4 w-4" />
-          <AlertDescription>
-            Location detection is not available. Please use the search function to find your location.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Permission instructions */}
-      {state.permissionDenied && (
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertDescription>
-            To use location detection, please enable location permissions in your browser settings and refresh the page.
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Error display */}
-      {state.error && !state.permissionDenied && !state.error.includes('HTTPS') && !state.error.includes('secure') && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="flex items-center justify-between">
-            <span>{state.error}</span>
-            {!geolocationService.isServiceHealthy() && (
-              <Button variant="outline" size="sm" onClick={retryService}>
-                <RefreshCw className="h-3 w-3 mr-1" />
-                Reset
-              </Button>
-            )}
-          </AlertDescription>
-        </Alert>
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center">
+          <AlertCircle className="h-4 w-4 text-red-500 mr-2" />
+          <span className="text-red-700 text-sm">{error}</span>
+        </div>
       )}
 
       <div className="space-y-4">
@@ -307,20 +187,20 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
             ref={inputRef}
             type="text"
             placeholder="Search for your city..."
-            value={state.searchValue}
+            value={searchValue}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             className="pl-10 border border-[rgba(130,122,255,0.41)] rounded-xl"
-            disabled={state.isDetecting || state.isSearching}
+            disabled={isSearching}
           />
-          {state.isSearching && (
+          {isSearching && (
             <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 animate-spin" />
           )}
           
           {/* Search Results Dropdown */}
-          {state.showResults && state.searchResults.length > 0 && (
+          {showResults && searchResults.length > 0 && (
             <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-              {state.searchResults.map((location, index) => (
+              {searchResults.map((location, index) => (
                 <button
                   key={index}
                   className="w-full text-left px-4 py-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
@@ -336,49 +216,15 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
           )}
         </div>
 
-        {/* Only show location button if geolocation is available */}
-        {state.canUseGeolocation && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={getCurrentLocation}
-            disabled={state.isDetecting || state.isSearching}
-            className="w-full"
-          >
-            {state.isDetecting ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Detecting Location...
-              </>
-            ) : (
-              <>
-                <MapPin className="h-4 w-4 mr-2" />
-                Use Current Location
-              </>
-            )}
-          </Button>
-        )}
-
-        {state.selectedLocation && (
+        {selectedLocation && (
           <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-center">
               <MapPin className="h-5 w-5 text-green-600 mr-2" />
               <div>
                 <p className="font-medium text-green-800">
-                  {state.selectedLocation.city}
-                  {state.selectedLocation.state && `, ${state.selectedLocation.state}`}, {state.selectedLocation.country}
+                  {selectedLocation.city}
+                  {selectedLocation.state && `, ${selectedLocation.state}`}, {selectedLocation.country}
                 </p>
-                {state.selectedLocation.coordinates && (
-                  <p className="text-sm text-green-600">
-                    Lat: {state.selectedLocation.coordinates.lat.toFixed(4)}, 
-                    Lng: {state.selectedLocation.coordinates.lng.toFixed(4)}
-                  </p>
-                )}
-                {state.selectedLocation.fullAddress && (
-                  <p className="text-xs text-green-500 mt-1 truncate">
-                    {state.selectedLocation.fullAddress}
-                  </p>
-                )}
               </div>
             </div>
           </div>
@@ -391,7 +237,7 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
         </Button>
         <Button 
           onClick={handleSubmit} 
-          disabled={!state.selectedLocation || state.isDetecting || state.isSearching}
+          disabled={!selectedLocation || isSearching}
           className="bg-black text-white hover:bg-black/90"
         >
           Next

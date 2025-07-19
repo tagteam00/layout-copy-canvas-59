@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -22,7 +23,6 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { lazy, Suspense } from "react";
 import { toast } from "sonner";
 import AuthCallback from "./pages/auth/Callback";
-import { getSecurityContext } from "@/utils/securityUtils";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,7 +33,7 @@ const queryClient = new QueryClient({
   }
 });
 
-// Enhanced error boundary with security-specific error handling
+// Simplified error boundary without security context checks
 interface ErrorBoundaryProps {
   children: React.ReactNode;
 }
@@ -41,68 +41,39 @@ interface ErrorBoundaryProps {
 interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
-  isSecurityError: boolean;
 }
 
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  state: ErrorBoundaryState = { hasError: false, error: null, isSecurityError: false };
+  state: ErrorBoundaryState = { hasError: false, error: null };
   
   static getDerivedStateFromError(error: Error) {
-    const isSecurityError = error.message.includes('insecure') || 
-                           error.message.includes('HTTPS') || 
-                           error.message.includes('secure context') ||
-                           error.message.includes('operation is insecure');
-    
-    return { hasError: true, error, isSecurityError };
+    return { hasError: true, error };
   }
   
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error("Error caught by boundary:", error, info);
-    
-    // Log security context for debugging
-    if (this.state.isSecurityError) {
-      console.error("Security context:", getSecurityContext());
-    }
   }
   
   render() {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4">
-          <div className={`p-6 rounded-lg shadow-sm max-w-md ${
-            this.state.isSecurityError ? 'bg-yellow-50 border border-yellow-200' : 'bg-red-50'
-          }`}>
-            <h2 className={`text-xl font-semibold mb-2 ${
-              this.state.isSecurityError ? 'text-yellow-800' : 'text-red-800'
-            }`}>
-              {this.state.isSecurityError ? 'Security Notice' : 'Something went wrong'}
+          <div className="p-6 rounded-lg shadow-sm max-w-md bg-red-50 border border-red-200">
+            <h2 className="text-xl font-semibold mb-2 text-red-800">
+              Something went wrong
             </h2>
-            <p className={`mb-4 ${
-              this.state.isSecurityError ? 'text-yellow-700' : 'text-red-700'
-            }`}>
-              {this.state.isSecurityError ? 
-                'Some features require a secure connection (HTTPS). The app will continue to work, but location detection may be unavailable.' :
-                (this.state.error?.message || "An unexpected error occurred")
-              }
+            <p className="mb-4 text-red-700">
+              {this.state.error?.message || "An unexpected error occurred"}
             </p>
             <button 
-              className={`px-4 py-2 rounded-md transition-colors ${
-                this.state.isSecurityError ? 
-                'bg-yellow-600 text-white hover:bg-yellow-700' : 
-                'bg-red-600 text-white hover:bg-red-700'
-              }`}
+              className="px-4 py-2 rounded-md transition-colors bg-red-600 text-white hover:bg-red-700"
               onClick={() => {
-                this.setState({ hasError: false, error: null, isSecurityError: false });
-                if (this.state.isSecurityError) {
-                  // For security errors, just reload the component
-                  window.location.reload();
-                } else {
-                  // For other errors, go home
-                  window.location.href = "/";
-                }
+                this.setState({ hasError: false, error: null });
+                // Simple page reload without window.location
+                document.location.href = "/";
               }}
             >
-              {this.state.isSecurityError ? 'Continue' : 'Return Home'}
+              Return Home
             </button>
           </div>
         </div>
