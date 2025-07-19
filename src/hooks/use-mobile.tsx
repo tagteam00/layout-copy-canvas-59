@@ -5,26 +5,35 @@ export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean>(false)
 
   React.useEffect(() => {
-    // Use CSS media query approach that's safer for iOS
+    // Use CSS media query approach without document APIs
+    const mediaQuery = matchMedia('(max-width: 767px)');
+    
     const checkIsMobile = () => {
-      // Simple viewport width check without window APIs
-      const viewportWidth = document.documentElement.clientWidth;
-      setIsMobile(viewportWidth < 768);
+      setIsMobile(mediaQuery.matches);
     };
 
     // Initial check
     checkIsMobile();
 
-    // Create ResizeObserver for safer resize detection
-    const resizeObserver = new ResizeObserver(() => {
-      checkIsMobile();
-    });
+    // Listen for changes using MediaQueryList
+    const handleChange = (e: MediaQueryListEvent) => {
+      setIsMobile(e.matches);
+    };
 
-    // Observe the document element
-    resizeObserver.observe(document.documentElement);
+    try {
+      mediaQuery.addEventListener('change', handleChange);
+    } catch (error) {
+      // Fallback for older browsers
+      mediaQuery.addListener(handleChange);
+    }
 
     return () => {
-      resizeObserver.disconnect();
+      try {
+        mediaQuery.removeEventListener('change', handleChange);
+      } catch (error) {
+        // Fallback for older browsers
+        mediaQuery.removeListener(handleChange);
+      }
     };
   }, []);
 

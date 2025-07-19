@@ -37,14 +37,14 @@ export const InstagramConnect: React.FC<InstagramConnectProps> = ({
 
   const handleConnect = () => {
     const instagramUrl = getInstagramUrl(partnerInstagramHandle);
-    // Create a link element and click it - safer for iOS
-    const link = document.createElement('a');
-    link.href = instagramUrl;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Use direct window.open - safer for iOS than DOM manipulation
+    try {
+      window.open(instagramUrl, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      // Fallback: try to navigate in same window if popup blocked
+      console.log('Popup blocked, attempting same-window navigation');
+      window.location.href = instagramUrl;
+    }
   };
 
   return (
