@@ -88,13 +88,8 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
               }`}
               onClick={() => {
                 this.setState({ hasError: false, error: null, isSecurityError: false });
-                if (this.state.isSecurityError) {
-                  // For security errors, just reload the component
-                  window.location.reload();
-                } else {
-                  // For other errors, go home
-                  window.location.href = "/";
-                }
+                // For any errors, just reload the page
+                window.location.assign('/');
               }}
             >
               {this.state.isSecurityError ? 'Continue' : 'Return Home'}
