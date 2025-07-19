@@ -42,16 +42,48 @@ class GeolocationService {
   private readonly RETRY_DELAY_MS = 2000;
   private failureCount = 0;
   private readonly CIRCUIT_BREAKER_THRESHOLD = 5;
-  private securityContext = getSecurityContext();
+  private securityContext: any = null;
 
   constructor() {
-    // Update security context on initialization
-    this.securityContext = getSecurityContext();
+    // Security context will be initialized lazily when needed
+  }
+
+  // Lazy initialize security context
+  private getSecurityContext() {
+    if (!this.securityContext) {
+      try {
+        // Only check security context when actually needed
+        if (typeof window !== 'undefined') {
+          this.securityContext = getSecurityContext();
+        } else {
+          // Fallback for server-side rendering or tests
+          this.securityContext = {
+            isHttps: false,
+            isSecureContext: false,
+            isLocalhost: false,
+            isDevelopment: false,
+            canUseGeolocation: false
+          };
+        }
+      } catch (error) {
+        console.warn('[GeolocationService] Failed to get security context:', error);
+        // Fallback security context
+        this.securityContext = {
+          isHttps: false,
+          isSecureContext: false,
+          isLocalhost: false,
+          isDevelopment: false,
+          canUseGeolocation: false
+        };
+      }
+    }
+    return this.securityContext;
   }
 
   // Check if geolocation is available and secure
   canUseGeolocation(): boolean {
-    return this.securityContext.canUseGeolocation && 'geolocation' in navigator;
+    const context = this.getSecurityContext();
+    return context.canUseGeolocation && 'geolocation' in navigator;
   }
 
   // Get appropriate error message for geolocation unavailability
@@ -59,7 +91,8 @@ class GeolocationService {
     if (!('geolocation' in navigator)) {
       return "Your browser doesn't support location detection.";
     }
-    return getGeolocationErrorMessage(this.securityContext);
+    const context = this.getSecurityContext();
+    return getGeolocationErrorMessage(context);
   }
 
   // Enhanced rate limiting with exponential backoff
@@ -306,5 +339,48 @@ class GeolocationService {
   }
 }
 
-export const geolocationService = new GeolocationService();
+// Lazy initialization - only create instance when actually used
+let geolocationServiceInstance: GeolocationService | null = null;
+
+export const geolocationService = {
+  get instance(): GeolocationService {
+    if (!geolocationServiceInstance) {
+      geolocationServiceInstance = new GeolocationService();
+    }
+    return geolocationServiceInstance;
+  },
+  
+  // Proxy all methods to the lazy instance
+  canUseGeolocation(): boolean {
+    return this.instance.canUseGeolocation();
+  },
+  
+  getGeolocationUnavailableMessage(): string {
+    return this.instance.getGeolocationUnavailableMessage();
+  },
+  
+  async getCurrentPosition(): Promise<{ lat: number; lng: number } | null> {
+    return this.instance.getCurrentPosition();
+  },
+  
+  async reverseGeocode(lat: number, lng: number): Promise<LocationData | null> {
+    return this.instance.reverseGeocode(lat, lng);
+  },
+  
+  async searchLocation(query: string): Promise<LocationData[]> {
+    return this.instance.searchLocation(query);
+  },
+  
+  getFallbackCities(): LocationData[] {
+    return this.instance.getFallbackCities();
+  },
+  
+  isServiceHealthy(): boolean {
+    return this.instance.isServiceHealthy();
+  },
+  
+  resetCircuitBreaker(): void {
+    return this.instance.resetCircuitBreaker();
+  }
+};
 export type { LocationData, GeolocationError };
