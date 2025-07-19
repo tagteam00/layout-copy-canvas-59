@@ -22,7 +22,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { lazy, Suspense } from "react";
 import { toast } from "sonner";
 import AuthCallback from "./pages/auth/Callback";
-import { getSecurityContext } from "@/utils/securityUtils";
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,11 +58,6 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error("Error caught by boundary:", error, info);
-    
-    // Log security context for debugging
-    if (this.state.isSecurityError) {
-      console.error("Security context:", getSecurityContext());
-    }
   }
   
   render() {
