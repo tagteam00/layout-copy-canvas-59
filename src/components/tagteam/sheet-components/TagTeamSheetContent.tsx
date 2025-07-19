@@ -72,7 +72,8 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
                                 target.closest('[role="button"]') ||
                                 target.closest('input') ||
                                 target.closest('textarea') ||
-                                target.closest('.touch-none');
+                                target.closest('.touch-none') ||
+                                target.closest('a'); // Add anchor tags to interactive elements
     
     if (!isInteractiveElement) {
       handleTouchStart(e);
@@ -86,7 +87,8 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
                                 target.closest('[role="button"]') ||
                                 target.closest('input') ||
                                 target.closest('textarea') ||
-                                target.closest('.touch-none');
+                                target.closest('.touch-none') ||
+                                target.closest('a'); // Add anchor tags to interactive elements
     
     if (!isInteractiveElement) {
       handleTouchMove(e);
@@ -100,7 +102,8 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
                                 target.closest('[role="button"]') ||
                                 target.closest('input') ||
                                 target.closest('textarea') ||
-                                target.closest('.touch-none');
+                                target.closest('.touch-none') ||
+                                target.closest('a'); // Add anchor tags to interactive elements
     
     if (!isInteractiveElement) {
       handleTouchEnd(e);
@@ -149,11 +152,14 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
           )}
         </div>
         
-        <InstagramConnect
-          partnerName={partnerUser.name}
-          partnerInstagramHandle={partnerUser.instagramHandle}
-          currentUserName={currentUser.name}
-        />
+        {/* Instagram Connect - now with touch-none to prevent drag interference */}
+        <div className="touch-none">
+          <InstagramConnect
+            partnerName={partnerUser.name}
+            partnerInstagramHandle={partnerUser.instagramHandle}
+            currentUserName={currentUser.name}
+          />
+        </div>
         
         <CalendarSection 
           frequency={tagTeam.frequency}
