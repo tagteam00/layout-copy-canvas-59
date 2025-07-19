@@ -35,15 +35,7 @@ export const InstagramConnect: React.FC<InstagramConnectProps> = ({
     return null;
   }
 
-  const handleConnect = () => {
-    const instagramUrl = getInstagramUrl(partnerInstagramHandle);
-    // iOS-safe navigation - create link element and click it
-    const link = document.createElement('a');
-    link.href = instagramUrl;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.click();
-  };
+  const instagramUrl = getInstagramUrl(partnerInstagramHandle);
 
   return (
     <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 mb-4">
@@ -61,13 +53,14 @@ export const InstagramConnect: React.FC<InstagramConnectProps> = ({
             </p>
           </div>
         </div>
-        <Button
-          onClick={handleConnect}
-          size="sm"
-          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium px-4 py-2 rounded-lg"
+        <a
+          href={instagramUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium px-4 py-2 rounded-lg text-sm no-underline inline-flex items-center justify-center"
         >
           Connect
-        </Button>
+        </a>
       </div>
     </div>
   );
