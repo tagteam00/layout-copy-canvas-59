@@ -296,7 +296,15 @@ export type Database = {
       }
     }
     Enums: {
-      interest_category: "fitness" | "arts"
+      interest_category:
+        | "fitness"
+        | "arts"
+        | "tech_gaming"
+        | "lifestyle_wellness"
+        | "science_learning"
+        | "culinary_foods"
+        | "collecting"
+        | "social_entertainment"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -424,7 +432,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      interest_category: ["fitness", "arts"],
+      interest_category: [
+        "fitness",
+        "arts",
+        "tech_gaming",
+        "lifestyle_wellness",
+        "science_learning",
+        "culinary_foods",
+        "collecting",
+        "social_entertainment",
+      ],
     },
   },
 } as const
