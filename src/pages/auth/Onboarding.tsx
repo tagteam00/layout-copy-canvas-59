@@ -103,9 +103,9 @@ const Onboarding: React.FC = () => {
         setProfileImage(data.profileImage);
       }
       
-      const success = await saveUserData(finalFormData, data.profileImage || null);
+      const result = await saveUserData(finalFormData, data.profileImage || null);
       
-      if (success) {
+      if (result.success) {
         toast.success("Profile saved successfully!");
         
         // Update onboarding status in the auth context
@@ -116,7 +116,14 @@ const Onboarding: React.FC = () => {
         // Navigate to the home page
         navigate("/home", { replace: true });
       } else {
-        toast.error("Failed to save profile. Please try again.");
+        // Handle specific error types
+        if (result.errorType === 'username_taken') {
+          toast.error(result.error || "Username is already taken");
+          // Go back to step 1 to allow username change
+          setStep(1);
+        } else {
+          toast.error(result.error || "Failed to save profile. Please try again.");
+        }
       }
     } catch (error) {
       console.error("Error saving profile:", error);
