@@ -7,7 +7,6 @@ import { GoalSection } from "./GoalSection";
 import { CalendarSection } from "./CalendarSection";
 import { PartnerVerificationSection } from "./PartnerVerificationSection";
 import { LeaveTagTeamButton } from "./LeaveTagTeamButton";
-import { InstagramConnect } from "./InstagramConnect";
 import { EditGoalButton } from "./EditGoalButton";
 import { SheetHeader } from "./SheetHeader";
 import { TagTeam } from "@/types/tagteam";
@@ -23,14 +22,12 @@ interface TagTeamSheetContentProps {
     status: "completed" | "pending";
     goal?: string;
     id: string;
-    instagramHandle?: string;
   };
   partnerUser: {
     name: string;
     status: "completed" | "pending";
     goal?: string;
     id: string;
-    instagramHandle?: string;
   };
   activeGoal: string;
   setActiveGoal: (goal: string) => void;
@@ -72,8 +69,7 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
                                 target.closest('[role="button"]') ||
                                 target.closest('input') ||
                                 target.closest('textarea') ||
-                                target.closest('.touch-none') ||
-                                target.closest('a'); // Add anchor tags to interactive elements
+                                target.closest('.touch-none');
     
     if (!isInteractiveElement) {
       handleTouchStart(e);
@@ -87,8 +83,7 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
                                 target.closest('[role="button"]') ||
                                 target.closest('input') ||
                                 target.closest('textarea') ||
-                                target.closest('.touch-none') ||
-                                target.closest('a'); // Add anchor tags to interactive elements
+                                target.closest('.touch-none');
     
     if (!isInteractiveElement) {
       handleTouchMove(e);
@@ -102,8 +97,7 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
                                 target.closest('[role="button"]') ||
                                 target.closest('input') ||
                                 target.closest('textarea') ||
-                                target.closest('.touch-none') ||
-                                target.closest('a'); // Add anchor tags to interactive elements
+                                target.closest('.touch-none');
     
     if (!isInteractiveElement) {
       handleTouchEnd(e);
@@ -150,15 +144,6 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
               needsNewGoal={needsNewGoal}
             />
           )}
-        </div>
-        
-        {/* Instagram Connect - now with touch-none to prevent drag interference */}
-        <div className="touch-none">
-          <InstagramConnect
-            partnerName={partnerUser.name}
-            partnerInstagramHandle={partnerUser.instagramHandle}
-            currentUserName={currentUser.name}
-          />
         </div>
         
         <CalendarSection 

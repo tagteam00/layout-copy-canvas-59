@@ -32,7 +32,6 @@ interface EditProfileSheetProps {
     avatarUrl?: string | null;
     fullAddress?: string;
     coordinates?: { lat: number; lng: number };
-    instagramHandle?: string;
   };
   onProfileUpdate: () => void;
 }
@@ -83,8 +82,7 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
         bio: formData.bio,
         avatarUrl: formData.avatarUrl,
         fullAddress: formData.fullAddress,
-        coordinates: formData.coordinates,
-        instagramHandle: formData.instagramHandle
+        coordinates: formData.coordinates
       }, profileImage);
       
       if (success) {
@@ -126,7 +124,6 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
             country={formData.country}
             occupation={formData.occupation}
             fullAddress={formData.fullAddress}
-            instagramHandle={formData.instagramHandle}
             onInputChange={handleInputChange}
           />
           <BioSection 

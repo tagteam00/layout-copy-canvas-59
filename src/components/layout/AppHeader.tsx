@@ -117,7 +117,7 @@ export const AppHeader = () => {
   return (
     <div className="pt-[20px] pb-[11px] px-[15px] border-b py-[21px]">
       <div className="flex w-full items-center justify-between">
-        <Link to={user ? "/home" : "/"}>
+        <Link to="/">
           <img src="https://cdn.builder.io/api/v1/image/assets/579c825d05dd49c6a1b702d151caec64/0d01db784baab711236c04557204350e8d25d164" alt="TagTeam Logo" className="aspect-[3.27] object-contain w-[124px]" />
         </Link>
         <div className="relative">

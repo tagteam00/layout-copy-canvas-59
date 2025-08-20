@@ -22,9 +22,9 @@ const WelcomeScreen: React.FC = () => {
     else if (user && !hasCompletedOnboarding) {
       navigate('/onboarding');
     } 
-    // Otherwise go to signin (for returning users)
+    // Otherwise go to signup
     else {
-      navigate('/signin');
+      navigate('/signup');
     }
   };
 

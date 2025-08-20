@@ -30,18 +30,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Clear corrupted auth cache - iOS-safe version
-  const clearAuthCache = async () => {
-    try {
-      // Only use Supabase auth clearing - no direct storage access
-      await supabase.auth.signOut();
-      
-      console.log("Auth cache cleared");
-    } catch (error) {
-      console.error("Error clearing auth cache:", error);
-    }
-  };
-
   // Function to safely check profile completion
   const checkProfileCompletion = async (userId: string) => {
     try {
@@ -66,20 +54,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     console.log("AuthProvider initialized");
     let authListener: { subscription: { unsubscribe: () => void } };
-    
-    // Clear any corrupted auth cache on app load
-    const initializeAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error && (error.message.includes('Invalid') || error.message.includes('expired'))) {
-          console.log("Detected corrupted session, clearing cache");
-          await clearAuthCache();
-        }
-      } catch (error) {
-        console.error("Error during auth initialization:", error);
-        await clearAuthCache();
-      }
-    };
     
     const setupAuthListener = () => {
       // Set up the auth state listener
@@ -149,11 +123,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    // Initialize auth, set up listener, then check for existing session
-    initializeAuth().then(() => {
-      setupAuthListener();
-      checkExistingSession();
-    });
+    // First set up the listener, then check for existing session
+    setupAuthListener();
+    checkExistingSession();
 
     return () => {
       if (authListener?.subscription) {

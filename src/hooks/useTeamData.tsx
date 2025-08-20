@@ -39,17 +39,10 @@ export const useTeamData = (userId: string, userFullName: string) => {
           // Get the partner ID (the other member that is not the current user)
           const partnerId = team.members.find((id: string) => id !== userId);
           
-          // Fetch current user profile for instagram handle
-          const { data: currentUserData } = await supabase
-            .from('profiles')
-            .select('instagram_handle')
-            .eq('id', userId)
-            .single();
-          
           // Fetch partner profile
           const { data: partnerData } = await supabase
             .from('profiles')
-            .select('full_name, instagram_handle')
+            .select('full_name')
             .eq('id', partnerId)
             .single();
           
@@ -96,15 +89,13 @@ export const useTeamData = (userId: string, userFullName: string) => {
               id: userId,
               name: userFullName,
               status: firstUserStatus,
-              goal: "Will do Push pull legs the entire week, and take as much protien as I can", // Example goal
-              instagramHandle: currentUserData?.instagram_handle || ""
+              goal: "Will do Push pull legs the entire week, and take as much protien as I can" // Example goal
             },
             secondUser: {
               id: partnerId || "",
               name: partnerData?.full_name || "Partner",
               status: secondUserStatus,
-              goal: "", // Empty goal for example
-              instagramHandle: partnerData?.instagram_handle || ""
+              goal: "" // Empty goal for example
             },
             interest: team.category,
             frequency: team.frequency,

@@ -15,10 +15,10 @@ const SignUp: React.FC = () => {
       setGoogleLoading(true);
       console.log("Attempting Google sign-up...");
       
-      // iOS-compatible OAuth flow - no custom redirectTo to avoid cross-origin issues
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',

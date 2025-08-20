@@ -6,12 +6,6 @@ import { toast } from 'sonner';
 
 export type { UserData };
 
-interface SaveUserDataResult {
-  success: boolean;
-  error?: string;
-  errorType?: 'username_taken' | 'validation_error' | 'network_error' | 'unknown';
-}
-
 export const useUserData = () => {
   const [loading, setLoading] = useState(false);
 
@@ -41,18 +35,14 @@ export const useUserData = () => {
     }
   }, []);
 
-  const saveUserData = useCallback(async (data: UserData, profileImage?: File | null): Promise<SaveUserDataResult> => {
+  const saveUserData = useCallback(async (data: UserData, profileImage?: File | null) => {
     setLoading(true);
     
     try {
       const { data: authData } = await supabase.auth.getUser();
       
       if (!authData.user) {
-        return {
-          success: false,
-          error: 'Not authenticated',
-          errorType: 'unknown'
-        };
+        throw new Error('Not authenticated');
       }
       
       const profileData = userDataToProfile(data, authData.user.id);
@@ -73,50 +63,13 @@ export const useUserData = () => {
         .upsert(profileData)
         .select();
         
-      if (error) {
-        console.error('Database error:', error);
-        
-        // Check for specific error types
-        if (error.code === '23505' && error.message.includes('profiles_username_key')) {
-          return {
-            success: false,
-            error: 'This username is already taken. Please choose a different username.',
-            errorType: 'username_taken'
-          };
-        }
-        
-        if (error.code === '23514') {
-          return {
-            success: false,
-            error: 'Please check that all information is valid and try again.',
-            errorType: 'validation_error'
-          };
-        }
-        
-        return {
-          success: false,
-          error: 'Failed to save profile data. Please try again.',
-          errorType: 'unknown'
-        };
-      }
+      if (error) throw error;
       
-      return { success: true };
+      return true;
     } catch (error: any) {
-      console.error('Error saving user data:', error);
-      
-      if (error.message?.includes('network') || error.message?.includes('fetch')) {
-        return {
-          success: false,
-          error: 'Network error. Please check your connection and try again.',
-          errorType: 'network_error'
-        };
-      }
-      
-      return {
-        success: false,
-        error: 'An unexpected error occurred. Please try again.',
-        errorType: 'unknown'
-      };
+      console.error('Error saving user data:', error.message);
+      toast.error('Failed to save profile data');
+      return false;
     } finally {
       setLoading(false);
     }

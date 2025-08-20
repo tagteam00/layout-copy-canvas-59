@@ -59,8 +59,12 @@ export const LeaveTagTeamDialog: React.FC<LeaveTagTeamDialogProps> = ({
       if (onLeaveComplete) {
         onLeaveComplete();
       } else {
-        // Navigate back to the Tag Team hub by default
+        // Navigate back to the Tag Team hub by default and force a refresh
         navigate('/home', { replace: true });
+        // Refresh the page after navigation to ensure data is updated
+        setTimeout(() => {
+          window.location.reload();
+        }, 100);
       }
     } catch (error) {
       console.error('Error leaving team:', error);
