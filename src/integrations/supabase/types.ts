@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -82,6 +82,7 @@ export type Database = {
           full_name: string | null
           gender: string | null
           id: string
+          instagram_handle: string | null
           interests: string[] | null
           occupation: string | null
           updated_at: string | null
@@ -100,6 +101,7 @@ export type Database = {
           full_name?: string | null
           gender?: string | null
           id: string
+          instagram_handle?: string | null
           interests?: string[] | null
           occupation?: string | null
           updated_at?: string | null
@@ -118,6 +120,7 @@ export type Database = {
           full_name?: string | null
           gender?: string | null
           id?: string
+          instagram_handle?: string | null
           interests?: string[] | null
           occupation?: string | null
           updated_at?: string | null
@@ -293,7 +296,15 @@ export type Database = {
       }
     }
     Enums: {
-      interest_category: "fitness" | "arts"
+      interest_category:
+        | "fitness"
+        | "arts"
+        | "tech_gaming"
+        | "lifestyle_wellness"
+        | "science_learning"
+        | "culinary_foods"
+        | "collecting"
+        | "social_entertainment"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -421,7 +432,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      interest_category: ["fitness", "arts"],
+      interest_category: [
+        "fitness",
+        "arts",
+        "tech_gaming",
+        "lifestyle_wellness",
+        "science_learning",
+        "culinary_foods",
+        "collecting",
+        "social_entertainment",
+      ],
     },
   },
 } as const
