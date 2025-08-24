@@ -179,6 +179,16 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
     onSubmit(selectedLocation);
   };
 
+  const handleSkip = () => {
+    // Submit empty location data to allow skipping
+    onSubmit({
+      city: "",
+      country: "",
+      coordinates: undefined,
+      fullAddress: ""
+    });
+  };
+
   const handleSearch = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !isGoogleLoaded) {
       e.preventDefault();
@@ -190,7 +200,7 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-xl font-semibold mb-2">Where are you located?</h2>
-        <p className="text-gray-600 text-sm">This helps us connect you with nearby partners</p>
+        <p className="text-gray-600 text-sm">This helps us connect you with nearby partners (optional)</p>
       </div>
 
       <div className="space-y-4">
@@ -249,13 +259,22 @@ export const LocationSelectorStep: React.FC<LocationSelectorStepProps> = ({ onSu
         <Button variant="outline" onClick={onBack}>
           Back
         </Button>
-        <Button 
-          onClick={handleSubmit} 
-          disabled={!selectedLocation || isLoading}
-          className="bg-black text-white hover:bg-black/90"
-        >
-          Next
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={handleSkip}
+            disabled={isLoading}
+          >
+            Skip
+          </Button>
+          <Button 
+            onClick={handleSubmit} 
+            disabled={!selectedLocation || isLoading}
+            className="bg-black text-white hover:bg-black/90"
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );
