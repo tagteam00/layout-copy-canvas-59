@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PersonalInfoForm } from "@/components/onboarding/PersonalInfoForm";
 import { InterestsSelector } from "@/components/onboarding/InterestsSelector";
 import { CommitmentSelector } from "@/components/onboarding/CommitmentSelector";
-import { LocationSelectorStep } from "@/components/onboarding/LocationSelectorStep";
+import { LocationStep } from "@/components/onboarding/LocationStep";
 import { BioStep } from "@/components/onboarding/BioStep";
 import { StepIndicator } from "@/components/onboarding/StepIndicator";
 import { useUserData } from "@/hooks/useUserData";
@@ -68,13 +68,11 @@ const Onboarding: React.FC = () => {
     setStep(4);
   };
 
-  const handleLocationSubmit = (locationData: any) => {
+  const handleLocationSubmit = (locationData: { city: string; state: string }) => {
     setFormData({ 
       ...formData, 
       city: locationData.city,
-      country: locationData.country,
-      coordinates: locationData.coordinates,
-      fullAddress: locationData.fullAddress
+      country: locationData.state // Using state field for country/state
     });
     setStep(5);
   };
@@ -146,7 +144,7 @@ const Onboarding: React.FC = () => {
             )}
 
             {step === 4 && (
-              <LocationSelectorStep
+              <LocationStep
                 onSubmit={handleLocationSubmit}
                 onBack={() => setStep(3)}
               />
