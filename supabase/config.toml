@@ -34,3 +34,6 @@ enabled = true
 
 [edge_functions]
 enabled = true
+
+[functions.purge-all-users]
+verify_jwt = false
