@@ -14,6 +14,7 @@ import { PersonalInfoSection } from "./edit-form/PersonalInfoSection";
 import { BioSection } from "./edit-form/BioSection";
 import { InterestsSection } from "./edit-form/InterestsSection";
 import { PhotoSection } from "./edit-form/PhotoSection";
+import { InstagramSection } from "./edit-form/InstagramSection";
 import { toast } from "sonner";
 import { useUserData } from "@/hooks/useUserData";
 
@@ -32,6 +33,7 @@ interface EditProfileSheetProps {
     avatarUrl?: string | null;
     fullAddress?: string;
     coordinates?: { lat: number; lng: number };
+    instagramHandle?: string;
   };
   onProfileUpdate: () => void;
 }
@@ -82,7 +84,8 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
         bio: formData.bio,
         avatarUrl: formData.avatarUrl,
         fullAddress: formData.fullAddress,
-        coordinates: formData.coordinates
+        coordinates: formData.coordinates,
+        instagramHandle: formData.instagramHandle
       }, profileImage);
       
       if (success) {
@@ -129,6 +132,10 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
           <BioSection 
             bio={formData.bio} 
             onInputChange={handleInputChange} 
+          />
+          <InstagramSection
+            instagramHandle={formData.instagramHandle || ''}
+            onInputChange={handleInputChange}
           />
           <InterestsSection
             interests={formData.interests}

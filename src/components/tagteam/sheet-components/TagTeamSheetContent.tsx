@@ -9,6 +9,7 @@ import { PartnerVerificationSection } from "./PartnerVerificationSection";
 import { LeaveTagTeamButton } from "./LeaveTagTeamButton";
 import { EditGoalButton } from "./EditGoalButton";
 import { SheetHeader } from "./SheetHeader";
+import { InstagramSection } from "./InstagramSection";
 import { TagTeam } from "@/types/tagteam";
 import { TimerDisplay } from "@/types/tagteam";
 
@@ -148,6 +149,12 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
         
         <CalendarSection 
           frequency={tagTeam.frequency}
+        />
+        
+        <InstagramSection
+          currentUserId={currentUserId}
+          partnerUserId={partnerUser.id}
+          partnerName={partnerUser.name}
         />
         
         {/* Wrap verification section to prevent drag interference */}
