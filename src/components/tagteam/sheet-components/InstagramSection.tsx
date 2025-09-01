@@ -28,7 +28,7 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({
         const { data, error } = await supabase
           .from('profiles')
           .select('id, full_name, instagram_handle')
-          .in('id', [currentUserId, partnerUserId]);
+          .eq('id', partnerUserId);
 
         if (error) {
           console.error('Error fetching Instagram handles:', error);
@@ -51,7 +51,7 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({
     };
 
     fetchInstagramHandles();
-  }, [currentUserId, partnerUserId]);
+  }, [partnerUserId]);
 
   if (loading) {
     return null;
