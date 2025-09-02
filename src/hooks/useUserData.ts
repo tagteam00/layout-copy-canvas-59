@@ -124,14 +124,28 @@ export const useUserData = () => {
   const getAllUsers = useCallback(async (): Promise<UserData[]> => {
     try {
       const { data, error } = await supabase
-        .from('profiles')
-        .select();
+        .from('public_profiles')
+        .select('id, full_name, username, interests, commitment_level, avatar_url');
       
       if (error) {
         throw error;
       }
       
-      return (data || []).map(profileToUserData);
+      // Map limited public profile data to UserData format with defaults
+      return (data || []).map(profile => ({
+        fullName: profile.full_name || '',
+        username: profile.username || '',
+        dateOfBirth: '', // Not available in public profiles
+        gender: '', // Not available in public profiles
+        interests: profile.interests || [],
+        commitmentLevel: profile.commitment_level || '',
+        city: '', // Not available in public profiles
+        country: '', // Not available in public profiles
+        occupation: '', // Not available in public profiles
+        bio: '', // Not available in public profiles
+        avatarUrl: profile.avatar_url,
+        instagramHandle: '' // Not available in public profiles
+      }));
     } catch (error) {
       console.error('Error getting all users:', error);
       return [];

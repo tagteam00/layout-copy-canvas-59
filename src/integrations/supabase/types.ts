@@ -128,6 +128,47 @@ export type Database = {
         }
         Relationships: []
       }
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          commitment_level: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          interests: string[] | null
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          commitment_level?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          interests?: string[] | null
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          commitment_level?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          interests?: string[] | null
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_activities: {
         Row: {
           created_at: string

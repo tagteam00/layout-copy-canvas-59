@@ -48,11 +48,11 @@ export const usePartnerSearch = (selectedCategory: string) => {
     
     setLoading(true);
     try {
-      // Query for profiles containing selectedCategory in their interests
+      // Query for public profiles containing selectedCategory in their interests
       let {
         data: profiles,
         error
-      } = await supabase.from("profiles").select("*").contains("interests", [selectedCategory]);
+      } = await supabase.from("public_profiles").select("*").contains("interests", [selectedCategory]);
       
       if (error) throw error;
       
@@ -82,8 +82,8 @@ export const usePartnerSearch = (selectedCategory: string) => {
           id: profile.id,
           fullName: profile.full_name || '',
           username: profile.username || '',
-          dateOfBirth: profile.date_of_birth || '',
-          gender: profile.gender || '',
+          dateOfBirth: '', // Not available in public_profiles
+          gender: '', // Not available in public_profiles
           interests: profile.interests || [],
           commitmentLevel: profile.commitment_level || '',
           avatarUrl: profile.avatar_url,
