@@ -116,7 +116,7 @@ export const useTeamData = (userId: string, userFullName: string) => {
     }
   };
 
-  // Set up real-time subscription for team activities
+  // Set up real-time subscription for team activities and periodic refresh
   useEffect(() => {
     if (!userId) return;
 
@@ -151,9 +151,28 @@ export const useTeamData = (userId: string, userFullName: string) => {
       )
       .subscribe();
 
+    // Set up periodic refresh to catch cycle resets that happen automatically
+    // Check every 5 minutes to ensure status pills reset after cycle changes
+    const refreshInterval = setInterval(() => {
+      console.log('Periodic refresh to check for cycle resets');
+      fetchUserTeams();
+    }, 5 * 60 * 1000); // 5 minutes
+
+    // Also refresh on visibility change (when user returns to tab)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('Tab became visible - refreshing teams data');
+        fetchUserTeams();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
-      // Clean up subscription on unmount
+      // Clean up subscription and intervals on unmount
       supabase.removeChannel(channel);
+      clearInterval(refreshInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [userId]);
 
