@@ -319,14 +319,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      can_send_notification_to_user: {
-        Args: { notification_type: string; target_user_id: string }
-        Returns: boolean
-      }
-      can_view_teammate_profile: {
-        Args: { profile_user_id: string }
-        Returns: boolean
-      }
       close_expired_activity_cycles: {
         Args: Record<PropertyKey, never>
         Returns: number
@@ -342,10 +334,6 @@ export type Database = {
       close_team_goal_cycle: {
         Args: { team_id_param: string }
         Returns: number
-      }
-      validate_instagram_handle: {
-        Args: { handle: string }
-        Returns: boolean
       }
     }
     Enums: {
