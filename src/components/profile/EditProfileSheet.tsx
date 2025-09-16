@@ -9,10 +9,10 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
-import { useInterests } from "@/hooks/useInterests";
+
 import { PersonalInfoSection } from "./edit-form/PersonalInfoSection";
 import { BioSection } from "./edit-form/BioSection";
-import { InterestsSection } from "./edit-form/InterestsSection";
+
 import { PhotoSection } from "./edit-form/PhotoSection";
 import { InstagramSection } from "./edit-form/InstagramSection";
 import { toast } from "sonner";
@@ -44,7 +44,7 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
 }) => {
   const [formData, setFormData] = React.useState(currentProfile);
   const [profileImage, setProfileImage] = React.useState<File | null>(null);
-  const { interests: availableInterests, loading } = useInterests();
+  
   const { saveUserData } = useUserData();
   const [isSaving, setIsSaving] = React.useState(false);
 
@@ -52,21 +52,6 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleAddInterest = (newInterest: string) => {
-    if (!formData.interests.includes(newInterest)) {
-      setFormData((prev) => ({
-        ...prev,
-        interests: [...prev.interests, newInterest],
-      }));
-    }
-  };
-
-  const handleRemoveInterest = (interestToRemove: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      interests: prev.interests.filter((interest) => interest !== interestToRemove),
-    }));
-  };
 
   const handleSave = async () => {
     try {
@@ -74,7 +59,7 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
       const success = await saveUserData({
         fullName: formData.fullName,
         username: formData.username,
-        interests: formData.interests,
+        interests: currentProfile.interests, // Keep current interests unchanged
         dateOfBirth: currentProfile.dateOfBirth,
         gender: currentProfile.gender,
         commitmentLevel: currentProfile.commitmentLevel,
@@ -136,12 +121,6 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
           <InstagramSection
             instagramHandle={formData.instagramHandle || ''}
             onInputChange={handleInputChange}
-          />
-          <InterestsSection
-            interests={formData.interests}
-            availableInterests={availableInterests}
-            onAddInterest={handleAddInterest}
-            onRemoveInterest={handleRemoveInterest}
           />
           <Button className="w-full" onClick={handleSave} disabled={isSaving}>
             {isSaving ? "Saving..." : "Save Changes"}
