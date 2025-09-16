@@ -13,5 +13,8 @@ export const formatInterestName = (interestName: string): string => {
  * Formats category name for display
  */
 export const formatCategoryName = (categoryName: string): string => {
-  return categoryName.charAt(0).toUpperCase() + categoryName.slice(1).toLowerCase();
+  return categoryName
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
 };
