@@ -37,7 +37,7 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({
       
       <div className="space-y-4">
         <ProfileCommitment commitmentLevel={userProfile.commitmentLevel} />
-        <ProfileInterests interests={userProfile.interests} />
+        <ProfileInterests interests={userProfile.interests} onUpdate={onProfileUpdate} />
       </div>
       
       {!isViewOnly && (
