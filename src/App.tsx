@@ -15,7 +15,7 @@ import SignUp from "./pages/auth/SignUp";
 import Onboarding from "./pages/auth/Onboarding";
 import TagTeamHub from "./pages/TagTeamHub";
 import ProfilePage from "./pages/ProfilePage";
-import UserProfilePage from "./pages/UserProfilePage";
+
 import NotificationsPage from "./pages/NotificationsPage";
 import Settings from "./pages/Settings";
 import WelcomeScreen from "./components/onboarding/WelcomeScreen";
@@ -283,14 +283,6 @@ const AnimatedRoutes = () => {
           <ProtectedRoute>
             <PageTransition>
               <ProfilePage />
-            </PageTransition>
-          </ProtectedRoute>
-        } />
-        {/* New route for viewing other user profiles */}
-        <Route path="/user/:userId" element={
-          <ProtectedRoute>
-            <PageTransition>
-              <UserProfilePage />
             </PageTransition>
           </ProtectedRoute>
         } />

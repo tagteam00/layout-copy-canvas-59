@@ -4,12 +4,6 @@ import { render } from "@testing-library/react";
 import { screen } from "@testing-library/dom";
 import userEvent from "@testing-library/user-event";
 import { UserItem } from "../UserItem";
-import { useNavigate } from "react-router-dom";
-
-// Mock the react-router-dom's useNavigate hook
-jest.mock("react-router-dom", () => ({
-  useNavigate: jest.fn()
-}));
 
 describe("UserItem", () => {
   const mockUser = {
@@ -24,11 +18,9 @@ describe("UserItem", () => {
   };
 
   const mockOnSelectPartner = jest.fn();
-  const mockNavigate = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
   });
 
   it("renders user information correctly", () => {
@@ -97,18 +89,4 @@ describe("UserItem", () => {
     expect(avatarImg).toHaveAttribute("src", "https://example.com/avatar.jpg");
   });
 
-  it("navigates to user profile page when Profile button is clicked", async () => {
-    const user = userEvent.setup();
-    render(
-      <UserItem 
-        user={mockUser} 
-        onSelectPartner={mockOnSelectPartner} 
-        isAvailable={true} 
-      />
-    );
-    
-    await user.click(screen.getByText("Profile"));
-    
-    expect(mockNavigate).toHaveBeenCalledWith("/user/123");
-  });
 });

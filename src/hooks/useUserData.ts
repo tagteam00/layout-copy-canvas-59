@@ -108,25 +108,6 @@ export const useUserData = () => {
     }
   }, []);
 
-  const getUserDataById = useCallback(async (userId: string): Promise<UserData | null> => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select()
-        .eq('id', userId)
-        .single();
-      
-      if (error || !data) {
-        console.error('Error fetching user profile by ID:', error?.message);
-        return null;
-      }
-      
-      return profileToUserData(data);
-    } catch (error) {
-      console.error('Error getting user data by ID:', error);
-      return null;
-    }
-  }, []);
 
   const getAllUsers = useCallback(async (): Promise<UserData[]> => {
     try {
@@ -162,7 +143,6 @@ export const useUserData = () => {
   return { 
     saveUserData, 
     getUserData, 
-    getUserDataById, 
     getAllUsers, 
     uploadProfileImage, 
     loading 

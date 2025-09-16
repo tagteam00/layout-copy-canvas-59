@@ -1,9 +1,6 @@
 
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { User } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 interface UserItemProps {
   user: {
@@ -18,12 +15,6 @@ interface UserItemProps {
 }
 
 export const UserItem: React.FC<UserItemProps> = ({ user, onSelectPartner, isAvailable }) => {
-  const navigate = useNavigate();
-  
-  const handleViewProfile = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    navigate(`/user/${user.id}`);
-  };
   
   return (
     <div 
@@ -52,15 +43,6 @@ export const UserItem: React.FC<UserItemProps> = ({ user, onSelectPartner, isAva
       </div>
       
       <div className="flex gap-1 flex-shrink-0 ml-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-gray-600 p-1.5 h-auto min-w-0"
-          onClick={handleViewProfile}
-        >
-          <User className="h-3 w-3" />
-        </Button>
-        
         {isAvailable ? (
           <button 
             onClick={(e) => {
