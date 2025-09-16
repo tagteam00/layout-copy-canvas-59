@@ -165,6 +165,8 @@ export const TagTeamSheetContent: React.FC<TagTeamSheetContentProps> = ({
             userId={currentUserId}
             teamId={tagTeam.id}
             teamName={tagTeam.name}
+            frequency={tagTeam.frequency}
+            resetDay={tagTeam.resetDay}
             onStatusUpdate={onStatusUpdate}
           />
         </div>

@@ -5,6 +5,7 @@ import { StatusMessage } from "./verification/StatusMessage";
 import { usePartnerVerification } from "@/hooks/usePartnerVerification";
 import { CongratsDialog } from "@/components/tagteam/CongratsDialog";
 import { supabase } from "@/integrations/supabase/client";
+import { isCorrectDayForWeeklyLogging, formatCountdownMessage } from "@/utils/weeklyUtils";
 
 interface PartnerVerificationSectionProps {
   partnerName: string;
@@ -12,6 +13,8 @@ interface PartnerVerificationSectionProps {
   userId: string;
   teamId: string;
   teamName?: string;
+  frequency: string;
+  resetDay?: string;
   onStatusUpdate: (status: "completed" | "pending") => void;
 }
 
@@ -21,6 +24,8 @@ export const PartnerVerificationSection: React.FC<PartnerVerificationSectionProp
   userId,
   teamId,
   teamName = "TagTeam",
+  frequency,
+  resetDay,
   onStatusUpdate
 }) => {
   const [userLoggedStatus, setUserLoggedStatus] = useState<"completed" | "pending" | null>(null);
@@ -85,27 +90,42 @@ export const PartnerVerificationSection: React.FC<PartnerVerificationSectionProp
   };
 
   const getFrequencyText = () => {
-    // Get activity frequency from the team data
-    // Default to "Daily" if not available
-    return "Daily";
+    // Return the actual frequency text
+    return frequency || "Daily";
   };
+
+  // Check if today is the correct day for weekly logging
+  const canLogToday = isCorrectDayForWeeklyLogging(frequency, resetDay);
+  const countdownMessage = !canLogToday ? formatCountdownMessage(frequency, resetDay) : '';
 
   return (
     <div className="mt-auto mb-6">
-      <StatusMessage 
-        partnerFirstName={getFirstName(partnerName)}
-        hasLoggedActivity={hasLoggedActivity}
-        frequencyText={getFrequencyText()}
-        userLoggedStatus={userLoggedStatus}
-      />
-      
-      <StatusButtons 
-        onMarkPending={handleMarkPending}
-        onMarkCompleted={handleMarkCompleted}
-        isSubmitting={isSubmitting}
-        isDisabled={hasLoggedActivity}
-        showButtons={!hasLoggedActivity}
-      />
+      {!canLogToday ? (
+        // Show countdown message for weekly teams on wrong days
+        <div className="p-4 rounded-lg bg-blue-50 border border-blue-200 mb-4">
+          <div className="text-center">
+            <h3 className="font-semibold text-blue-900 mb-2">Activity Not Due Today</h3>
+            <p className="text-blue-700 text-sm">{countdownMessage}</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          <StatusMessage 
+            partnerFirstName={getFirstName(partnerName)}
+            hasLoggedActivity={hasLoggedActivity}
+            frequencyText={getFrequencyText()}
+            userLoggedStatus={userLoggedStatus}
+          />
+          
+          <StatusButtons 
+            onMarkPending={handleMarkPending}
+            onMarkCompleted={handleMarkCompleted}
+            isSubmitting={isSubmitting}
+            isDisabled={hasLoggedActivity}
+            showButtons={!hasLoggedActivity}
+          />
+        </>
+      )}
       
       {/* Congratulations Dialog */}
       <CongratsDialog 
