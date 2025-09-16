@@ -20,6 +20,7 @@ interface TeamRequest {
   name: string;
   category: string;
   frequency: string;
+  reset_day?: string;
   sender_id: string;
   receiver_id: string;
   status: string;
@@ -175,6 +176,7 @@ const NotificationsPage: React.FC = () => {
             name: requestToAccept.name,
             category: requestToAccept.category,
             frequency: requestToAccept.frequency,
+            reset_day: requestToAccept.reset_day,
             members: [requestToAccept.sender_id, requestToAccept.receiver_id],
           })
           .select()

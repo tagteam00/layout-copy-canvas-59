@@ -7,6 +7,7 @@ interface TeamRequest {
   name: string;
   category: string;
   frequency: string;
+  reset_day?: string;
   sender_id: string;
   receiver_id: string;
   status: string;

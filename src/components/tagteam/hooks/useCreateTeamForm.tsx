@@ -138,6 +138,7 @@ export const useCreateTeamForm = ({ isOpen, categories, onClose }: UseCreateTeam
         name: teamName,
         category: selectedCategory,
         frequency: formattedFrequency,
+        reset_day: resetDay,
         sender_id: authData.user.id,
         receiver_id: partnerId
       });
@@ -148,6 +149,7 @@ export const useCreateTeamForm = ({ isOpen, categories, onClose }: UseCreateTeam
           name: teamName,
           category: selectedCategory,
           frequency: formattedFrequency,
+          reset_day: resetDay,
           sender_id: authData.user.id,
           receiver_id: partnerId,
           status: 'pending'
