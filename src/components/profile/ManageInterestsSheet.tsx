@@ -51,8 +51,8 @@ export const ManageInterestsSheet: React.FC<ManageInterestsSheetProps> = ({
     return interests.filter(interest => interest.category === selectedCategory);
   }, [interests, selectedCategory]);
 
-  const handleAddInterest = (interestId: string) => {
-    if (tempInterests.includes(interestId)) {
+  const handleAddInterest = (interestName: string) => {
+    if (tempInterests.includes(interestName)) {
       return; // Already selected
     }
     
@@ -65,12 +65,12 @@ export const ManageInterestsSheet: React.FC<ManageInterestsSheetProps> = ({
       return;
     }
     
-    setTempInterests(prev => [...prev, interestId]);
+    setTempInterests(prev => [...prev, interestName]);
     setSelectedCategory(""); // Reset category selection
   };
 
-  const handleRemoveInterest = (interestId: string) => {
-    setTempInterests(prev => prev.filter(id => id !== interestId));
+  const handleRemoveInterest = (interestName: string) => {
+    setTempInterests(prev => prev.filter(name => name !== interestName));
   };
 
   const handleConfirm = async () => {
@@ -121,7 +121,7 @@ export const ManageInterestsSheet: React.FC<ManageInterestsSheetProps> = ({
   };
 
   const availableInterests = filteredInterests.filter(
-    interest => !tempInterests.includes(interest.id)
+    interest => !tempInterests.includes(interest.name)
   );
 
   return (
@@ -140,21 +140,21 @@ export const ManageInterestsSheet: React.FC<ManageInterestsSheetProps> = ({
             <h3 className="font-medium mb-3">Your Interests ({tempInterests.length}/{MAX_INTERESTS})</h3>
             <div className="flex flex-wrap gap-2 min-h-[40px] p-3 border rounded-lg bg-muted/20">
               {tempInterests.length > 0 ? (
-                tempInterests.map((interestId) => (
-                  <Badge
-                    key={interestId}
-                    variant="secondary"
-                    className="text-white px-3 py-2 bg-[#6be04d] flex items-center gap-1"
-                  >
-                    {formatInterestName(interestId)}
-                    <button
-                      onClick={() => handleRemoveInterest(interestId)}
-                      className="ml-1 hover:bg-black/20 rounded-full p-0.5"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))
+                 tempInterests.map((interestName) => (
+                   <Badge
+                     key={interestName}
+                     variant="secondary"
+                     className="text-white px-3 py-2 bg-[#6be04d] flex items-center gap-1"
+                   >
+                     {formatInterestName(interestName)}
+                     <button
+                       onClick={() => handleRemoveInterest(interestName)}
+                       className="ml-1 hover:bg-black/20 rounded-full p-0.5"
+                     >
+                       <X className="h-3 w-3" />
+                     </button>
+                   </Badge>
+                 ))
               ) : (
                 <span className="text-muted-foreground text-sm">No interests selected</span>
               )}
@@ -189,14 +189,14 @@ export const ManageInterestsSheet: React.FC<ManageInterestsSheetProps> = ({
                     <SelectValue placeholder="Select an interest to add" />
                   </SelectTrigger>
                   <SelectContent className="bg-background border shadow-lg z-50">
-                    {availableInterests.map((interest) => (
-                      <SelectItem key={interest.id} value={interest.id}>
-                        <div className="flex items-center gap-2">
-                          <Plus className="h-4 w-4" />
-                          {formatInterestName(interest.name)}
-                        </div>
-                      </SelectItem>
-                    ))}
+                     {availableInterests.map((interest) => (
+                       <SelectItem key={interest.id} value={interest.name}>
+                         <div className="flex items-center gap-2">
+                           <Plus className="h-4 w-4" />
+                           {formatInterestName(interest.name)}
+                         </div>
+                       </SelectItem>
+                     ))}
                   </SelectContent>
                 </Select>
                 {availableInterests.length === 0 && (
