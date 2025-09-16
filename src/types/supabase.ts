@@ -40,7 +40,8 @@ export const userDataToProfile = (userData: UserData, userId: string): ProfileIn
     occupation: userData.occupation,
     bio: userData.bio,
     avatar_url: userData.avatarUrl,
-    instagram_handle: userData.instagramHandle,
+    // Only include instagram_handle if it's defined and not empty to avoid validation issues
+    instagram_handle: userData.instagramHandle || null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };

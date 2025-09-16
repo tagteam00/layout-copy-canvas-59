@@ -87,12 +87,19 @@ export const ManageInterestsSheet: React.FC<ManageInterestsSheetProps> = ({
     try {
       const userData = await getUserData();
       if (userData) {
+        console.log('Current user data:', userData);
+        console.log('New interests to save:', tempInterests);
+        
         const updatedData = {
           ...userData,
           interests: tempInterests
         };
         
+        console.log('Updated data to save:', updatedData);
+        
         const success = await saveUserData(updatedData);
+        console.log('Save result:', success);
+        
         if (success) {
           toast({
             title: "Success",
@@ -101,6 +108,7 @@ export const ManageInterestsSheet: React.FC<ManageInterestsSheetProps> = ({
           await onUpdate();
           setOpen(false);
         } else {
+          console.error('SaveUserData returned false');
           toast({
             title: "Error",
             description: "Failed to update interests",

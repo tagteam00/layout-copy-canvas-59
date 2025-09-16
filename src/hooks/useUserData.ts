@@ -58,16 +58,23 @@ export const useUserData = () => {
         profileData.avatar_url = null;
       }
       
+      console.log('About to save profile data:', profileData);
+      
       const { error } = await supabase
         .from('profiles')
         .upsert(profileData)
         .select();
         
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase upsert error:', error);
+        throw error;
+      }
       
+      console.log('Profile data saved successfully');
       return true;
     } catch (error: any) {
       console.error('Error saving user data:', error.message);
+      console.error('Full error:', error);
       toast.error('Failed to save profile data');
       return false;
     } finally {
