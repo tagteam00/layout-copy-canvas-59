@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
+import { formatInterestName } from "@/utils/interestUtils";
 interface ProfileInterestsProps {
   interests: string[];
 }
@@ -16,7 +17,7 @@ export const ProfileInterests: React.FC<ProfileInterestsProps> = ({
       <CardContent className="py-0 px-0">
         <div className="flex flex-wrap gap-2 pb-2 px-[16px]">
           {interests.map((interest, index) => <Badge key={index} variant="secondary" className="text-white px-4 whitespace-nowrap py-[7px] bg-[#6be04d]">
-              {interest}
+              {formatInterestName(interest)}
             </Badge>)}
           
         </div>

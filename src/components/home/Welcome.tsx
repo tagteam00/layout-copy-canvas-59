@@ -1,4 +1,5 @@
 import React from "react";
+import { formatInterestName } from "@/utils/interestUtils";
 interface WelcomeProps {
   fullName: string;
   interests: string[];
@@ -22,7 +23,7 @@ export const Welcome: React.FC<WelcomeProps> = ({
       <h1 className="font-bold mb-2 text-3xl text-black">Hello, {fullName}</h1>
       <div className="flex items-center gap-1 mt-2 text-2xl font-extrabold my-[9px]">
         {interests.map((interest, index) => <div key={index} className="text-xs text-white px-2 rounded-xl whitespace-nowrap bg-[8CFF6E] py-[8px] bg-[#6be04d]">
-            {interest}
+            {formatInterestName(interest)}
           </div>)}
       </div>
     </>;

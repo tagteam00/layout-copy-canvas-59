@@ -3,6 +3,7 @@ import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useInterests } from "@/hooks/useInterests";
 import { toast } from "sonner";
+import { formatInterestName, formatCategoryName } from "@/utils/interestUtils";
 import {
   Select,
   SelectContent,
@@ -77,7 +78,7 @@ export const InterestsSelector: React.FC<InterestsSelectorProps> = ({
             <SelectContent>
               {categories.map((category) => (
                 <SelectItem key={category} value={category}>
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                  {formatCategoryName(category)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -98,7 +99,7 @@ export const InterestsSelector: React.FC<InterestsSelectorProps> = ({
             <SelectContent>
               {filteredInterests.map((interest) => (
                 <SelectItem key={interest.id} value={interest.name}>
-                  {interest.name}
+                  {formatInterestName(interest.name)}
                 </SelectItem>
               ))}
             </SelectContent>

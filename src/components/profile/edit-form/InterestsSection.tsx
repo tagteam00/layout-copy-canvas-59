@@ -3,6 +3,7 @@ import React from "react";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { formatInterestName, formatCategoryName } from "@/utils/interestUtils";
 import {
   Select,
   SelectContent,
@@ -53,7 +54,7 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
             className="cursor-pointer"
             onClick={() => onRemoveInterest(interest)}
           >
-            {interest} ×
+            {formatInterestName(interest)} ×
           </Badge>
         ))}
       </div>
@@ -65,7 +66,7 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
           {Object.entries(groupedInterests).map(([category, categoryInterests]) => (
             <div key={category}>
               <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                {category.charAt(0).toUpperCase() + category.slice(1)}
+                {formatCategoryName(category)}
               </div>
               {categoryInterests.map((interest) => (
                 <SelectItem
@@ -73,7 +74,7 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
                   value={interest.name}
                   disabled={interests.includes(interest.name)}
                 >
-                  {interest.name}
+                  {formatInterestName(interest.name)}
                 </SelectItem>
               ))}
             </div>

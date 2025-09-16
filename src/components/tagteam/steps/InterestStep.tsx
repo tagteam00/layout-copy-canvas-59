@@ -1,6 +1,7 @@
 
 import React from "react";
 import { Badge } from "@/components/ui/badge";
+import { formatCategoryName } from "@/utils/interestUtils";
 
 interface InterestStepProps {
   categories: string[];
@@ -28,7 +29,7 @@ export const InterestStep: React.FC<InterestStepProps> = ({
             }`}
             onClick={() => setSelectedCategory(category)}
           >
-            {category}
+            {formatCategoryName(category)}
           </Badge>
         ))}
       </div>
