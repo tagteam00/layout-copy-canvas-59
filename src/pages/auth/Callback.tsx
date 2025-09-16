@@ -28,11 +28,18 @@ const AuthCallback: React.FC = () => {
         
         if (data.session) {
           // Check if user has completed onboarding
-          const { data: profileData } = await supabase
+          const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', data.session.user.id)
             .maybeSingle();
+            
+          if (profileError && profileError.code !== 'PGRST116') {
+            console.error("Error checking profile during callback:", profileError);
+            toast.error("Unable to verify profile. Please try signing in again.");
+            navigate('/signin');
+            return;
+          }
             
           // Redirect based on onboarding status
           if (profileData) {
@@ -40,8 +47,8 @@ const AuthCallback: React.FC = () => {
             toast.success("Authentication successful!");
             navigate('/home');
           } else {
-            console.log("User needs onboarding, redirecting");
-            toast.success("Almost there! Let's complete your profile.");
+            console.log("User has account but no profile - directing to onboarding");
+            toast.success("Welcome back! Let's complete your profile setup.");
             navigate('/onboarding');
           }
         } else {

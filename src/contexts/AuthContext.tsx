@@ -33,6 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Function to safely check profile completion
   const checkProfileCompletion = async (userId: string) => {
     try {
+      console.log(`Checking profile completion for user: ${userId}`);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -41,12 +42,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (error) {
         console.error("Error checking profile:", error);
+        // Show user-friendly message for profile check errors
+        if (error.code !== 'PGRST116') { // Don't show error for "not found"
+          toast.error("Unable to verify profile status. Please try refreshing the page.");
+        }
         return false;
       }
       
-      return !!data;
+      const hasProfile = !!data;
+      console.log(`Profile completion check result for ${userId}:`, hasProfile);
+      
+      if (!hasProfile) {
+        console.log("User has account but no profile - needs to complete onboarding");
+      }
+      
+      return hasProfile;
     } catch (err) {
       console.error("Error in profile check:", err);
+      toast.error("Profile verification failed. Please try refreshing the page.");
       return false;
     }
   };
@@ -69,9 +82,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (currentSession?.user) {
             setTimeout(async () => {
               const hasProfile = await checkProfileCompletion(currentSession.user.id);
+              console.log(`Setting hasCompletedOnboarding to: ${hasProfile} for user ${currentSession.user.id}`);
               setHasCompletedOnboarding(hasProfile);
             }, 0);
           } else {
+            console.log("No user session, setting hasCompletedOnboarding to false");
             setHasCompletedOnboarding(false);
           }
 

@@ -22,8 +22,9 @@ const WelcomeScreen: React.FC = () => {
     else if (user && !hasCompletedOnboarding) {
       navigate('/onboarding');
     } 
-    // Otherwise go to signup
+    // If no user, check if we should show sign in instead of sign up
     else {
+      // For now, default to signup, but users can navigate to signin from there
       navigate('/signup');
     }
   };
