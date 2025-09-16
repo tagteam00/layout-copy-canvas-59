@@ -51,11 +51,7 @@ const Onboarding: React.FC = () => {
   };
 
   const toggleInterest = (interest: string) => {
-    setSelectedInterests(prevInterests =>
-      prevInterests.includes(interest)
-        ? prevInterests.filter(i => i !== interest)
-        : [...prevInterests, interest]
-    );
+    setSelectedInterests([interest]);
   };
 
   const handleInterestsSubmit = () => {
