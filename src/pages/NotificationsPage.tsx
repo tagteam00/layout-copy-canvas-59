@@ -117,20 +117,36 @@ const NotificationsPage: React.FC = () => {
     // Get sender names for each request
     const requestsWithSenderNames = await Promise.all(
       (requestsData || []).map(async (request) => {
-        // Get the sender name from profiles table
-        const { data: senderProfile, error: senderError } = await supabase
-          .from('profiles')
+        // Get the sender name from public_profiles table first, fallback to profiles
+        let senderName = 'Unknown User';
+        
+        // Try public_profiles first (this syncs automatically)
+        const { data: publicProfile, error: publicError } = await supabase
+          .from('public_profiles')
           .select('full_name')
           .eq('id', request.sender_id)
           .maybeSingle();
 
-        if (senderError) {
-          console.error('Error fetching sender name:', senderError);
+        if (!publicError && publicProfile?.full_name) {
+          senderName = publicProfile.full_name;
+        } else {
+          // Fallback to profiles table
+          const { data: senderProfile, error: senderError } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', request.sender_id)
+            .maybeSingle();
+
+          if (!senderError && senderProfile?.full_name) {
+            senderName = senderProfile.full_name;
+          } else {
+            console.error('Error fetching sender name from both tables:', { publicError, senderError });
+          }
         }
 
         return {
           ...request,
-          sender_name: senderProfile?.full_name || 'Unknown User',
+          sender_name: senderName,
         };
       })
     );
