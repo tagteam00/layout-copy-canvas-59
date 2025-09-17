@@ -10,10 +10,20 @@ export const formatInterestName = (interestName: string): string => {
 };
 
 /**
- * Formats category name for display
+ * Formats category name for display with emojis
  */
 export const formatCategoryName = (categoryName: string): string => {
-  return categoryName
+  const categoryMap: Record<string, string> = {
+    'creative_performing_arts': '🎨 Creative & Performing Arts',
+    'tech_gaming_innovation': '💻 Tech, Gaming & Innovation',
+    'lifestyle_mind_wellness': '🌿 Lifestyle, Mind & Wellness',
+    'culinary_food': '🍳 Culinary & Food',
+    'knowledge_exploration': '📚 Knowledge & Exploration',
+    'sports_fitness': '🏋️ Sports & Fitness',
+    'social_entertainment': '🎭 Social & Entertainment'
+  };
+  
+  return categoryMap[categoryName] || categoryName
     .split('_')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
