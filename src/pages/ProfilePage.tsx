@@ -6,9 +6,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ProfileInfo } from "@/components/profile/ProfileInfo";
-import { Settings, Pencil } from "lucide-react";
+import { Settings, Pencil, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EditProfileSheet } from "@/components/profile/EditProfileSheet";
+import { BugReportSheet } from "@/components/bug-report/BugReportSheet";
 
 const ProfilePage: React.FC = () => {
   const [userProfile, setUserProfile] = useState({
@@ -64,6 +65,14 @@ const ProfilePage: React.FC = () => {
   
   return <main className="bg-white min-h-screen max-w-[480px] w-full mx-auto relative pb-24">
       <div className="fixed top-4 right-4 flex gap-2 z-10 px-0">
+        <BugReportSheet 
+          trigger={
+            <Button variant="ghost" size="icon" className="rounded-full bg-gray-100/80 hover:bg-gray-200/80">
+              <MessageSquare className="h-5 w-5 text-gray-900" />
+            </Button>
+          }
+          pageContext="profile"
+        />
         <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="rounded-full bg-gray-100/80 hover:bg-gray-200/80">
           <Settings className="h-5 w-5 text-gray-900" />
         </Button>

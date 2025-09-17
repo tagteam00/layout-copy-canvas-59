@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      bug_reports: {
+        Row: {
+          created_at: string
+          id: string
+          page_context: string
+          problem_description: string
+          status: string
+          suggestion: string | null
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          page_context: string
+          problem_description: string
+          status?: string
+          suggestion?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          page_context?: string
+          problem_description?: string
+          status?: string
+          suggestion?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       interests: {
         Row: {
           category: Database["public"]["Enums"]["interest_category"]

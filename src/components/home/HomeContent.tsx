@@ -4,6 +4,9 @@ import { Welcome } from "./Welcome";
 import { TagTeamList } from "./TagTeamList";
 import { UsersList } from "./UsersList";
 import { UserData } from "@/hooks/useUserData";
+import { BugReportSheet } from "@/components/bug-report/BugReportSheet";
+import { Button } from "@/components/ui/button";
+import { MessageSquare } from "lucide-react";
 
 interface HomeContentProps {
   userProfile: {
@@ -38,6 +41,18 @@ export const HomeContent: React.FC<HomeContentProps> = ({
       />
       <div>
         <UsersList users={allUsers} loading={loading} />
+      </div>
+      
+      <div className="mt-8 pb-4 flex justify-center">
+        <BugReportSheet 
+          trigger={
+            <Button variant="ghost" className="text-sm text-muted-foreground">
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Report a Problem
+            </Button>
+          }
+          pageContext="home"
+        />
       </div>
     </div>
   );
