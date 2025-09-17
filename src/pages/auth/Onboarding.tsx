@@ -14,8 +14,8 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
 const commitmentLevels = [
-  { value: "casual", label: "Casual", description: "Relaxed approach with flexible schedules" },
   { value: "committed", label: "Committed", description: "Consistent engagement with regular check-ins" },
+  { value: "casual", label: "Casual", description: "Relaxed approach with flexible schedules" },
   { value: "fun", label: "Fun", description: "Social and enjoyable activities without pressure" }
 ];
 
