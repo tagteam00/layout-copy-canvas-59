@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { BugReportSheet } from '@/components/bug-report/BugReportSheet';
 
 const WelcomeScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -30,7 +31,18 @@ const WelcomeScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 relative">
+      <div className="absolute top-4 right-4 z-10">
+        <BugReportSheet 
+          trigger={
+            <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
+              Report a Problem
+            </Button>
+          }
+          pageContext="welcome"
+        />
+      </div>
+      
       <div className="w-[90%] max-w-md bg-[#F0F0FF] rounded-[20px] border border-[#E6E6FF] p-6 flex flex-col items-center">
         {/* Logo */}
         <div className="relative w-[35%] aspect-square mb-8 mt-4">

@@ -14,7 +14,6 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { BugReportSheet } from "@/components/bug-report/BugReportSheet";
 import { Button } from "@/components/ui/button";
-import { Bug } from "lucide-react";
 
 const commitmentLevels = [
   { value: "committed", label: "Committed", description: "Consistent engagement with regular check-ins" },
@@ -110,19 +109,19 @@ const Onboarding: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white p-4">
-      <div className="w-full max-w-md relative">
-        <div className="absolute top-0 right-0 z-10">
-          <BugReportSheet 
-            trigger={
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Bug className="h-4 w-4" />
-              </Button>
-            }
-            pageContext="onboarding"
-          />
-        </div>
-        
+    <div className="min-h-screen flex items-center justify-center bg-white p-4 relative">
+      <div className="absolute top-4 right-4 z-10">
+        <BugReportSheet 
+          trigger={
+            <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
+              Report a Problem
+            </Button>
+          }
+          pageContext="onboarding"
+        />
+      </div>
+      
+      <div className="w-full max-w-md">
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold text-black">Let's set up your profile</h1>
           <StepIndicator currentStep={step} totalSteps={5} />
