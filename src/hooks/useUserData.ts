@@ -14,7 +14,7 @@ export const useUserData = () => {
     try {
       const fileExt = file.name.split('.').pop();
       const filePath = `${userId}/${Date.now()}.${fileExt}`;
-      
+
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file);
@@ -22,15 +22,23 @@ export const useUserData = () => {
       if (uploadError) {
         throw uploadError;
       }
-      
+
       // Get the public URL for the uploaded file
       const { data } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
-      
-      return data.publicUrl;
+
+      const publicUrl = data.publicUrl;
+      if (!publicUrl) {
+        toast.error('Failed to obtain public URL for uploaded image');
+        return null;
+      }
+
+      toast.success('Image uploaded');
+      return publicUrl;
     } catch (error: any) {
-      console.error('Error uploading profile image:', error.message);
+      console.error('Error uploading profile image:', error?.message || error);
+      toast.error('Image upload failed');
       return null;
     }
   }, []);
@@ -52,6 +60,8 @@ export const useUserData = () => {
         const imageUrl = await uploadProfileImage(profileImage, authData.user.id);
         if (imageUrl) {
           profileData.avatar_url = imageUrl;
+        } else {
+          toast.error('Could not save new profile photo');
         }
       } else if (profileImage === null) {
         // If explicitly set to null, remove the avatar

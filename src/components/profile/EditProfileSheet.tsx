@@ -52,6 +52,40 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Auto-save profile photo immediately on selection/removal to prevent losing it
+  const handleImageChange = async (file: File | null) => {
+    setProfileImage(file);
+
+    // Only auto-save the photo change to avoid losing it on sheet close
+    setIsSaving(true);
+    try {
+      const success = await saveUserData({
+        fullName: formData.fullName,
+        username: formData.username,
+        interests: currentProfile.interests,
+        dateOfBirth: currentProfile.dateOfBirth,
+        gender: currentProfile.gender,
+        commitmentLevel: currentProfile.commitmentLevel,
+        city: formData.city,
+        country: formData.country,
+        occupation: formData.occupation,
+        bio: formData.bio,
+        avatarUrl: formData.avatarUrl,
+        fullAddress: formData.fullAddress,
+        coordinates: formData.coordinates,
+        instagramHandle: formData.instagramHandle
+      }, file);
+
+      if (success) {
+        toast.success(file ? "Profile photo saved" : "Profile photo removed");
+        onProfileUpdate();
+      } else {
+        toast.error("Couldn't save profile photo. Please try again.");
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleSave = async () => {
     try {
@@ -103,7 +137,7 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
           <PhotoSection 
             avatarUrl={formData.avatarUrl}
             username={formData.username}
-            onImageChange={setProfileImage}
+            onImageChange={handleImageChange}
           />
           <PersonalInfoSection
             fullName={formData.fullName}
