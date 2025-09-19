@@ -19,7 +19,7 @@ interface ProfileInfoProps {
     occupation?: string;
     bio?: string;
     avatarUrl?: string | null;
-    instagramHandle?: string;
+    instagramUrl?: string;
   };
   onProfileUpdate: () => Promise<void>;
   isViewOnly?: boolean;

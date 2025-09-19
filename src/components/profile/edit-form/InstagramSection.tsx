@@ -1,28 +1,28 @@
 import React, { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Instagram } from "lucide-react";
-import { validateInstagramHandle, getInstagramValidationError } from "@/utils/instagramValidation";
+import { Instagram, ExternalLink } from "lucide-react";
+import { validateInstagramUrl, getInstagramUrlValidationError, extractInstagramUsername } from "@/utils/instagramValidation";
 
 interface InstagramSectionProps {
-  instagramHandle: string;
+  instagramUrl: string;
   onInputChange: (field: string, value: string) => void;
 }
 
 export const InstagramSection: React.FC<InstagramSectionProps> = ({
-  instagramHandle,
+  instagramUrl,
   onInputChange,
 }) => {
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleInputChange = (value: string) => {
     // Use proper validation helper
-    if (validateInstagramHandle(value)) {
-      onInputChange("instagramHandle", value);
+    if (validateInstagramUrl(value)) {
+      onInputChange("instagramUrl", value);
       setValidationError(null);
     } else {
       // Show specific validation error
-      const errorMessage = getInstagramValidationError(value);
+      const errorMessage = getInstagramUrlValidationError(value);
       setValidationError(errorMessage);
     }
   };
@@ -35,30 +35,36 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="instagramHandle" className="text-sm font-medium text-gray-700">
-          Instagram Handle
+        <Label htmlFor="instagramUrl" className="text-sm font-medium text-gray-700">
+          Instagram Profile URL
         </Label>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
-            @
+          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <ExternalLink className="h-4 w-4" />
           </span>
           <Input
-            id="instagramHandle"
-            type="text"
-            placeholder="username"
-            value={instagramHandle}
+            id="instagramUrl"
+            type="url"
+            placeholder="https://instagram.com/username"
+            value={instagramUrl}
             onChange={(e) => handleInputChange(e.target.value)}
-            className={`pl-8 ${validationError ? 'border-red-500' : ''}`}
-            maxLength={30}
+            className={`pl-10 ${validationError ? 'border-red-500' : ''}`}
+            maxLength={500}
           />
         </div>
+        {instagramUrl && !validationError && (
+          <p className="text-xs text-green-600 flex items-center gap-1">
+            <span>✓</span>
+            Profile: @{extractInstagramUsername(instagramUrl)}
+          </p>
+        )}
         {validationError ? (
           <p className="text-xs text-red-500">
             {validationError}
           </p>
         ) : (
           <p className="text-xs text-gray-500">
-            Share your Instagram with your TagTeam partners to build stronger connections
+            Share your Instagram profile URL with your TagTeam partners to build stronger connections
           </p>
         )}
       </div>

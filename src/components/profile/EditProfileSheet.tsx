@@ -33,7 +33,7 @@ interface EditProfileSheetProps {
     avatarUrl?: string | null;
     fullAddress?: string;
     coordinates?: { lat: number; lng: number };
-    instagramHandle?: string;
+    instagramUrl?: string;
   };
   onProfileUpdate: () => void;
 }
@@ -78,7 +78,7 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
         avatarUrl: formData.avatarUrl,
         fullAddress: formData.fullAddress,
         coordinates: formData.coordinates,
-        instagramHandle: formData.instagramHandle
+        instagramUrl: formData.instagramUrl
       }, file);
 
       if (success) {
@@ -135,7 +135,7 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
         avatarUrl: formData.avatarUrl,
         fullAddress: formData.fullAddress,
         coordinates: formData.coordinates,
-        instagramHandle: formData.instagramHandle
+        instagramUrl: formData.instagramUrl
       }, profileImage);
       
       if (success) {
@@ -188,7 +188,7 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
             onInputChange={handleInputChange} 
           />
           <InstagramSection
-            instagramHandle={formData.instagramHandle || ''}
+            instagramUrl={formData.instagramUrl || ''}
             onInputChange={handleInputChange}
           />
           <Button className="w-full" onClick={handleSave} disabled={isSaving}>

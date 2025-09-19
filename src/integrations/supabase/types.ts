@@ -119,6 +119,7 @@ export type Database = {
           gender: string | null
           id: string
           instagram_handle: string | null
+          instagram_url: string | null
           interests: string[] | null
           occupation: string | null
           updated_at: string | null
@@ -138,6 +139,7 @@ export type Database = {
           gender?: string | null
           id: string
           instagram_handle?: string | null
+          instagram_url?: string | null
           interests?: string[] | null
           occupation?: string | null
           updated_at?: string | null
@@ -157,6 +159,7 @@ export type Database = {
           gender?: string | null
           id?: string
           instagram_handle?: string | null
+          instagram_url?: string | null
           interests?: string[] | null
           occupation?: string | null
           updated_at?: string | null
@@ -385,8 +388,8 @@ export type Database = {
         Args: { team_id_param: string }
         Returns: number
       }
-      validate_instagram_handle: {
-        Args: { handle: string }
+      validate_instagram_url: {
+        Args: { url: string }
         Returns: boolean
       }
     }

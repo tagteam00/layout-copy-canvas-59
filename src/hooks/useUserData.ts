@@ -102,9 +102,9 @@ export const useUserData = () => {
           throw new Error('Username is required');
         }
 
-        // Validate Instagram handle if provided
-        if (data.instagramHandle && !/^[a-zA-Z0-9._]+$/.test(data.instagramHandle)) {
-          throw new Error('Invalid Instagram handle format');
+        // Validate Instagram URL if provided
+        if (data.instagramUrl && !/^https?:\/\/(www\.)?(instagram\.com|instagr\.am)\//.test(data.instagramUrl)) {
+          throw new Error('Invalid Instagram URL format');
         }
 
         let profileData = userDataToProfile(data, authData.user.id);
