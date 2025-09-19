@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Instagram, ExternalLink } from "lucide-react";
-import { validateInstagramUrl, getInstagramUrlValidationError, extractInstagramUsername } from "@/utils/instagramValidation";
+import { Instagram } from "lucide-react";
+import { validateInstagramUrl, getInstagramUrlValidationError, extractUsernameFromUrl } from "@/utils/instagramValidation";
 
 interface InstagramSectionProps {
   instagramUrl: string;
@@ -38,26 +38,15 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({
         <Label htmlFor="instagramUrl" className="text-sm font-medium text-gray-700">
           Instagram Profile URL
         </Label>
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            <ExternalLink className="h-4 w-4" />
-          </span>
-          <Input
-            id="instagramUrl"
-            type="url"
-            placeholder="https://instagram.com/username"
-            value={instagramUrl}
-            onChange={(e) => handleInputChange(e.target.value)}
-            className={`pl-10 ${validationError ? 'border-red-500' : ''}`}
-            maxLength={500}
-          />
-        </div>
-        {instagramUrl && !validationError && (
-          <p className="text-xs text-green-600 flex items-center gap-1">
-            <span>✓</span>
-            Profile: @{extractInstagramUsername(instagramUrl)}
-          </p>
-        )}
+        <Input
+          id="instagramUrl"
+          type="url"
+          placeholder="https://instagram.com/username"
+          value={instagramUrl}
+          onChange={(e) => handleInputChange(e.target.value)}
+          className={validationError ? 'border-red-500' : ''}
+          maxLength={500}
+        />
         {validationError ? (
           <p className="text-xs text-red-500">
             {validationError}

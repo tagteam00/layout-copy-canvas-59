@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Instagram, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { extractUsernameFromUrl } from "@/utils/instagramValidation";
 
 interface InstagramSectionProps {
   currentUserId: string;
@@ -11,7 +12,8 @@ interface InstagramSectionProps {
 
 interface UserInstagramData {
   name: string;
-  instagramHandle: string;
+  instagramUrl: string;
+  username: string;
 }
 
 export const InstagramSection: React.FC<InstagramSectionProps> = ({
@@ -23,34 +25,35 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchInstagramHandles = async () => {
+    const fetchInstagramUrls = async () => {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('id, full_name, instagram_handle')
+          .select('id, full_name, instagram_url')
           .eq('id', partnerUserId);
 
         if (error) {
-          console.error('Error fetching Instagram handles:', error);
+          console.error('Error fetching Instagram URLs:', error);
           return;
         }
 
-        const handles = data
-          .filter(profile => profile.instagram_handle && profile.instagram_handle.trim() !== '')
+        const urls = data
+          .filter(profile => profile.instagram_url && profile.instagram_url.trim() !== '')
           .map(profile => ({
             name: profile.full_name || 'Unknown',
-            instagramHandle: profile.instagram_handle as string
+            instagramUrl: profile.instagram_url as string,
+            username: extractUsernameFromUrl(profile.instagram_url as string)
           }));
 
-        setInstagramData(handles);
+        setInstagramData(urls);
       } catch (error) {
-        console.error('Error fetching Instagram handles:', error);
+        console.error('Error fetching Instagram URLs:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchInstagramHandles();
+    fetchInstagramUrls();
   }, [partnerUserId]);
 
   if (loading) {
@@ -61,8 +64,8 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({
     return null;
   }
 
-  const handleInstagramClick = (handle: string) => {
-    const url = `https://instagram.com/${handle.replace('@', '')}`;
+  const handleInstagramClick = (url: string) => {
+    // Open Instagram URL directly in a new tab
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
@@ -79,9 +82,9 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({
             key={index}
             variant="secondary"
             className="cursor-pointer hover:bg-pink-50 hover:text-pink-700 transition-colors flex items-center gap-2 px-3 py-1.5"
-            onClick={() => handleInstagramClick(user.instagramHandle)}
+            onClick={() => handleInstagramClick(user.instagramUrl)}
           >
-            <span className="text-sm">@{user.instagramHandle}</span>
+            <span className="text-sm">@{user.username || 'Instagram'}</span>
             <span className="text-xs text-gray-500">({user.name})</span>
             <ExternalLink className="h-3 w-3" />
           </Badge>

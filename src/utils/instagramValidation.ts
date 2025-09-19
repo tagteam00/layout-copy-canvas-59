@@ -24,14 +24,12 @@ export const getInstagramUrlValidationError = (url: string): string | null => {
   return null;
 };
 
-// Helper function to extract username from Instagram URL for display
-export const extractInstagramUsername = (url: string): string => {
+export const extractUsernameFromUrl = (url: string): string => {
   if (!url) return '';
   
   try {
-    const urlObj = new URL(url);
-    const pathname = urlObj.pathname;
-    const match = pathname.match(/^\/([^\/\?]+)/);
+    // Extract username from Instagram URL
+    const match = url.match(/instagram\.com\/([^\/\?]+)/);
     return match ? match[1] : '';
   } catch {
     return '';

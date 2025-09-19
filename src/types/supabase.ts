@@ -1,5 +1,4 @@
 
-
 import { Tables, TablesInsert } from "@/integrations/supabase/types";
 
 export interface UserData {
@@ -87,4 +86,3 @@ export const profileToUserData = (profile: Profile): UserData => {
     instagramUrl: profile.instagram_url || ''
   };
 };
-

@@ -140,15 +140,15 @@ export const useUserData = () => {
         if (error) {
           console.error('Supabase upsert error:', error);
           
-          // Check for specific Instagram handle validation error
-          if (error.message?.includes('Invalid Instagram handle format') || 
-              error.message?.includes('instagram_handle')) {
-            throw new Error('Instagram handle format is invalid. Only letters, numbers, periods, and underscores are allowed. Cannot start/end with periods or have consecutive periods.');
+          // Check for specific Instagram URL validation error
+          if (error.message?.includes('Invalid Instagram URL format') || 
+              error.message?.includes('instagram_url')) {
+            throw new Error('Instagram URL format is invalid. Please enter a valid Instagram URL (e.g., https://instagram.com/username).');
           }
           
           // Check for profile validation trigger errors
-          if (error.message?.includes('validate_profile_data')) {
-            throw new Error('Profile data validation failed. Please check your Instagram handle format.');
+          if (error.message?.includes('validate_profile_instagram_url')) {
+            throw new Error('Profile data validation failed. Please check your Instagram URL format.');
           }
           
           // Check for other validation errors
@@ -238,7 +238,7 @@ export const useUserData = () => {
         occupation: '', // Not available in public profiles
         bio: '', // Not available in public profiles
         avatarUrl: profile.avatar_url,
-        instagramHandle: '' // Not available in public profiles
+        instagramUrl: '' // Not available in public profiles
       }));
     } catch (error) {
       console.error('Error getting all users:', error);
