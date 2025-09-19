@@ -148,6 +148,17 @@ export const useUserData = () => {
           
         if (error) {
           console.error('Supabase upsert error:', error);
+          
+          // Check for specific Instagram handle validation error
+          if (error.message?.includes('Invalid Instagram handle format')) {
+            throw new Error('Instagram handle format is invalid. Use only letters, numbers, periods, and underscores.');
+          }
+          
+          // Check for other validation errors
+          if (error.message?.includes('violates check constraint') || error.message?.includes('validation')) {
+            throw new Error('Please check that all fields are filled out correctly.');
+          }
+          
           throw new Error(`Failed to save profile: ${error.message}`);
         }
         

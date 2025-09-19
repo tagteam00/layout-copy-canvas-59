@@ -32,8 +32,15 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({
             type="text"
             placeholder="username"
             value={instagramHandle}
-            onChange={(e) => onInputChange("instagramHandle", e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              // Client-side validation to match database rules
+              if (value === '' || /^[a-zA-Z0-9._]+$/.test(value)) {
+                onInputChange("instagramHandle", value);
+              }
+            }}
             className="pl-8"
+            maxLength={30}
           />
         </div>
         <p className="text-xs text-gray-500">
