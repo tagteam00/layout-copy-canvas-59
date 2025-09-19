@@ -12,15 +12,49 @@ export const useUserData = () => {
   // Upload profile image to Supabase storage
   const uploadProfileImage = useCallback(async (file: File, userId: string): Promise<string | null> => {
     try {
+      // Check network connectivity
+      if (!navigator.onLine) {
+        throw new Error('No internet connection');
+      }
+
+      // Verify authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Authentication required');
+      }
+
+      // Delete existing avatar if any
+      const { data: existingFiles, error: listError } = await supabase.storage
+        .from('avatars')
+        .list(`${userId}/`, { limit: 100 });
+      
+      if (listError) {
+        console.warn('Could not list existing files:', listError);
+      }
+      
+      if (existingFiles && existingFiles.length > 0) {
+        const filesToDelete = existingFiles.map(file => `${userId}/${file.name}`);
+        const { error: deleteError } = await supabase.storage
+          .from('avatars')
+          .remove(filesToDelete);
+        
+        if (deleteError) {
+          console.warn('Could not delete existing files:', deleteError);
+        }
+      }
+
       const fileExt = file.name.split('.').pop();
       const filePath = `${userId}/${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
 
       if (uploadError) {
-        throw uploadError;
+        throw new Error(`Upload failed: ${uploadError.message}`);
       }
 
       // Get the public URL for the uploaded file
@@ -30,66 +64,118 @@ export const useUserData = () => {
 
       const publicUrl = data.publicUrl;
       if (!publicUrl) {
-        toast.error('Failed to obtain public URL for uploaded image');
-        return null;
+        throw new Error('Failed to obtain public URL for uploaded image');
       }
 
-      toast.success('Image uploaded');
+      console.log('Image uploaded successfully:', publicUrl);
       return publicUrl;
     } catch (error: any) {
       console.error('Error uploading profile image:', error?.message || error);
-      toast.error('Image upload failed');
-      return null;
+      throw error; // Re-throw to allow proper error handling
     }
   }, []);
 
   const saveUserData = useCallback(async (data: UserData, profileImage?: File | null) => {
-    setLoading(true);
+    const maxRetries = 3;
+    let attempt = 0;
     
-    try {
-      const { data: authData } = await supabase.auth.getUser();
-      
-      if (!authData.user) {
-        throw new Error('Not authenticated');
-      }
-      
-      const profileData = userDataToProfile(data, authData.user.id);
-      
-      // If a new profile image is provided, upload it
-      if (profileImage) {
-        const imageUrl = await uploadProfileImage(profileImage, authData.user.id);
-        if (imageUrl) {
-          profileData.avatar_url = imageUrl;
-        } else {
-          toast.error('Could not save new profile photo');
-        }
-      } else if (profileImage === null) {
-        // If explicitly set to null, remove the avatar
-        profileData.avatar_url = null;
-      }
-      
-      console.log('About to save profile data:', profileData);
-      
-      const { error } = await supabase
-        .from('profiles')
-        .upsert(profileData)
-        .select();
+    while (attempt < maxRetries) {
+      try {
+        setLoading(true);
         
-      if (error) {
-        console.error('Supabase upsert error:', error);
-        throw error;
+        // Check network connectivity
+        if (!navigator.onLine) {
+          throw new Error('No internet connection. Please check your network and try again.');
+        }
+        
+        // Get current user with retry
+        const { data: authData, error: authError } = await supabase.auth.getUser();
+        if (authError || !authData.user) {
+          throw new Error('Authentication required. Please sign in again.');
+        }
+
+        // Validate required fields
+        if (!data.fullName?.trim()) {
+          throw new Error('Full name is required');
+        }
+        if (!data.username?.trim()) {
+          throw new Error('Username is required');
+        }
+
+        // Validate Instagram handle if provided
+        if (data.instagramHandle && !/^[a-zA-Z0-9._]+$/.test(data.instagramHandle)) {
+          throw new Error('Invalid Instagram handle format');
+        }
+
+        let profileData = userDataToProfile(data, authData.user.id);
+        
+        // If a new profile image is provided, upload it
+        if (profileImage) {
+          try {
+            const imageUrl = await uploadProfileImage(profileImage, authData.user.id);
+            if (imageUrl) {
+              profileData.avatar_url = imageUrl;
+            } else {
+              throw new Error('Failed to upload profile image');
+            }
+          } catch (uploadError) {
+            console.error('Image upload failed:', uploadError);
+            throw new Error(`Image upload failed: ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`);
+          }
+        } else if (profileImage === null) {
+          // If explicitly set to null, remove the avatar
+          profileData.avatar_url = null;
+        }
+
+        // Check if this is a new profile or update to avoid setting created_at
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', authData.user.id)
+          .single();
+
+        // Don't set created_at for updates
+        if (existingProfile) {
+          delete (profileData as any).created_at;
+        }
+        
+        console.log('About to save profile data:', profileData);
+        
+        const { error } = await supabase
+          .from('profiles')
+          .upsert(profileData)
+          .select();
+          
+        if (error) {
+          console.error('Supabase upsert error:', error);
+          throw new Error(`Failed to save profile: ${error.message}`);
+        }
+        
+        console.log('Profile data saved successfully');
+        return true;
+        
+      } catch (error: any) {
+        attempt++;
+        console.error(`Attempt ${attempt} failed:`, error);
+        
+        // If this was the last attempt, show error and return false
+        if (attempt >= maxRetries) {
+          const errorMessage = error.message || 'Failed to save profile';
+          console.error('Final attempt failed:', errorMessage);
+          toast.error(errorMessage);
+          return false;
+        }
+        
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+      } finally {
+        if (attempt >= maxRetries || attempt === 0) {
+          setLoading(false);
+        }
       }
-      
-      console.log('Profile data saved successfully');
-      return true;
-    } catch (error: any) {
-      console.error('Error saving user data:', error.message);
-      console.error('Full error:', error);
-      toast.error('Failed to save profile data');
-      return false;
-    } finally {
-      setLoading(false);
     }
+    
+    return false;
   }, [uploadProfileImage]);
 
   const getUserData = useCallback(async (): Promise<UserData | null> => {

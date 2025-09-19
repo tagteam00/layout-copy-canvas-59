@@ -37,19 +37,33 @@ export const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    // Validate file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File too large - please select an image under 10MB");
+      return;
+    }
+
+    setIsLoading(true);
+
     try {
-      setIsLoading(true);
-      
-      // Check file type
-      if (!file.type.startsWith('image/')) {
-        toast.error("Please select an image file");
-        return;
+      // Check if image compression utilities are available
+      if (typeof compressImage !== 'function') {
+        throw new Error('Image compression not available');
       }
-      
+
       // Compress image
       const compressedBlob = await compressImage(file);
-      const compressedFile = new File([compressedBlob], file.name, { type: compressedBlob.type });
+      const compressedFile = new File([compressedBlob], file.name, { 
+        type: compressedBlob.type,
+        lastModified: Date.now()
+      });
       
       // Create preview URL
       const newPreviewUrl = URL.createObjectURL(compressedBlob);
@@ -66,9 +80,19 @@ export const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
       }
     } catch (error) {
       console.error("Error processing image:", error);
-      toast.error("Failed to process image");
+      
+      // Reset on error
+      setPreviewUrl(null);
+      onImageChange(null);
+      
+      toast.error("Failed to process image. Please try again.");
     } finally {
       setIsLoading(false);
+      
+      // Reset the input to allow selecting the same file again
+      if (e.target) {
+        e.target.value = '';
+      }
     }
   };
   

@@ -52,11 +52,16 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Auto-save profile photo immediately on selection/removal to prevent losing it
+  // Handle image change with better error handling
   const handleImageChange = async (file: File | null) => {
     setProfileImage(file);
+    
+    // Auto-save the photo change immediately
+    if (!navigator.onLine) {
+      toast.error("No internet connection. Photo will be saved when connection is restored.");
+      return;
+    }
 
-    // Only auto-save the photo change to avoid losing it on sheet close
     setIsSaving(true);
     try {
       const success = await saveUserData({
@@ -77,19 +82,45 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
       }, file);
 
       if (success) {
-        toast.success(file ? "Profile photo saved" : "Profile photo removed");
-        onProfileUpdate();
+        toast.success(file ? "Profile photo updated successfully" : "Profile photo removed");
+        // Update form data with potentially new avatar URL
+        if (file) {
+          // The saveUserData should have updated the avatar URL, refresh the profile
+          onProfileUpdate();
+        }
       } else {
-        toast.error("Couldn't save profile photo. Please try again.");
+        toast.error("Failed to save profile photo. Please try again.");
+        // Reset the profile image state on failure
+        setProfileImage(null);
       }
+    } catch (error) {
+      console.error('Error saving profile photo:', error);
+      toast.error("An error occurred while saving your photo. Please try again.");
+      setProfileImage(null);
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleSave = async () => {
+    // Validate required fields before saving
+    if (!formData.fullName?.trim()) {
+      toast.error("Full name is required");
+      return;
+    }
+    
+    if (!formData.username?.trim()) {
+      toast.error("Username is required");
+      return;
+    }
+
+    if (!navigator.onLine) {
+      toast.error("No internet connection. Please check your network and try again.");
+      return;
+    }
+
+    setIsSaving(true);
     try {
-      setIsSaving(true);
       const success = await saveUserData({
         fullName: formData.fullName,
         username: formData.username,
@@ -110,9 +141,13 @@ export const EditProfileSheet: React.FC<EditProfileSheetProps> = ({
       if (success) {
         toast.success("Profile updated successfully");
         onProfileUpdate();
+      } else {
+        toast.error("Failed to update profile. Please check your information and try again.");
       }
     } catch (error) {
-      toast.error("Failed to update profile");
+      console.error('Error updating profile:', error);
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      toast.error(`Failed to update profile: ${errorMessage}`);
     } finally {
       setIsSaving(false);
     }
