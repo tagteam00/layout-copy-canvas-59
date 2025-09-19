@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Instagram } from "lucide-react";
+import { validateInstagramHandle, getInstagramValidationError } from "@/utils/instagramValidation";
 
 interface InstagramSectionProps {
   instagramHandle: string;
@@ -12,6 +13,20 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({
   instagramHandle,
   onInputChange,
 }) => {
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const handleInputChange = (value: string) => {
+    // Use proper validation helper
+    if (validateInstagramHandle(value)) {
+      onInputChange("instagramHandle", value);
+      setValidationError(null);
+    } else {
+      // Show specific validation error
+      const errorMessage = getInstagramValidationError(value);
+      setValidationError(errorMessage);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
@@ -32,20 +47,20 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({
             type="text"
             placeholder="username"
             value={instagramHandle}
-            onChange={(e) => {
-              const value = e.target.value;
-              // Client-side validation to match database rules
-              if (value === '' || /^[a-zA-Z0-9._]+$/.test(value)) {
-                onInputChange("instagramHandle", value);
-              }
-            }}
-            className="pl-8"
+            onChange={(e) => handleInputChange(e.target.value)}
+            className={`pl-8 ${validationError ? 'border-red-500' : ''}`}
             maxLength={30}
           />
         </div>
-        <p className="text-xs text-gray-500">
-          Share your Instagram with your TagTeam partners to build stronger connections
-        </p>
+        {validationError ? (
+          <p className="text-xs text-red-500">
+            {validationError}
+          </p>
+        ) : (
+          <p className="text-xs text-gray-500">
+            Share your Instagram with your TagTeam partners to build stronger connections
+          </p>
+        )}
       </div>
     </div>
   );

@@ -127,17 +127,8 @@ export const useUserData = () => {
           profileData.avatar_url = null;
         }
 
-        // Check if this is a new profile or update to avoid setting created_at
-        const { data: existingProfile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', authData.user.id)
-          .single();
-
-        // Don't set created_at for updates
-        if (existingProfile) {
-          delete (profileData as any).created_at;
-        }
+        // No need to check for existing profile or manage timestamps manually
+        // Database will handle created_at and updated_at automatically
         
         console.log('About to save profile data:', profileData);
         
@@ -150,12 +141,20 @@ export const useUserData = () => {
           console.error('Supabase upsert error:', error);
           
           // Check for specific Instagram handle validation error
-          if (error.message?.includes('Invalid Instagram handle format')) {
-            throw new Error('Instagram handle format is invalid. Use only letters, numbers, periods, and underscores.');
+          if (error.message?.includes('Invalid Instagram handle format') || 
+              error.message?.includes('instagram_handle')) {
+            throw new Error('Instagram handle format is invalid. Only letters, numbers, periods, and underscores are allowed. Cannot start/end with periods or have consecutive periods.');
+          }
+          
+          // Check for profile validation trigger errors
+          if (error.message?.includes('validate_profile_data')) {
+            throw new Error('Profile data validation failed. Please check your Instagram handle format.');
           }
           
           // Check for other validation errors
-          if (error.message?.includes('violates check constraint') || error.message?.includes('validation')) {
+          if (error.message?.includes('violates check constraint') || 
+              error.message?.includes('validation') ||
+              error.message?.includes('trigger')) {
             throw new Error('Please check that all fields are filled out correctly.');
           }
           

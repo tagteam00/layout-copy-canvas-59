@@ -42,8 +42,8 @@ export const userDataToProfile = (userData: UserData, userId: string): ProfileIn
     avatar_url: userData.avatarUrl,
     // Only include instagram_handle if it's defined and not empty to avoid validation issues
     instagram_handle: userData.instagramHandle || null,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    // Remove hardcoded timestamps - let database handle these automatically
+    // created_at and updated_at will be set by database defaults and triggers
   };
 };
 
